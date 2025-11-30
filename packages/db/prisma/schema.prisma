@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum PrepVoteValue {
+  AGREE
+  DISAGREE
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum UserRole {
+  MEMBER
+  CURATOR
+  ADMIN
+}
+
+model Author {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  bio       String?
+  books     Book[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Genre {
+  id          String      @id @default(cuid())
+  name        String
+  slug        String       @unique
+  description String?
+  books       BookGenre[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Book {
+  id             String           @id @default(cuid())
+  title          String
+  slug           String           @unique
+  subtitle       String?
+  synopsis       String?
+  publishedYear  Int?
+  coverImageUrl  String?
+  authorId       String
+  author         Author           @relation(fields: [authorId], references: [id])
+  genres         BookGenre[]
+  preps          BookPrep[]
+  prepSuggestions PrepSuggestion[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model BookGenre {
+  bookId  String
+  genreId String
+  book    Book   @relation(fields: [bookId], references: [id])
+  genre   Genre  @relation(fields: [genreId], references: [id])
+  addedAt DateTime @default(now())
+
+  @@id([bookId, genreId])
+}
+
+model PrepKeyword {
+  id          String            @id @default(cuid())
+  name        String
+  slug        String             @unique
+  description String?
+  preps       PrepKeywordOnPrep[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model PrepKeywordOnPrep {
+  prepId    String
+  keywordId String
+  prep      BookPrep   @relation(fields: [prepId], references: [id])
+  keyword   PrepKeyword @relation(fields: [keywordId], references: [id])
+
+  @@id([prepId, keywordId])
+}
+
+model BookPrep {
+  id           String            @id @default(cuid())
+  bookId       String
+  heading      String
+  summary      String
+  watchFor     String?
+  colorHint    String?
+  createdById  String?
+  book         Book              @relation(fields: [bookId], references: [id])
+  createdBy    UserProfile?      @relation("UserProfileToBookPrep", fields: [createdById], references: [id])
+  keywords     PrepKeywordOnPrep[]
+  votes        PrepVote[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model PrepVote {
+  id        String       @id @default(cuid())
+  prepId    String
+  userId    String
+  value     PrepVoteValue
+  prep      BookPrep     @relation(fields: [prepId], references: [id])
+  user      UserProfile  @relation(fields: [userId], references: [id])
+  createdAt DateTime     @default(now())
+
+  @@unique([prepId, userId])
+}
+
+model PrepSuggestion {
+  id             String           @id @default(cuid())
+  bookId         String
+  submittedById  String
+  title          String
+  description    String
+  keywordHints   Json?
+  status         SuggestionStatus @default(PENDING)
+  moderatorNote  String?
+  book           Book             @relation(fields: [bookId], references: [id])
+  submittedBy    UserProfile      @relation(fields: [submittedById], references: [id])
+  createdAt      DateTime         @default(now())
+  reviewedAt     DateTime?
+}
+
+model BookSuggestion {
+  id             String           @id @default(cuid())
+  title          String
+  authorName     String
+  notes          String?
+  genreIdeas     Json?
+  prepIdeas      Json?
+  status         SuggestionStatus @default(PENDING)
+  submittedById  String?
+  submittedBy    UserProfile?     @relation(fields: [submittedById], references: [id])
+  createdAt      DateTime         @default(now())
+  reviewedAt     DateTime?
+}
+
+model UserProfile {
+  id              String          @id @default(cuid())
+  cognitoSub      String          @unique
+  email           String          @unique
+  displayName     String
+  avatarUrl       String?
+  role            UserRole        @default(MEMBER)
+  prepVotes       PrepVote[]
+  prepSuggestions PrepSuggestion[]
+  bookSuggestions BookSuggestion[]
+  createdPreps    BookPrep[]      @relation("UserProfileToBookPrep")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+

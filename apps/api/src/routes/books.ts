@@ -1,0 +1,290 @@
+import type { FastifyPluginAsync } from "fastify";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "db";
+import {
+  bookSlugParamsSchema,
+  listBooksQuerySchema,
+  type ListBooksQuery
+} from "../schemas.js";
+
+type BookListResult = Prisma.BookGetPayload<{
+  include: {
+    author: true;
+    genres: { include: { genre: true } };
+    _count: { select: { preps: true } };
+  };
+}>;
+
+type BookDetailResult = Prisma.BookGetPayload<{
+  include: {
+    author: true;
+    genres: { include: { genre: true } };
+    preps: {
+      include: {
+        keywords: { include: { keyword: true } };
+        votes: true;
+      };
+    };
+  };
+}>;
+
+type PrepWithRelations = Prisma.BookPrepGetPayload<{
+  include: {
+    keywords: { include: { keyword: true } };
+    votes: true;
+  };
+}>;
+
+const booksRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.get("/genres", async () => {
+    const genres = await prisma.genre.findMany({
+      orderBy: { name: "asc" }
+    });
+
+    return {
+      genres: genres.map((genre) => ({
+        id: genre.id,
+        name: genre.name,
+        slug: genre.slug,
+        description: genre.description
+      }))
+    };
+  });
+
+  fastify.get("/authors", async () => {
+    const authors = await prisma.author.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { books: true }
+        }
+      }
+    });
+
+    return {
+      authors: authors.map((author) => ({
+        id: author.id,
+        name: author.name,
+        slug: author.slug,
+        bio: author.bio,
+        bookCount: author._count.books
+      }))
+    };
+  });
+
+  fastify.get("/books", async (request) => {
+    const query = listBooksQuerySchema.parse(request.query);
+    const where = buildBookFilters(query);
+
+    const totalPromise = prisma.book.count({ where });
+    const booksPromise = prisma.book.findMany({
+      where,
+      orderBy: { title: "asc" },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: {
+        author: true,
+        genres: {
+          include: {
+            genre: true
+          }
+        },
+        _count: {
+          select: { preps: true }
+        }
+      }
+    });
+
+    const [total, books] = await Promise.all([totalPromise, booksPromise]);
+
+    return {
+      pagination: {
+        total,
+        page: query.page,
+        pageSize: query.pageSize,
+        totalPages: Math.ceil(total / query.pageSize)
+      },
+      results: books.map((book: BookListResult) => ({
+        id: book.id,
+        slug: book.slug,
+        title: book.title,
+        synopsis: book.synopsis,
+        author: {
+          name: book.author.name,
+          slug: book.author.slug
+        },
+        genres: book.genres.map((entry) => ({
+          id: entry.genre.id,
+          name: entry.genre.name,
+          slug: entry.genre.slug
+        })),
+        prepCount: book._count.preps
+      }))
+    };
+  });
+
+  fastify.get("/books/:slug", async (request) => {
+    const params = bookSlugParamsSchema.parse(request.params);
+
+    const book = await prisma.book.findUnique({
+      where: { slug: params.slug },
+      include: {
+        author: true,
+        genres: { include: { genre: true } },
+        preps: {
+          include: {
+            keywords: {
+              include: {
+                keyword: true
+              }
+            },
+            votes: true
+          },
+          orderBy: {
+            heading: "asc"
+          }
+        }
+      }
+    });
+
+    if (!book) {
+      throw fastify.httpErrors.notFound("Book not found");
+    }
+
+    return mapBookDetail(book);
+  });
+
+  fastify.get("/books/:slug/preps", async (request) => {
+    const params = bookSlugParamsSchema.parse(request.params);
+
+    const book = await prisma.book.findUnique({
+      where: { slug: params.slug },
+      select: {
+        id: true,
+        preps: {
+          include: {
+            keywords: {
+              include: { keyword: true }
+            },
+            votes: true
+          },
+          orderBy: { heading: "asc" }
+        }
+      }
+    });
+
+    if (!book) {
+      throw fastify.httpErrors.notFound("Book not found");
+    }
+
+    return {
+      slug: params.slug,
+      preps: book.preps.map(formatPrep)
+    };
+  });
+};
+
+function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
+  const where: Prisma.BookWhereInput = {};
+
+  if (query.search) {
+    const searchTerm = query.search.trim();
+    where.OR = [
+      { title: { contains: searchTerm } },
+      { synopsis: { contains: searchTerm } },
+      { author: { name: { contains: searchTerm } } }
+    ];
+  }
+
+  if (query.author) {
+    const authorTerm = query.author.trim();
+    where.author = {
+      OR: [
+        { slug: authorTerm },
+        { name: { contains: authorTerm } }
+      ]
+    };
+  }
+
+  const genreSlugs =
+    query.genres
+      ?.split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean) ?? [];
+
+  if (genreSlugs.length > 0) {
+    where.genres = {
+      some: {
+        genre: {
+          slug: { in: genreSlugs }
+        }
+      }
+    };
+  }
+
+  const prepSlugs =
+    query.prep
+      ?.split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean) ?? [];
+
+  if (prepSlugs.length > 0) {
+    where.preps = {
+      some: {
+        keywords: {
+          some: {
+            keyword: {
+              slug: { in: prepSlugs }
+            }
+          }
+        }
+      }
+    };
+  }
+
+  return where;
+}
+
+function mapBookDetail(book: BookDetailResult) {
+  return {
+    id: book.id,
+    slug: book.slug,
+    title: book.title,
+    synopsis: book.synopsis,
+    author: {
+      id: book.author.id,
+      name: book.author.name,
+      slug: book.author.slug
+    },
+    genres: book.genres.map((entry) => ({
+      id: entry.genre.id,
+      name: entry.genre.name,
+      slug: entry.genre.slug
+    })),
+    preps: book.preps.map(formatPrep)
+  };
+}
+
+function formatPrep(prep: PrepWithRelations) {
+  const agree = prep.votes.filter((vote) => vote.value === "AGREE").length;
+  const disagree = prep.votes.filter((vote) => vote.value === "DISAGREE").length;
+
+  return {
+    id: prep.id,
+    heading: prep.heading,
+    summary: prep.summary,
+    watchFor: prep.watchFor,
+    colorHint: prep.colorHint,
+    keywords: prep.keywords.map((entry) => ({
+      slug: entry.keyword.slug,
+      name: entry.keyword.name
+    })),
+    votes: {
+      agree,
+      disagree
+    }
+  };
+}
+
+export default booksRoutes;
+
