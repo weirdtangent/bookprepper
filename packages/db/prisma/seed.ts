@@ -2632,19 +2632,17 @@ async function main() {
   await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS=0`;
 
   try {
-    await prisma.prepVote.deleteMany();
-    await prisma.prepKeywordOnPrep.deleteMany();
-    await prisma.bookPrep.deleteMany();
-    await prisma.prepSuggestion.deleteMany();
-    await prisma.bookGenre.deleteMany();
-    await prisma.book.deleteMany();
-    await prisma.author.deleteMany();
-    await prisma.genre.deleteMany();
-    await prisma.prepKeyword.deleteMany();
-    await prisma.bookSuggestion.deleteMany();
-    await prisma.userProfile.deleteMany();
-    await prisma.$executeRaw`TRUNCATE TABLE BookPrep`;
-    await prisma.$executeRaw`TRUNCATE TABLE Book`;
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepVote`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepKeywordOnPrep`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `BookPrep`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepSuggestion`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `BookGenre`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `Book`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `Author`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `Genre`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepKeyword`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `BookSuggestion`");
+    await prisma.$executeRawUnsafe("TRUNCATE TABLE `UserProfile`");
   } finally {
     await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS=1`;
   }
