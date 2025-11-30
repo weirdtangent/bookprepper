@@ -2757,12 +2757,15 @@ async function main() {
         throw new Error(`Missing template for keyword ${prep.keyword}`);
       }
 
+      const summaryText = truncateText(template.summary(book.title, prep.note));
+      const watchForText = truncateText(template.watchFor(prep.focus ?? prep.note));
+
       const bookPrep = await prisma.bookPrep.create({
         data: {
           bookId: bookRecord.id,
-          heading: prep.heading ?? template.heading,
-          summary: template.summary(book.title, prep.note),
-          watchFor: template.watchFor(prep.focus ?? prep.note),
+          heading: truncateText(prep.heading ?? template.heading, 120),
+          summary: summaryText,
+          watchFor: watchForText,
           colorHint: prep.color ?? template.colorHint,
           createdById: systemUser.id
         }
@@ -2862,5 +2865,10 @@ function buildAutoPreps(title: string): SeedPrep[] {
       note: `Watch how characters in ${title} adapt when the stakes rise.`
     }
   ];
+}
+
+function truncateText(value: string | null | undefined, max = 180) {
+  if (!value) return value;
+  return value.length > max ? `${value.slice(0, max - 1).trim()}…` : value;
 }
 
