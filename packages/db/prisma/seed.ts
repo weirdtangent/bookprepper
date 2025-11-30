@@ -2643,6 +2643,8 @@ async function main() {
     await prisma.prepKeyword.deleteMany();
     await prisma.bookSuggestion.deleteMany();
     await prisma.userProfile.deleteMany();
+    await prisma.$executeRaw`TRUNCATE TABLE BookPrep`;
+    await prisma.$executeRaw`TRUNCATE TABLE Book`;
   } finally {
     await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS=1`;
   }
