@@ -58,7 +58,7 @@ if (typeof window !== "undefined") {
       disableDebug();
       window.location.reload();
     },
-    isEnabled
+    isEnabled: isDebugEnabled
   };
 }
 
