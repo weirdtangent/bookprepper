@@ -1,10 +1,8 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { useTheme } from "../../hooks/useTheme";
 
 export function AppLayout() {
   const auth = useAuth();
-  const [theme, toggleTheme] = useTheme();
 
   return (
     <div className="app-shell">
@@ -20,6 +18,11 @@ export function AppLayout() {
             <NavLink to="/suggest" className={({ isActive }) => (isActive ? "active" : "")}>
               Suggest a Book
             </NavLink>
+            {auth.isAuthenticated && (
+              <NavLink to="/config" className={({ isActive }) => (isActive ? "active" : "")}>
+                Config
+              </NavLink>
+            )}
           </nav>
           <div className="app-header__actions">
             {auth.isAuthenticated && (
@@ -27,10 +30,6 @@ export function AppLayout() {
                 {auth.user?.name ?? auth.user?.email ?? "Signed in"}
               </span>
             )}
-            <label className="theme-toggle">
-              <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} />
-              <span>{theme === "dark" ? "Dark mode" : "Light mode"}</span>
-            </label>
             <button
               className="auth-button"
               disabled={auth.isLoading}

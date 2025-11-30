@@ -1,5 +1,5 @@
 import { Amplify } from "aws-amplify";
-import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
+import { fetchAuthSession, signInWithRedirect, signOut, updateUserAttributes } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import {
   createContext,
@@ -24,6 +24,7 @@ type AuthContextValue = {
   signIn: () => void;
   signOut: () => void;
   requireAuth: () => boolean;
+  updateNickname: (nickname: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -33,7 +34,8 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   signIn: () => undefined,
   signOut: () => undefined,
-  requireAuth: () => false
+  requireAuth: () => false,
+  updateNickname: async () => undefined
 });
 
 type Props = {
@@ -107,6 +109,18 @@ export function AuthProvider({ children }: Props) {
     return false;
   }, [token, handleSignIn]);
 
+  const updateNickname = useCallback(
+    async (nickname: string) => {
+      await updateUserAttributes({
+        userAttributes: {
+          nickname
+        }
+      });
+      await hydrateSession();
+    },
+    [hydrateSession]
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       isAuthenticated: Boolean(token),
@@ -115,9 +129,10 @@ export function AuthProvider({ children }: Props) {
       user,
       signIn: handleSignIn,
       signOut: handleSignOut,
-      requireAuth
+      requireAuth,
+      updateNickname
     }),
-    [token, isLoading, user, handleSignIn, handleSignOut, requireAuth]
+    [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

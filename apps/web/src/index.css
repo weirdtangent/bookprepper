@@ -93,6 +93,15 @@ a {
   margin-left: auto;
 }
 
+.auth-user {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.theme-dark .auth-user {
+  color: #cbd5f5;
+}
+
 .theme-toggle {
   display: flex;
   align-items: center;
@@ -101,8 +110,77 @@ a {
   color: #4b5563;
 }
 
+.theme-toggle input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
 .theme-dark .theme-toggle {
   color: #cbd5f5;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.config-field input {
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+}
+
+.theme-dark .config-field input {
+  background: #111827;
+  border-color: #2f3545;
+  color: #f5f5f7;
+}
+
+.helper-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.success-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #16a34a;
+}
+
+.error-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ef4444;
+}
+
+.primary-button {
+  align-self: flex-start;
+  background: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.config-theme h2 {
+  margin-top: 0;
 }
 
 .app-nav {
