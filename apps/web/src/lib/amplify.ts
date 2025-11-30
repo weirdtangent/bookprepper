@@ -17,7 +17,7 @@ export const amplifyConfig = {
       loginWith: {
         oauth: {
           domain: normalizeDomain(rawDomain),
-          scopes: ["email", "openid"],
+          scopes: ["email", "openid", "profile"],
           redirectSignIn: [redirectSignIn],
           redirectSignOut: [redirectSignOut],
           responseType: "code" as const
