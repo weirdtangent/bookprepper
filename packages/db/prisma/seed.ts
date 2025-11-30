@@ -2629,6 +2629,8 @@ function slugify(value: string) {
 async function main() {
   console.log("\"Seeding BookPrepper catalog\"");
 
+  await prisma.$executeRawUnsafe("SET FOREIGN_KEY_CHECKS=0;");
+
   await prisma.prepVote.deleteMany();
   await prisma.prepKeywordOnPrep.deleteMany();
   await prisma.bookPrep.deleteMany();
@@ -2639,6 +2641,8 @@ async function main() {
   await prisma.genre.deleteMany();
   await prisma.prepKeyword.deleteMany();
   await prisma.bookSuggestion.deleteMany();
+
+  await prisma.$executeRawUnsafe("SET FOREIGN_KEY_CHECKS=1;");
 
   const systemUser = await prisma.userProfile.upsert({
     where: { email: SYSTEM_USER_EMAIL },
