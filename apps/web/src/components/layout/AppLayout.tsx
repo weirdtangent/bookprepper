@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
-import { debugLog } from "../../lib/debug";
+import { debugLog, isDebugEnabled } from "../../lib/debug";
 
 export function AppLayout() {
   const auth = useAuth();
@@ -10,6 +11,20 @@ export function AppLayout() {
     userName: auth.user?.name,
     userEmail: auth.user?.email
   });
+
+  useEffect(() => {
+    if (isDebugEnabled()) {
+      window.bookprepperLayoutState = {
+        isAuthenticated: auth.isAuthenticated,
+        isLoading: auth.isLoading,
+        userName: auth.user?.name,
+        userEmail: auth.user?.email
+      };
+      debugLog("AppLayout: state snapshot", window.bookprepperLayoutState);
+    } else if (window.bookprepperLayoutState) {
+      delete window.bookprepperLayoutState;
+    }
+  }, [auth.isAuthenticated, auth.isLoading, auth.user?.name, auth.user?.email]);
 
   return (
     <div className="app-shell">
@@ -58,4 +73,15 @@ export function AppLayout() {
 }
 
 export default AppLayout;
+
+declare global {
+  interface Window {
+    bookprepperLayoutState?: {
+      isAuthenticated: boolean;
+      isLoading: boolean;
+      userName?: string | null;
+      userEmail?: string | null;
+    };
+  }
+}
 
