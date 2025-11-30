@@ -10,7 +10,7 @@ import {
   useState
 } from "react";
 import { amplifyConfig } from "./amplify";
-import { debugLog } from "./debug";
+import { debugLog, isDebugEnabled } from "./debug";
 
 Amplify.configure(amplifyConfig);
 
@@ -159,10 +159,42 @@ export function AuthProvider({ children }: Props) {
     [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname]
   );
 
+  useEffect(() => {
+    if (isDebugEnabled()) {
+      window.bookprepperAuthState = {
+        isAuthenticated: Boolean(token),
+        isLoading,
+        user
+      };
+      debugLog("AuthProvider: state snapshot", {
+        isAuthenticated: Boolean(token),
+        isLoading,
+        hasUser: Boolean(user),
+        userName: user?.name,
+        userEmail: user?.email
+      });
+    } else if (window.bookprepperAuthState) {
+      delete window.bookprepperAuthState;
+    }
+  }, [token, isLoading, user]);
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   return useContext(AuthContext);
+}
+
+declare global {
+  interface Window {
+    bookprepperAuthState?: {
+      isAuthenticated: boolean;
+      isLoading: boolean;
+      user: {
+        name?: string | null;
+        email?: string | null;
+      } | null;
+    };
+  }
 }
 
