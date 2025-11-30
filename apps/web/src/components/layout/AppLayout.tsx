@@ -1,8 +1,15 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
+import { debugLog } from "../../lib/debug";
 
 export function AppLayout() {
   const auth = useAuth();
+  debugLog("AppLayout: render", {
+    isAuthenticated: auth.isAuthenticated,
+    isLoading: auth.isLoading,
+    userName: auth.user?.name,
+    userEmail: auth.user?.email
+  });
 
   return (
     <div className="app-shell">
