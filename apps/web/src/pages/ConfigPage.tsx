@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../hooks/useTheme";
+import { debugLog, isDebugEnabled } from "../lib/debug";
 
 export default function ConfigPage() {
   const auth = useAuth();
@@ -9,6 +10,14 @@ export default function ConfigPage() {
   const [nickname, setNickname] = useState(auth.user?.name ?? "");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  debugLog("ConfigPage: render", {
+    isAuthenticated,
+    isLoading,
+    nickname,
+    status,
+    theme
+  });
 
   useEffect(() => {
     setNickname(auth.user?.name ?? "");
@@ -44,6 +53,21 @@ export default function ConfigPage() {
     }
   };
 
+  useEffect(() => {
+    if (isDebugEnabled()) {
+      window.bookprepperConfigState = {
+        isAuthenticated,
+        isLoading,
+        nickname,
+        status,
+        theme
+      };
+      debugLog("ConfigPage: state snapshot", window.bookprepperConfigState);
+    } else if (window.bookprepperConfigState) {
+      delete window.bookprepperConfigState;
+    }
+  }, [isAuthenticated, isLoading, nickname, status, theme]);
+
   return (
     <div className="page narrow">
       <h1>Reader Preferences</h1>
@@ -77,5 +101,17 @@ export default function ConfigPage() {
       </section>
     </div>
   );
+}
+
+declare global {
+  interface Window {
+    bookprepperConfigState?: {
+      isAuthenticated: boolean;
+      isLoading: boolean;
+      nickname: string;
+      status: "idle" | "saving" | "success" | "error";
+      theme: string;
+    };
+  }
 }
 
