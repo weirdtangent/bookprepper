@@ -22,6 +22,11 @@ export function AppLayout() {
             </NavLink>
           </nav>
           <div className="app-header__actions">
+            {auth.isAuthenticated && (
+              <span className="auth-user" aria-live="polite">
+                {auth.user?.name ?? auth.user?.email ?? "Signed in"}
+              </span>
+            )}
             <label className="theme-toggle">
               <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} />
               <span>{theme === "dark" ? "Dark mode" : "Light mode"}</span>
