@@ -52,8 +52,13 @@ export function AuthProvider({ children }: Props) {
       if (!payload) {
         throw new Error("Missing ID token payload");
       }
+      const name =
+        (payload.nickname as string | undefined) ??
+        (payload.preferred_username as string | undefined) ??
+        (payload.name as string | undefined) ??
+        (payload["cognito:username"] as string | undefined);
       setUser({
-        name: (payload.name as string | undefined) ?? (payload["cognito:username"] as string | undefined),
+        name,
         email: payload.email as string | undefined
       });
       setToken(session.tokens?.idToken?.toString() ?? null);
