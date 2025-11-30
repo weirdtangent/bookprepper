@@ -125,9 +125,14 @@ For HTTPS, wrap the server block with your TLS configuration or use AWS Certific
 
 5. **Environment variables recap**
    - Backend `.env`: `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`, `COGNITO_REGION`, `COGNITO_DOMAIN`.
-   - Frontend Vite env: `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`, `VITE_COGNITO_REGION`, `VITE_COGNITO_DOMAIN`, `VITE_COGNITO_REDIRECT_SIGNIN`, `VITE_COGNITO_REDIRECT_SIGNOUT`.
+   - Frontend Vite env: `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`, `VITE_COGNITO_REGION`, `VITE_COGNITO_DOMAIN`, `VITE_COGNITO_REDIRECT_SIGNIN`, `VITE_COGNITO_REDIRECT_SIGNOUT`, `VITE_DEBUG_MODE` (optional toggle for verbose client logging).
 
 After completing these steps, visiting the hosted UI or invoking `signInWithRedirect` from the SPA should send readers through Google/Apple SSO and back with an ID token the API can verify.
+
+### Debug logging
+
+- Build-time: set `VITE_DEBUG_MODE=true` before running `pnpm --filter web build` to keep auth debug logs enabled in the bundle.
+- Runtime (without rebuild): in the browser console run `window.bookprepperDebug.enable()` to persist debugging for that browser (stored in `localStorage`), then refresh. Disable with `window.bookprepperDebug.disable()`.
 
 ## Ongoing maintenance
 
