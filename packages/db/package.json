@@ -19,6 +19,9 @@
     "lint": "eslint \"src/**/*.ts\" --max-warnings=0",
     "typecheck": "tsc --noEmit"
   },
+  "prisma": {
+    "seed": "pnpm run seed"
+  },
   "dependencies": {
     "@prisma/client": "^5.19.2"
   },
