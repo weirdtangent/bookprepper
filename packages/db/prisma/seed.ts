@@ -2756,8 +2756,6 @@ async function main() {
       });
     }
 
-    await prisma.bookPrep.deleteMany({ where: { bookId: bookRecord.id } });
-
     for (const prep of book.preps) {
       const template = KEYWORD_TEMPLATES[prep.keyword];
       if (!template) {
