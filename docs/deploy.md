@@ -120,7 +120,7 @@ For HTTPS, wrap the server block with your TLS configuration or use AWS Certific
    - These map to `COGNITO_REDIRECT_SIGNIN`, `COGNITO_REDIRECT_SIGNOUT` and the Vite equivalents (`VITE_COGNITO_*`).
 
 4. **Scopes & attributes**
-   - Ensure `email`, `openid`, and `profile` scopes are enabled.
+   - Ensure `email` and `openid` scopes are enabled.
    - Expose the `email` attribute in the ID token so the backend can associate Cognito users with local profiles.
 
 5. **Environment variables recap**
