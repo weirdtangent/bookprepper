@@ -23,7 +23,8 @@
     "seed": "pnpm run seed"
   },
   "dependencies": {
-    "@prisma/client": "^5.19.2"
+    "@prisma/client": "^5.19.2",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
