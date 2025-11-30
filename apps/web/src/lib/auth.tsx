@@ -1,5 +1,5 @@
 import { Amplify } from "aws-amplify";
-import { fetchAuthSession, getCurrentUser, signInWithRedirect, signOut } from "aws-amplify/auth";
+import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
 import {
   createContext,
   useCallback,
@@ -46,10 +46,14 @@ export function AuthProvider({ children }: Props) {
 
   const hydrateSession = useCallback(async () => {
     try {
-      const [currentUser, session] = await Promise.all([getCurrentUser(), fetchAuthSession()]);
+      const session = await fetchAuthSession();
+      const payload = session.tokens?.idToken?.payload;
+      if (!payload) {
+        throw new Error("Missing ID token payload");
+      }
       setUser({
-        name: currentUser.username ?? currentUser.signInDetails?.loginId,
-        email: session.tokens?.idToken?.payload?.email as string | undefined
+        name: (payload.name as string | undefined) ?? (payload["cognito:username"] as string | undefined),
+        email: payload.email as string | undefined
       });
       setToken(session.tokens?.idToken?.toString() ?? null);
     } catch {
