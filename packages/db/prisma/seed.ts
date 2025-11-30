@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { readFile } from "node:fs/promises";
 import { config as loadEnv } from "dotenv";
 
 loadEnv();
@@ -2598,7 +2599,7 @@ const SERIES: SeriesSeed[] = [
   }
 ] as const;
 
-const BOOKS: SeedBook[] = SERIES.flatMap((series) =>
+const BASE_BOOKS: SeedBook[] = SERIES.flatMap((series) =>
   series.books.map((book) => ({
     ...book,
     author: series.author
@@ -2651,8 +2652,11 @@ async function main() {
     }
   });
 
+  const extraBooks = await loadTop500Books(new Set(BASE_BOOKS.map((book) => book.title.toLowerCase())));
+  const books = [...BASE_BOOKS, ...extraBooks];
+
   const authorRecords = new Map<string, string>();
-  for (const authorName of new Set(BOOKS.map((book) => book.author))) {
+  for (const authorName of new Set(books.map((book) => book.author))) {
     const slug = slugify(authorName);
     const author = await prisma.author.upsert({
       where: { slug },
@@ -2670,7 +2674,7 @@ async function main() {
   }
 
   const genreRecords = new Map<GenreSlug, string>();
-  const usedGenres = new Set<GenreSlug>(BOOKS.flatMap((book) => book.genres));
+  const usedGenres = new Set<GenreSlug>(books.flatMap((book) => book.genres));
   for (const genreSlug of usedGenres) {
     const definition = GENRE_CATALOG[genreSlug];
     if (!definition) {
@@ -2708,7 +2712,7 @@ async function main() {
     keywordRecords.set(slug, keyword.id);
   }
 
-  for (const book of BOOKS) {
+  for (const book of books) {
     const authorId = authorRecords.get(book.author);
     if (!authorId) {
       throw new Error(`Author missing for ${book.title}`);
@@ -2780,7 +2784,9 @@ async function main() {
     }
   }
 
-  console.log(`"Seeded ${BOOKS.length} books with curated preps"`);
+  console.log(
+    `"Seeded ${books.length} books with curated preps (${extraBooks.length} Top 500 additions)"`
+  );
 }
 
 main()
@@ -2791,4 +2797,70 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+const AUTO_GENRE: GenreSlug = "literary-fiction";
+
+async function loadTop500Books(existingTitles: Set<string>): Promise<SeedBook[]> {
+  try {
+    const fileUrl = new URL("./data/top500.txt", import.meta.url);
+    const raw = await readFile(fileUrl, "utf-8");
+    const extras: SeedBook[] = [];
+    const seen = new Set<string>();
+
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      const parts = trimmed
+        .split("\t")
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      if (parts.length < 3) {
+        continue;
+      }
+
+      const title = parts[1];
+      const author = parts[2];
+
+      if (!title || !author || author.startsWith("#") || title.startsWith("#")) {
+        continue;
+      }
+
+      const key = `${title.toLowerCase()}|${author.toLowerCase()}`;
+
+      if (seen.has(key) || existingTitles.has(title.toLowerCase())) {
+        continue;
+      }
+
+      seen.add(key);
+
+      extras.push({
+        title,
+        author,
+        synopsis: `Prep placeholders for ${title}. Community suggestions welcome.`,
+        genres: [AUTO_GENRE],
+        preps: buildAutoPreps(title)
+      });
+    }
+
+    return extras;
+  } catch (error) {
+    console.warn("\"Top500 list missing; skipping auto-import\"");
+    return [];
+  }
+}
+
+function buildAutoPreps(title: string): SeedPrep[] {
+  return [
+    {
+      keyword: "storytelling",
+      note: `Track how ${title} frames its narration across chapters.`
+    },
+    {
+      keyword: "resilience",
+      note: `Watch how characters in ${title} adapt when the stakes rise.`
+    }
+  ];
+}
 

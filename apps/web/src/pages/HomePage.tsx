@@ -87,7 +87,7 @@ export default function HomePage() {
         <div>
           <h1>Prep your next reading adventure</h1>
           <p>
-            Browse curated classics, filter by genre or prep keyword, and see what other readers watch
+            Browse our collection of books, filter by genre or prep keyword, and see what other readers watch
             for before they start.
           </p>
         </div>
