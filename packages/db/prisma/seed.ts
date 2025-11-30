@@ -2642,6 +2642,7 @@ async function main() {
     await prisma.genre.deleteMany();
     await prisma.prepKeyword.deleteMany();
     await prisma.bookSuggestion.deleteMany();
+    await prisma.userProfile.deleteMany();
   } finally {
     await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS=1`;
   }
