@@ -1,5 +1,6 @@
 import { Amplify } from "aws-amplify";
 import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
+import { Hub } from "aws-amplify/utils";
 import {
   createContext,
   useCallback,
@@ -66,6 +67,19 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     void hydrateSession();
+  }, [hydrateSession]);
+
+  useEffect(() => {
+    const unsubscribe = Hub.listen("auth", ({ payload }) => {
+      if (payload.event === "signedIn" || payload.event === "tokenRefresh") {
+        void hydrateSession();
+      }
+      if (payload.event === "signedOut") {
+        setUser(null);
+        setToken(null);
+      }
+    });
+    return unsubscribe;
   }, [hydrateSession]);
 
   const handleSignIn = useCallback(() => {
