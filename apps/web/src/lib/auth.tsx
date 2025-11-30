@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import { amplifyConfig } from "./amplify";
@@ -145,8 +146,19 @@ export function AuthProvider({ children }: Props) {
     [hydrateSession]
   );
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
+  const valueRef = useRef<AuthContextValue>({
+    isAuthenticated: false,
+    isLoading: true,
+    token: null,
+    user: null,
+    signIn: () => undefined,
+    signOut: () => undefined,
+    requireAuth: () => false,
+    updateNickname: async () => undefined
+  });
+
+  const value = useMemo<AuthContextValue>(() => {
+    const nextValue: AuthContextValue = {
       isAuthenticated: Boolean(token),
       isLoading,
       token,
@@ -155,9 +167,10 @@ export function AuthProvider({ children }: Props) {
       signOut: handleSignOut,
       requireAuth,
       updateNickname
-    }),
-    [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname]
-  );
+    };
+    valueRef.current = nextValue;
+    return nextValue;
+  }, [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname]);
 
   useEffect(() => {
     if (isDebugEnabled()) {
