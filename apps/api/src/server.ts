@@ -8,12 +8,14 @@ import booksRoutes from "./routes/books.js";
 import prepsRoutes from "./routes/preps.js";
 import suggestionsRoutes from "./routes/suggestions.js";
 import { env } from "config";
+import { randomUUID } from "crypto";
 
 async function buildServer() {
   const server = Fastify({
     logger: {
       level: process.env.LOG_LEVEL ?? "info"
-    }
+    },
+    genReqId: () => randomUUID()
   });
 
   await server.register(sensible);
