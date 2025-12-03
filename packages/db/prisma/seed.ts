@@ -2615,6 +2615,7 @@ const AUTHOR_BIOS: Record<string, string> = {
 };
 
 const SYSTEM_USER_EMAIL = "curator@bookprepper.com";
+const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
 
 function slugify(value: string) {
   return value
@@ -2659,8 +2660,9 @@ async function main() {
     }
   });
 
-  const extraBooks = await loadTop500Books(new Set(BASE_BOOKS.map((book) => book.title.toLowerCase())));
-  const books = [...BASE_BOOKS, ...extraBooks];
+  const existingBookKeys = new Set(BASE_BOOKS.map((book) => buildBookKey(book.title, book.author)));
+  const goodreadsBooks = await loadGoodreadsBooks(existingBookKeys);
+  const books = [...BASE_BOOKS, ...goodreadsBooks];
 
   const authorRecords = new Map<string, string>();
   for (const authorName of new Set(books.map((book) => book.author))) {
@@ -2793,7 +2795,7 @@ async function main() {
   }
 
   console.log(
-    `"Seeded ${books.length} books with curated preps (${extraBooks.length} Top 500 additions)"`
+    `"Seeded ${books.length} books with curated preps (${goodreadsBooks.length} Goodreads additions)"`
   );
 }
 
@@ -2808,55 +2810,144 @@ main()
 
 const AUTO_GENRE: GenreSlug = "literary-fiction";
 
-async function loadTop500Books(existingTitles: Set<string>): Promise<SeedBook[]> {
+async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBook[]> {
   try {
-    const fileUrl = new URL("./data/top500.txt", import.meta.url);
-    const raw = await readFile(fileUrl, "utf-8");
-    const extras: SeedBook[] = [];
-    const seen = new Set<string>();
+    const overridePath = process.env.GOODREADS_CSV?.trim();
+    const source = overridePath && overridePath.length > 0 ? overridePath : new URL("../../../tmp/goodreads_cleaned.csv", import.meta.url);
+    const raw = await readFile(source, "utf-8");
+    const rows = raw.split(/\r?\n/);
 
-    for (const line of raw.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
+    while (rows.length > 0 && !rows[0]?.trim()) {
+      rows.shift();
+    }
 
-      const parts = trimmed
-        .split("\t")
-        .map((part) => part.trim())
-        .filter(Boolean);
+    if (rows.length === 0) {
+      return [];
+    }
 
-      if (parts.length < 3) {
+    const headerLine = rows.shift();
+    if (!headerLine) {
+      return [];
+    }
+
+    const headers = parseCsvLine(headerLine);
+    if (headers.length === 0) {
+      return [];
+    }
+
+    const normalizedHeaders = headers.map((header, index) =>
+      (index === 0 ? header.replace(/^\uFEFF/, "") : header).trim().toLowerCase()
+    );
+    const titleIdx = normalizedHeaders.indexOf("booktitle");
+    const authorIdx = normalizedHeaders.indexOf("authorname");
+
+    if (titleIdx === -1 || authorIdx === -1) {
+      console.warn("\"Goodreads CSV missing bookTitle/authorName columns\"");
+      return [];
+    }
+
+    const ratingIdx = normalizedHeaders.indexOf("average_rating");
+    const ratingsCountIdx = normalizedHeaders.indexOf("num_ratings");
+    const additions: SeedBook[] = [];
+
+    for (const row of rows) {
+      if (!row?.trim()) {
         continue;
       }
 
-      const title = parts[1];
-      const author = parts[2];
+      const columns = parseCsvLine(row);
+      const title = columns[titleIdx];
+      const author = columns[authorIdx];
 
-      if (!title || !author || author.startsWith("#") || title.startsWith("#")) {
+      if (!title || !author) {
         continue;
       }
 
-      const key = `${title.toLowerCase()}|${author.toLowerCase()}`;
-
-      if (seen.has(key) || existingTitles.has(title.toLowerCase())) {
+      const key = buildBookKey(title, author);
+      if (existingBookKeys.has(key)) {
         continue;
       }
 
-      seen.add(key);
+      let averageRating: number | undefined;
+      if (ratingIdx !== -1 && columns[ratingIdx]) {
+        const parsed = Number.parseFloat(columns[ratingIdx]);
+        averageRating = Number.isNaN(parsed) ? undefined : parsed;
+      }
 
-      extras.push({
+      let ratingsCount: number | undefined;
+      if (ratingsCountIdx !== -1 && columns[ratingsCountIdx]) {
+        const parsed = Number.parseInt(columns[ratingsCountIdx].replace(/,/g, ""), 10);
+        ratingsCount = Number.isNaN(parsed) ? undefined : parsed;
+      }
+
+      additions.push({
         title,
         author,
-        synopsis: `Prep placeholders for ${title}. Community suggestions welcome.`,
+        synopsis: buildGoodreadsSynopsis(title, averageRating, ratingsCount),
         genres: [AUTO_GENRE],
         preps: buildAutoPreps(title)
       });
+
+      existingBookKeys.add(key);
     }
 
-    return extras;
-  } catch (error) {
-    console.warn("\"Top500 list missing; skipping auto-import\"");
+    return additions;
+  } catch {
+    console.warn("\"Goodreads CSV missing; skipping bulk import\"");
     return [];
   }
+}
+
+function buildGoodreadsSynopsis(title: string, averageRating?: number, ratingsCount?: number) {
+  if (averageRating && ratingsCount) {
+    return `Imported Goodreads catalog entry for ${title} (avg rating ${averageRating.toFixed(2)} from ${NUMBER_FORMATTER.format(
+      ratingsCount
+    )} readers). Community suggestions welcome.`;
+  }
+
+  if (averageRating) {
+    return `Imported Goodreads catalog entry for ${title} (avg rating ${averageRating.toFixed(2)}). Community suggestions welcome.`;
+  }
+
+  return `Imported Goodreads catalog entry for ${title}. Community suggestions welcome.`;
+}
+
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  const sanitized = line.replace(/\r$/, "");
+
+  for (let i = 0; i < sanitized.length; i++) {
+    const char = sanitized[i];
+    const nextChar = sanitized[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+        continue;
+      }
+
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+function buildBookKey(title: string, author: string) {
+  return `${title.trim().toLowerCase()}|${author.trim().toLowerCase()}`;
 }
 
 function buildAutoPreps(title: string): SeedPrep[] {
@@ -2876,4 +2967,5 @@ function truncateText(value: string | null | undefined, max = 180) {
   if (!value) return value;
   return value.length > max ? `${value.slice(0, max - 1).trim()}…` : value;
 }
+
 
