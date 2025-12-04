@@ -140,6 +140,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         slug: book.slug,
         title: book.title,
         synopsis: book.synopsis,
+        coverImageUrl: book.coverImageUrl,
         author: {
           name: book.author.name,
           slug: book.author.slug
@@ -282,6 +283,7 @@ function mapBookDetail(book: BookDetailResult) {
     slug: book.slug,
     title: book.title,
     synopsis: book.synopsis,
+    coverImageUrl: book.coverImageUrl,
     author: {
       id: book.author.id,
       name: book.author.name,

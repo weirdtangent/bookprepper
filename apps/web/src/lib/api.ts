@@ -20,6 +20,7 @@ export type BookSummary = {
   slug: string;
   title: string;
   synopsis: string | null;
+  coverImageUrl: string | null;
   author: {
     name: string;
     slug: string;
@@ -58,6 +59,7 @@ export type BookDetail = {
   slug: string;
   title: string;
   synopsis: string | null;
+  coverImageUrl: string | null;
   author: {
     id: string;
     name: string;

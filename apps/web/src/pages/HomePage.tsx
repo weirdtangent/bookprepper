@@ -1,23 +1,42 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { Author, BookListResponse, Genre, Keyword } from "../lib/api";
 import { BookCard } from "../components/books/BookCard";
 import { useDebounce } from "../hooks/useDebounce";
 
 const PAGE_SIZE = 12;
+const parseListParam = (value: string | null) =>
+  value
+    ?.split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean) ?? [];
 
 export default function HomePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const [authorSlug, setAuthorSlug] = useState("");
+  const [authorSlug, setAuthorSlug] = useState(() => searchParams.get("author") ?? "");
   const [genreFilters, setGenreFilters] = useState<string[]>([]);
-  const [prepFilters, setPrepFilters] = useState<string[]>([]);
+  const [prepFilters, setPrepFilters] = useState<string[]>(() => parseListParam(searchParams.get("prep")));
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 350);
 
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, authorSlug, genreFilters, prepFilters]);
+
+  const authorParam = searchParams.get("author") ?? "";
+  const prepParam = searchParams.get("prep") ?? "";
+
+  useEffect(() => {
+    setAuthorSlug((current) => (current === authorParam ? current : authorParam));
+  }, [authorParam]);
+
+  useEffect(() => {
+    const parsed = parseListParam(prepParam);
+    setPrepFilters((current) => (areArraysEqual(current, parsed) ? current : parsed));
+  }, [prepParam]);
 
   const genresQuery = useQuery<{ genres: Genre[] }>({
     queryKey: ["genres"],
@@ -51,6 +70,31 @@ export default function HomePage() {
     placeholderData: keepPreviousData
   });
 
+  const updateAuthorFilter = (value: string) => {
+    setAuthorSlug(value);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) {
+        next.set("author", value);
+      } else {
+        next.delete("author");
+      }
+      return next;
+    });
+  };
+
+  const updateListParam = (key: string, values: string[]) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (values.length > 0) {
+        next.set(key, values.join(","));
+      } else {
+        next.delete(key);
+      }
+      return next;
+    });
+  };
+
   const toggleFilter = (value: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
     setter((current) => {
       const alreadySelected = current.includes(value);
@@ -58,6 +102,15 @@ export default function HomePage() {
         return current.filter((item) => item !== value);
       }
       return [...current, value];
+    });
+  };
+
+  const togglePrepFilter = (value: string) => {
+    setPrepFilters((current) => {
+      const alreadySelected = current.includes(value);
+      const next = alreadySelected ? current.filter((item) => item !== value) : [...current, value];
+      updateListParam("prep", next);
+      return next;
     });
   };
 
@@ -77,7 +130,8 @@ export default function HomePage() {
   const resetFilters = () => {
     setGenreFilters([]);
     setPrepFilters([]);
-    setAuthorSlug("");
+    updateListParam("prep", []);
+    updateAuthorFilter("");
     setSearch("");
   };
 
@@ -112,11 +166,7 @@ export default function HomePage() {
 
         <div className="filter-group">
           <label htmlFor="author">Author</label>
-          <select
-            id="author"
-            value={authorSlug}
-            onChange={(event) => setAuthorSlug(event.target.value)}
-          >
+          <select id="author" value={authorSlug} onChange={(event) => updateAuthorFilter(event.target.value)}>
             <option value="">All authors</option>
             {authors.map((author) => (
               <option key={author.id} value={author.slug}>
@@ -162,7 +212,7 @@ export default function HomePage() {
                   type="button"
                   className={`chip ${isSelected ? "chip--selected" : ""}`}
                   title={keyword.description ?? undefined}
-                  onClick={() => toggleFilter(keyword.slug, setPrepFilters)}
+                  onClick={() => togglePrepFilter(keyword.slug)}
                 >
                   {keyword.name}
                 </button>
@@ -207,5 +257,17 @@ export default function HomePage() {
       </section>
     </section>
   );
+}
+
+function areArraysEqual(a: string[], b: string[]) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 

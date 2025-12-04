@@ -117,8 +117,19 @@ export default function BookDetailPage() {
       </Link>
 
       <div className="book-hero">
-        <div>
-          <p className="book-hero__eyebrow">{book.author.name}</p>
+        <div className="book-hero__media" aria-hidden={!book.coverImageUrl}>
+          {book.coverImageUrl ? (
+            <img src={book.coverImageUrl} alt={`${book.title} cover`} loading="lazy" />
+          ) : (
+            <div className="book-hero__media-placeholder">{book.title.charAt(0).toUpperCase()}</div>
+          )}
+        </div>
+        <div className="book-hero__content">
+          <p className="book-hero__eyebrow">
+            <Link to={`/?author=${book.author.slug}`} className="book-hero__author-link">
+              {book.author.name}
+            </Link>
+          </p>
           <h1>{book.title}</h1>
           {book.synopsis && <p>{book.synopsis}</p>}
         </div>

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { Prep } from "../../lib/api";
 
 type Props = {
@@ -24,7 +25,9 @@ export function PrepCard({ prep, onVote, votingDisabled, isVoting }: Props) {
       {prep.watchFor && <p className="prep-card__watchfor">{prep.watchFor}</p>}
       <div className="prep-card__keywords">
         {prep.keywords.map((keyword) => (
-          <span key={keyword.slug}>{keyword.name}</span>
+          <Link key={keyword.slug} className="prep-card__keyword-link" to={`/?prep=${keyword.slug}`}>
+            {keyword.name}
+          </Link>
         ))}
       </div>
       <div className="prep-card__actions">
