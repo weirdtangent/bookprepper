@@ -272,12 +272,12 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
     } else {
       where.AND = tokens.map((token) => ({
         OR: [
-          { title: { contains: token, mode: "insensitive" } },
-          { synopsis: { contains: token, mode: "insensitive" } },
+          { title: { contains: token } },
+          { synopsis: { contains: token } },
           { slug: { contains: token } },
           {
             author: {
-              name: { contains: token, mode: "insensitive" }
+              name: { contains: token }
             }
           }
         ]
