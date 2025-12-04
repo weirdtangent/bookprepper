@@ -23,7 +23,8 @@ const envSchema = z.object({
   COGNITO_CLIENT_ID: z.string().default("clientid"),
   COGNITO_DOMAIN: z.string().default("https://example.auth.us-east-1.amazoncognito.com"),
   COGNITO_REDIRECT_SIGNIN: z.string().url().default("http://localhost:5173/auth/callback"),
-  COGNITO_REDIRECT_SIGNOUT: z.string().url().default("http://localhost:5173/")
+  COGNITO_REDIRECT_SIGNOUT: z.string().url().default("http://localhost:5173/"),
+  ADMIN_EMAIL: z.string().email("Set ADMIN_EMAIL to the trusted admin account email")
 });
 
 export const env = envSchema.parse(process.env);

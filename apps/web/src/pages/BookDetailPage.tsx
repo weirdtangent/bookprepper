@@ -167,12 +167,20 @@ export default function BookDetailPage() {
   const book = bookQuery.data;
   const votingDisabled = !auth.isAuthenticated || auth.isLoading;
   const votingPrepId = voteMutation.variables?.prepId;
+  const adminEditLink = `/admin?book=${encodeURIComponent(book.slug)}`;
 
   return (
     <section className="page">
-      <Link to="/" className="link-button">
-        &larr; Back to library
-      </Link>
+      <div className="page-actions">
+        <Link to="/" className="link-button">
+          &larr; Back to library
+        </Link>
+        {auth.isAdmin && (
+          <Link to={adminEditLink} className="admin-edit-link">
+            Edit in Admin
+          </Link>
+        )}
+      </div>
 
       <div className="book-hero">
         <div className="book-hero__media" aria-hidden={!book.coverImageUrl}>

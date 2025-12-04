@@ -114,6 +114,127 @@ export type BookQueryParams = {
   pageSize?: number;
 };
 
+export type AdminBookListItem = {
+  id: string;
+  slug: string;
+  title: string;
+  author: {
+    id: string;
+    name: string;
+  };
+  synopsis: string | null;
+  prepCount: number;
+  updatedAt: string;
+};
+
+export type AdminPrepDetail = {
+  id: string;
+  heading: string;
+  summary: string;
+  watchFor: string | null;
+  colorHint: string | null;
+  keywords: Array<{
+    id: string;
+    slug: string;
+    name: string;
+  }>;
+  votes: Prep["votes"];
+  updatedAt: string;
+};
+
+export type AdminBookDetail = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle?: string | null;
+  synopsis: string | null;
+  coverImageUrl: string | null;
+  publishedYear: number | null;
+  author: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  genres: Genre[];
+  preps: AdminPrepDetail[];
+  updatedAt: string;
+};
+
+export type AdminCreateBookInput = {
+  title: string;
+  subtitle?: string;
+  slug?: string;
+  synopsis?: string;
+  coverImageUrl?: string;
+  publishedYear?: number | null;
+  authorId?: string;
+  authorName?: string;
+  genreIds?: string[];
+};
+
+export type AdminUpdateBookInput = {
+  title?: string;
+  subtitle?: string | null;
+  synopsis?: string | null;
+  coverImageUrl?: string | null;
+  publishedYear?: number | null;
+  genreIds?: string[];
+};
+
+export type AdminPrepInput = {
+  heading: string;
+  summary: string;
+  watchFor?: string | null;
+  colorHint?: string | null;
+  keywords?: string[];
+};
+
+export type SubmittedBySummary = {
+  id: string;
+  displayName: string;
+} | null;
+
+export type AdminMetadataSuggestion = {
+  id: string;
+  book: {
+    id: string;
+    slug: string;
+    title: string;
+  };
+  submittedBy: SubmittedBySummary;
+  synopsis: string | null;
+  genres: string[];
+  status: string;
+  createdAt: string;
+};
+
+export type AdminPrepSuggestion = {
+  id: string;
+  book: {
+    id: string;
+    slug: string;
+    title: string;
+  };
+  submittedBy: SubmittedBySummary;
+  title: string;
+  description: string;
+  keywordHints: string[];
+  status: string;
+  createdAt: string;
+};
+
+export type AdminBookSuggestion = {
+  id: string;
+  title: string;
+  authorName: string;
+  notes: string | null;
+  genreIdeas: string[];
+  prepIdeas: string[];
+  submittedBy: SubmittedBySummary;
+  status: string;
+  createdAt: string;
+};
+
 async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const url = new URL(path, config.apiBaseUrl);
 
@@ -229,6 +350,119 @@ export const api = {
       },
       token: params.token
     }),
-  catalogStats: () => apiFetch<CatalogStats>("/api/stats")
+  catalogStats: () => apiFetch<CatalogStats>("/api/stats"),
+  adminListBooks: (params: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+    token: string;
+  }) =>
+    apiFetch<{ pagination: Pagination; results: AdminBookListItem[] }>("/api/admin/books", {
+      query: {
+        search: params.search,
+        page: params.page,
+        pageSize: params.pageSize
+      },
+      token: params.token
+    }),
+  adminGetBook: (slug: string, token: string) =>
+    apiFetch<{ book: AdminBookDetail }>(`/api/admin/books/${slug}`, {
+      token
+    }),
+  adminCreateBook: (payload: AdminCreateBookInput, token: string) =>
+    apiFetch<{ book: AdminBookDetail }>(`/api/admin/books`, {
+      method: "POST",
+      body: payload,
+      token
+    }),
+  adminUpdateBook: (slug: string, payload: AdminUpdateBookInput, token: string) =>
+    apiFetch<{ book: AdminBookDetail }>(`/api/admin/books/${slug}`, {
+      method: "PATCH",
+      body: payload,
+      token
+    }),
+  adminCreatePrep: (params: { slug: string; body: AdminPrepInput; token: string }) =>
+    apiFetch<{ prep: AdminPrepDetail }>(`/api/admin/books/${params.slug}/preps`, {
+      method: "POST",
+      body: params.body,
+      token: params.token
+    }),
+  adminUpdatePrep: (params: { slug: string; prepId: string; token: string; body: AdminPrepInput }) =>
+    apiFetch<{ prep: AdminPrepDetail }>(`/api/admin/books/${params.slug}/preps/${params.prepId}`, {
+      method: "PUT",
+      body: params.body,
+      token: params.token
+    }),
+  adminDeletePrep: (params: { slug: string; prepId: string; token: string }) =>
+    apiFetch<{ message: string }>(`/api/admin/books/${params.slug}/preps/${params.prepId}`, {
+      method: "DELETE",
+      token: params.token
+    }),
+  adminListMetadataSuggestions: (token: string) =>
+    apiFetch<{ suggestions: AdminMetadataSuggestion[] }>(
+      "/api/admin/suggestions/metadata",
+      {
+        token
+      }
+    ),
+  adminApproveMetadataSuggestion: (params: { id: string; note?: string; token: string }) =>
+    apiFetch<{ suggestionId: string; status: string }>(
+      `/api/admin/suggestions/metadata/${params.id}/approve`,
+      {
+        method: "POST",
+        body: { note: params.note },
+        token: params.token
+      }
+    ),
+  adminRejectMetadataSuggestion: (params: { id: string; note?: string; token: string }) =>
+    apiFetch<{ suggestionId: string; status: string }>(
+      `/api/admin/suggestions/metadata/${params.id}/reject`,
+      {
+        method: "POST",
+        body: { note: params.note },
+        token: params.token
+      }
+    ),
+  adminListPrepSuggestions: (token: string) =>
+    apiFetch<{ suggestions: AdminPrepSuggestion[] }>("/api/admin/suggestions/preps", {
+      token
+    }),
+  adminApprovePrepSuggestion: (params: { id: string; note?: string; token: string }) =>
+    apiFetch<{ prep: AdminPrepDetail }>(`/api/admin/suggestions/preps/${params.id}/approve`, {
+      method: "POST",
+      body: { note: params.note },
+      token: params.token
+    }),
+  adminRejectPrepSuggestion: (params: { id: string; note?: string; token: string }) =>
+    apiFetch<{ suggestionId: string; status: string }>(
+      `/api/admin/suggestions/preps/${params.id}/reject`,
+      {
+        method: "POST",
+        body: { note: params.note },
+        token: params.token
+      }
+    ),
+  adminListBookSuggestions: (token: string) =>
+    apiFetch<{ suggestions: AdminBookSuggestion[] }>(`/api/admin/suggestions/books`, {
+      token
+    }),
+  adminApproveBookSuggestion: (params: { id: string; note?: string; token: string }) =>
+    apiFetch<{ book: { id: string; slug: string; title: string } }>(
+      `/api/admin/suggestions/books/${params.id}/approve`,
+      {
+        method: "POST",
+        body: { note: params.note },
+        token: params.token
+      }
+    ),
+  adminRejectBookSuggestion: (params: { id: string; note?: string; token: string }) =>
+    apiFetch<{ suggestionId: string; status: string }>(
+      `/api/admin/suggestions/books/${params.id}/reject`,
+      {
+        method: "POST",
+        body: { note: params.note },
+        token: params.token
+      }
+    )
 };
 

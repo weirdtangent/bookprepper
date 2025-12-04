@@ -7,6 +7,7 @@ import authPlugin from "./plugins/auth.js";
 import booksRoutes from "./routes/books.js";
 import prepsRoutes from "./routes/preps.js";
 import suggestionsRoutes from "./routes/suggestions.js";
+import adminRoutes from "./routes/admin.js";
 import { env } from "config";
 import { randomUUID } from "crypto";
 
@@ -37,6 +38,7 @@ async function buildServer() {
   await server.register(booksRoutes, { prefix: "/api" });
   await server.register(prepsRoutes, { prefix: "/api" });
   await server.register(suggestionsRoutes, { prefix: "/api" });
+  await server.register(adminRoutes, { prefix: "/api" });
 
   return server;
 }

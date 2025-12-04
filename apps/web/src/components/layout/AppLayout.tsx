@@ -59,6 +59,16 @@ export function AppLayout() {
                 Config
               </NavLink>
             )}
+            {auth.isAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  ["admin-link", isActive ? "active" : ""].filter(Boolean).join(" ")
+                }
+              >
+                Admin
+              </NavLink>
+            )}
           </nav>
           <div className="app-header__actions">
             {auth.isAuthenticated && (

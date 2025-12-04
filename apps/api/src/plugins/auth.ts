@@ -8,6 +8,7 @@ const verifier = CognitoJwtVerifier.create({
   clientId: env.COGNITO_CLIENT_ID,
   tokenUse: "id"
 });
+const adminEmail = env.ADMIN_EMAIL.trim().toLowerCase();
 
 const authPlugin: FastifyPluginAsync = fp(async (fastify) => {
   fastify.decorate("verifyJwt", async (request) => {
@@ -41,6 +42,18 @@ const authPlugin: FastifyPluginAsync = fp(async (fastify) => {
     } catch (error) {
       fastify.log.warn(`"JWT verification failed: ${(error as Error).message}"`);
       throw fastify.httpErrors.unauthorized("Invalid token");
+    }
+  });
+
+  fastify.decorate("requireAdmin", async (request) => {
+    const email = request.authUser?.email?.toLowerCase();
+
+    if (!email) {
+      throw fastify.httpErrors.forbidden("Admin privileges require a verified email address.");
+    }
+
+    if (email !== adminEmail) {
+      throw fastify.httpErrors.forbidden("Admin access denied.");
     }
   });
 });

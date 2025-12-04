@@ -11,12 +11,15 @@ import {
   useState
 } from "react";
 import { amplifyConfig } from "./amplify";
+import { config } from "./config";
 import { debugLog, isDebugEnabled } from "./debug";
 
 Amplify.configure(amplifyConfig);
+const ADMIN_EMAIL = config.adminEmail.trim().toLowerCase();
 
 type AuthContextValue = {
   isAuthenticated: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
   token: string | null;
   user: {
@@ -31,6 +34,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue>({
   isAuthenticated: false,
+  isAdmin: false,
   isLoading: true,
   token: null,
   user: null,
@@ -148,6 +152,7 @@ export function AuthProvider({ children }: Props) {
 
   const valueRef = useRef<AuthContextValue>({
     isAuthenticated: false,
+    isAdmin: false,
     isLoading: true,
     token: null,
     user: null,
@@ -157,9 +162,14 @@ export function AuthProvider({ children }: Props) {
     updateNickname: async () => undefined
   });
 
+  const isAdmin = Boolean(
+    ADMIN_EMAIL && user?.email && user.email.toLowerCase() === ADMIN_EMAIL
+  );
+
   const value = useMemo<AuthContextValue>(() => {
     const nextValue: AuthContextValue = {
       isAuthenticated: Boolean(token),
+      isAdmin,
       isLoading,
       token,
       user,
@@ -170,7 +180,7 @@ export function AuthProvider({ children }: Props) {
     };
     valueRef.current = nextValue;
     return nextValue;
-  }, [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname]);
+  }, [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname, isAdmin]);
 
   useEffect(() => {
     if (isDebugEnabled()) {

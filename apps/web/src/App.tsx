@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import BookDetailPage from "./pages/BookDetailPage";
 import SuggestPage from "./pages/SuggestPage";
 import ConfigPage from "./pages/ConfigPage";
+import AdminPage from "./pages/AdminPage";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/books/:slug" element={<BookDetailPage />} />
         <Route path="/suggest" element={<SuggestPage />} />
         <Route path="/config" element={<ConfigPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Route>
     </Routes>
   );

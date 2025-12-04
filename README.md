@@ -44,8 +44,8 @@ See `docs/deploy.md` for MySQL seeding, Cognito setup, systemd, and Nginx guidan
 
 ## Environment variables
 
-- Backend: `MYSQL_*`, `DATABASE_URL`, `COGNITO_*`, `API_PORT`, `API_BASE_URL`, `WEB_BASE_URL`.
-- Frontend: `VITE_API_BASE_URL`, `VITE_COGNITO_*`, `VITE_DEBUG_MODE` (optional).
+- Backend: `MYSQL_*`, `DATABASE_URL`, `COGNITO_*`, `API_PORT`, `API_BASE_URL`, `WEB_BASE_URL`, `ADMIN_EMAIL`.
+- Frontend: `VITE_API_BASE_URL`, `VITE_COGNITO_*`, `VITE_ADMIN_EMAIL`, `VITE_DEBUG_MODE` (optional).
 
 Copy `.env.example`, populate values, and ensure both API and web builds load the same config.
 
