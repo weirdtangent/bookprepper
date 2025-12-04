@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import {
   api,
+  type AdminBookListItem,
   type AdminCreateBookInput,
   type AdminPrepDetail,
   type AdminPrepInput,
   type AdminUpdateBookInput
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { useDebounce } from "../hooks/useDebounce";
 
 type PrepDraft = {
   heading: string;
@@ -53,6 +55,8 @@ export default function AdminPage() {
   const [newPrepDraft, setNewPrepDraft] = useState<PrepDraft>(emptyPrepDraft);
   const [bookFormState, setBookFormState] = useState(emptyBookForm);
   const [bookFormGenres, setBookFormGenres] = useState<string[]>([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchBlurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (paramSlug && paramSlug !== selectedSlug) {
@@ -71,6 +75,8 @@ export default function AdminPage() {
   const isAuthorized = auth.isAdmin && Boolean(auth.token);
   const pageSize = 12;
 
+  const debouncedSearch = useDebounce(searchInput, 200);
+
   const booksQuery = useQuery({
     queryKey: ["admin-books", filters.search, page],
     queryFn: async () => {
@@ -85,6 +91,22 @@ export default function AdminPage() {
       });
     },
     enabled: isAuthorized
+  });
+
+  const typeaheadQuery = useQuery({
+    queryKey: ["admin-book-suggestions", debouncedSearch],
+    queryFn: async () => {
+      if (!auth.token) {
+        throw new Error("Authentication required.");
+      }
+      return api.adminListBooks({
+        search: debouncedSearch.trim() || undefined,
+        page: 1,
+        pageSize: 6,
+        token: auth.token
+      });
+    },
+    enabled: isAuthorized && debouncedSearch.trim().length >= 2
   });
 
   const bookDetailQuery = useQuery({
@@ -144,6 +166,9 @@ export default function AdminPage() {
 
   const bookDetail = bookDetailQuery.data?.book ?? null;
   const genres = genresQuery.data?.genres ?? [];
+  const suggestionResults = typeaheadQuery.data?.results ?? [];
+  const showTypeahead =
+    isSearchFocused && searchInput.trim().length >= 2 && suggestionResults.length > 0;
 
   useEffect(() => {
     if (!bookDetail) {
@@ -337,6 +362,32 @@ export default function AdminPage() {
     setPage(1);
   };
 
+  const handleSearchFocus = () => {
+    if (searchBlurTimeout.current) {
+      clearTimeout(searchBlurTimeout.current);
+    }
+    setIsSearchFocused(true);
+  };
+
+  const handleSearchBlur = () => {
+    if (searchBlurTimeout.current) {
+      clearTimeout(searchBlurTimeout.current);
+    }
+    searchBlurTimeout.current = setTimeout(() => {
+      setIsSearchFocused(false);
+    }, 100);
+  };
+
+  const handleSuggestionSelect = (book: AdminBookListItem) => {
+    if (searchBlurTimeout.current) {
+      clearTimeout(searchBlurTimeout.current);
+    }
+    setSearchInput(book.title);
+    setFilters({ search: book.title });
+    selectBook(book.slug);
+    setIsSearchFocused(false);
+  };
+
   const handleMetadataSave = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedSlug) {
@@ -478,14 +529,37 @@ export default function AdminPage() {
             <h2>Catalog</h2>
             <small>{booksQuery.data?.pagination.total ?? 0} books</small>
           </div>
-          <form className="admin-form" onSubmit={handleSearchSubmit}>
+          <form className="admin-form" onSubmit={handleSearchSubmit} autoComplete="off">
             <label>
               Search catalog
-              <input
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Title or author"
-              />
+              <div className="typeahead-wrapper">
+                <input
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Title or author"
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
+                />
+                {showTypeahead && (
+                  <ul className="typeahead-panel" role="listbox">
+                    {suggestionResults.map((book) => (
+                      <li key={book.id}>
+                        <button
+                          type="button"
+                          className="typeahead-item"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => handleSuggestionSelect(book)}
+                        >
+                          <span className="typeahead-item__title">{book.title}</span>
+                          <span className="typeahead-item__meta">
+                            {book.author.name} · {book.prepCount} prep{book.prepCount === 1 ? "" : "s"}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </label>
             <div className="admin-form__row">
               <button type="submit" className="primary-button" disabled={booksQuery.isLoading}>

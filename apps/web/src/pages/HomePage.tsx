@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { Author, BookListResponse, Genre, Keyword } from "../lib/api";
 import { BookCard } from "../components/books/BookCard";
@@ -15,12 +15,16 @@ const parseListParam = (value: string | null) =>
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [authorSlug, setAuthorSlug] = useState(() => searchParams.get("author") ?? "");
   const [genreFilters, setGenreFilters] = useState<string[]>([]);
   const [prepFilters, setPrepFilters] = useState<string[]>(() => parseListParam(searchParams.get("prep")));
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 350);
+  const typeaheadSearch = useDebounce(search, 200);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchBlurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setPage(1);
@@ -68,6 +72,20 @@ export default function HomePage() {
         signal
       ),
     placeholderData: keepPreviousData
+  });
+
+  const typeaheadQuery = useQuery<BookListResponse>({
+    queryKey: ["home-typeahead", typeaheadSearch],
+    queryFn: ({ signal }) =>
+      api.listBooks(
+        {
+          search: typeaheadSearch.trim() || undefined,
+          page: 1,
+          pageSize: 6
+        },
+        signal
+      ),
+    enabled: typeaheadSearch.trim().length >= 2
   });
 
   const updateAuthorFilter = (value: string) => {
@@ -126,6 +144,33 @@ export default function HomePage() {
   const keywords = useMemo(() => keywordsQuery.data?.keywords ?? [], [keywordsQuery.data]);
   const genres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
   const authors = useMemo(() => authorsQuery.data?.authors ?? [], [authorsQuery.data]);
+  const typeaheadResults = typeaheadQuery.data?.results ?? [];
+  const showTypeahead = isSearchFocused && search.trim().length >= 2 && typeaheadResults.length > 0;
+
+  const handleSearchFocus = () => {
+    if (searchBlurTimeout.current) {
+      clearTimeout(searchBlurTimeout.current);
+    }
+    setIsSearchFocused(true);
+  };
+
+  const handleSearchBlur = () => {
+    if (searchBlurTimeout.current) {
+      clearTimeout(searchBlurTimeout.current);
+    }
+    searchBlurTimeout.current = setTimeout(() => {
+      setIsSearchFocused(false);
+    }, 120);
+  };
+
+  const handleSuggestionSelect = (book: BookListResponse["results"][number]) => {
+    if (searchBlurTimeout.current) {
+      clearTimeout(searchBlurTimeout.current);
+    }
+    setSearch(book.title);
+    setIsSearchFocused(false);
+    navigate(`/books/${book.slug}`);
+  };
 
   const resetFilters = () => {
     setGenreFilters([]);
@@ -155,13 +200,37 @@ export default function HomePage() {
       <section className="filters-panel">
         <div className="filter-group">
           <label htmlFor="search">Search the library</label>
-          <input
-            id="search"
-            type="search"
-            placeholder="Search by title, synopsis, or author"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
+          <div className="typeahead-wrapper">
+            <input
+              id="search"
+              type="search"
+              placeholder="Search by title, synopsis, or author"
+              value={search}
+              autoComplete="off"
+              onChange={(event) => setSearch(event.target.value)}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
+            />
+            {showTypeahead && (
+              <ul className="typeahead-panel" role="listbox">
+                {typeaheadResults.map((book) => (
+                  <li key={book.id}>
+                    <button
+                      type="button"
+                      className="typeahead-item"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => handleSuggestionSelect(book)}
+                    >
+                      <span className="typeahead-item__title">{book.title}</span>
+                      <span className="typeahead-item__meta">
+                        {book.author.name} · {book.prepCount} prep{book.prepCount === 1 ? "" : "s"}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
 
         <div className="filter-group">

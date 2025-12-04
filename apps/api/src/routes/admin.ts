@@ -650,17 +650,34 @@ function buildBookSearchWhere(search?: string) {
     return {};
   }
 
-  const term = search.trim();
-  return {
-    OR: [
-      { title: { contains: term, mode: "insensitive" } },
-      { slug: { contains: term.toLowerCase() } },
-      {
-        author: {
-          name: { contains: term, mode: "insensitive" }
+  const tokens = tokenizeSearch(search);
+  if (tokens.length === 0) {
+    const fallback = search.trim();
+    return {
+      OR: [
+        { title: { contains: fallback, mode: "insensitive" } },
+        { slug: { contains: fallback.toLowerCase() } },
+        {
+          author: {
+            name: { contains: fallback, mode: "insensitive" }
+          }
         }
-      }
-    ]
+      ]
+    };
+  }
+
+  return {
+    AND: tokens.map((token) => ({
+      OR: [
+        { title: { contains: token, mode: "insensitive" } },
+        { slug: { contains: token } },
+        {
+          author: {
+            name: { contains: token, mode: "insensitive" }
+          }
+        }
+      ]
+    }))
   };
 }
 
@@ -884,5 +901,16 @@ function slugify(value: string) {
     .replace(/-+$/, "")
     .replace(/-{2,}/g, "-");
   return slug || "item";
+}
+
+function tokenizeSearch(value: string) {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  if (!normalized) {
+    return [];
+  }
+  return normalized.split(/\s+/);
 }
 
