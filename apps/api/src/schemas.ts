@@ -38,7 +38,7 @@ export const metadataSuggestionBodySchema = z
       .string()
       .trim()
       .min(40, "Synopsis should be at least 40 characters.")
-      .max(2000, "Synopsis too long.")
+      .max(1024, "Synopsis too long.")
       .optional(),
     genres: z.array(z.string().min(2).max(60)).max(10).optional()
   })
@@ -69,7 +69,7 @@ export const adminBookCreateSchema = z
       .min(3)
       .max(240)
       .optional(),
-    synopsis: z.string().max(4000).optional(),
+    synopsis: z.string().max(1024).optional(),
     coverImageUrl: z.string().url().optional(),
     publishedYear: z.coerce.number().int().min(0).max(9999).optional(),
     authorId: z.string().cuid().optional(),
@@ -85,7 +85,7 @@ export const adminBookUpdateSchema = z.object({
   title: z.string().min(3).max(240).optional(),
   subtitle: z.string().max(240).optional(),
   synopsis: z
-    .union([z.string().max(4000), z.literal(""), z.null()])
+    .union([z.string().max(1024), z.literal(""), z.null()])
     .transform((value) => (value === "" ? null : value ?? undefined))
     .optional(),
   coverImageUrl: z
@@ -120,6 +120,10 @@ export const adminModerationNoteSchema = z.object({
   note: z.string().max(500).optional()
 });
 
+export const profileUpdateBodySchema = z.object({
+  displayName: z.string().trim().min(2).max(120)
+});
+
 export type ListBooksQuery = z.infer<typeof listBooksQuerySchema>;
 export type BookSlugParams = z.infer<typeof bookSlugParamsSchema>;
 export type PrepParams = z.infer<typeof prepParamsSchema>;
@@ -132,4 +136,5 @@ export type AdminBookCreateBody = z.infer<typeof adminBookCreateSchema>;
 export type AdminBookUpdateBody = z.infer<typeof adminBookUpdateSchema>;
 export type AdminPrepUpsertBody = z.infer<typeof adminPrepUpsertSchema>;
 export type SuggestionIdParams = z.infer<typeof suggestionIdParamsSchema>;
+export type ProfileUpdateBody = z.infer<typeof profileUpdateBodySchema>;
 

@@ -723,6 +723,7 @@ export default function AdminPage() {
                   <textarea
                     value={synopsisDraft}
                     onChange={(event) => setSynopsisDraft(event.target.value)}
+                    maxLength={1024}
                     placeholder="Add a spoiler-free synopsis"
                   />
                 </label>

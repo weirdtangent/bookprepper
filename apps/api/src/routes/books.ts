@@ -260,12 +260,29 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
   const where: Prisma.BookWhereInput = {};
 
   if (query.search) {
-    const searchTerm = query.search.trim();
-    where.OR = [
-      { title: { contains: searchTerm } },
-      { synopsis: { contains: searchTerm } },
-      { author: { name: { contains: searchTerm } } }
-    ];
+    const tokens = tokenizeSearch(query.search);
+    if (tokens.length === 0) {
+      const searchTerm = query.search.trim();
+      where.OR = [
+        { title: { contains: searchTerm } },
+        { synopsis: { contains: searchTerm } },
+        { author: { name: { contains: searchTerm } } },
+        { slug: { contains: searchTerm.toLowerCase() } }
+      ];
+    } else {
+      where.AND = tokens.map((token) => ({
+        OR: [
+          { title: { contains: token, mode: "insensitive" } },
+          { synopsis: { contains: token, mode: "insensitive" } },
+          { slug: { contains: token } },
+          {
+            author: {
+              name: { contains: token, mode: "insensitive" }
+            }
+          }
+        ]
+      }));
+    }
   }
 
   if (query.author) {
@@ -381,5 +398,14 @@ async function loadCatalogStats(): Promise<CatalogStats> {
       latest: yearBounds._max.publishedYear ?? null
     }
   };
+}
+
+function tokenizeSearch(raw: string) {
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 }
 

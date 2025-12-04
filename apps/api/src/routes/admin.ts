@@ -346,10 +346,11 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
       await prisma.$transaction(async (tx) => {
         if (suggestion.suggestedSynopsis) {
+          const truncatedSynopsis = truncateSynopsis(suggestion.suggestedSynopsis);
           await tx.book.update({
             where: { id: suggestion.bookId },
             data: {
-              synopsis: suggestion.suggestedSynopsis
+              synopsis: truncatedSynopsis
             }
           });
         }
@@ -584,7 +585,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
       data: {
         title: suggestion.title,
         slug,
-        synopsis: suggestion.notes ?? null,
+        synopsis: truncateSynopsis(suggestion.notes),
         authorId
       }
     });
@@ -912,5 +913,12 @@ function tokenizeSearch(value: string) {
     return [];
   }
   return normalized.split(/\s+/);
+}
+
+function truncateSynopsis(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+  return value.length > 1024 ? value.slice(0, 1024) : value;
 }
 

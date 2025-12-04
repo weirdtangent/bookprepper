@@ -281,7 +281,7 @@ export default function BookDetailPage() {
             Synopsis (optional)
             <textarea
               minLength={40}
-              maxLength={2000}
+              maxLength={1024}
               value={synopsisSuggestion}
               onChange={(event) => setSynopsisSuggestion(event.target.value)}
               placeholder="Write a spoiler-free synopsis for this book."

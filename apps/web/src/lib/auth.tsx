@@ -1,5 +1,5 @@
 import { Amplify } from "aws-amplify";
-import { fetchAuthSession, signInWithRedirect, signOut, updateUserAttributes } from "aws-amplify/auth";
+import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import {
   createContext,
@@ -11,6 +11,7 @@ import {
   useState
 } from "react";
 import { amplifyConfig } from "./amplify";
+import { api } from "./api";
 import { config } from "./config";
 import { debugLog, isDebugEnabled } from "./debug";
 
@@ -66,16 +67,26 @@ export function AuthProvider({ children }: Props) {
         hasAccessToken: Boolean(session.tokens?.accessToken),
         username: payload["cognito:username"]
       });
-      const name =
+      const fallbackName =
         (payload.nickname as string | undefined) ??
         (payload.preferred_username as string | undefined) ??
         (payload.name as string | undefined) ??
         (payload["cognito:username"] as string | undefined);
+      const idToken = session.tokens?.idToken?.toString() ?? null;
+      let profileName: string | null = null;
+      if (idToken) {
+        try {
+          const response = await api.getProfile(idToken);
+          profileName = response.profile.displayName;
+        } catch (profileError) {
+          debugLog("AuthProvider: failed to load profile", profileError);
+        }
+      }
       setUser({
-        name,
+        name: profileName ?? fallbackName,
         email: payload.email as string | undefined
       });
-      setToken(session.tokens?.idToken?.toString() ?? null);
+      setToken(idToken);
     } catch (error) {
       debugLog("AuthProvider: hydrateSession failed", error);
       setUser(null);
@@ -139,15 +150,21 @@ export function AuthProvider({ children }: Props) {
   const updateNickname = useCallback(
     async (nickname: string) => {
       debugLog("AuthProvider: updateNickname requested", { nickname });
-      await updateUserAttributes({
-        userAttributes: {
-          nickname
-        }
-      });
-      debugLog("AuthProvider: nickname updated, rehydrating session");
-      await hydrateSession();
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      const trimmed = nickname.trim();
+      if (!trimmed) {
+        throw new Error("Nickname cannot be empty");
+      }
+      await api.updateProfile({ displayName: trimmed, token });
+      setUser((current) => ({
+        ...current,
+        name: trimmed
+      }));
+      debugLog("AuthProvider: nickname updated locally");
     },
-    [hydrateSession]
+    [token]
   );
 
   const valueRef = useRef<AuthContextValue>({

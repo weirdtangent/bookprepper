@@ -105,6 +105,13 @@ export type CatalogStats = {
   };
 };
 
+export type UserProfile = {
+  id: string;
+  displayName: string;
+  email: string;
+  role: string;
+};
+
 export type BookQueryParams = {
   search?: string;
   author?: string;
@@ -463,6 +470,16 @@ export const api = {
         body: { note: params.note },
         token: params.token
       }
-    )
+    ),
+  getProfile: (token: string) =>
+    apiFetch<{ profile: UserProfile }>("/api/profile", {
+      token
+    }),
+  updateProfile: (params: { displayName: string; token: string }) =>
+    apiFetch<{ profile: UserProfile }>("/api/profile", {
+      method: "PATCH",
+      body: { displayName: params.displayName },
+      token: params.token
+    })
 };
 

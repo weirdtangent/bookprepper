@@ -1,0 +1,3 @@
+ALTER TABLE `Book`
+  MODIFY COLUMN `synopsis` VARCHAR(1024);
+
