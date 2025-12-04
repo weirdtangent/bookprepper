@@ -16,6 +16,7 @@ export default function BookDetailPage() {
   const [synopsisSuggestion, setSynopsisSuggestion] = useState("");
   const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
   const [metadataError, setMetadataError] = useState<string | null>(null);
+  const SYNOPSIS_LIMIT = 1024;
 
   useEffect(() => {
     setPrepTitle("");
@@ -32,7 +33,9 @@ export default function BookDetailPage() {
     enabled: Boolean(slug)
   });
 
-  const genresQuery = useQuery<{ genres: Genre[] }>({
+const SYNOPSIS_LIMIT = 1024;
+
+const genresQuery = useQuery<{ genres: Genre[] }>({
     queryKey: ["genres"],
     queryFn: () => api.listGenres()
   });
@@ -281,11 +284,14 @@ export default function BookDetailPage() {
             Synopsis (optional)
             <textarea
               minLength={40}
-              maxLength={1024}
+              maxLength={SYNOPSIS_LIMIT}
               value={synopsisSuggestion}
               onChange={(event) => setSynopsisSuggestion(event.target.value)}
               placeholder="Write a spoiler-free synopsis for this book."
             />
+            <div className="char-counter" aria-live="polite">
+              {synopsisSuggestion.length}/{SYNOPSIS_LIMIT}
+            </div>
           </label>
           <div className="filter-group">
             <div className="filter-group__header">

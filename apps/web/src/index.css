@@ -805,6 +805,12 @@ a {
   gap: 0.4rem;
 }
 
+.char-counter {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+  text-align: right;
+}
+
 .typeahead-wrapper {
   position: relative;
 }

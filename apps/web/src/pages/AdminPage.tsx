@@ -37,6 +37,8 @@ const emptyBookForm = {
   publishedYear: ""
 };
 
+const SYNOPSIS_LIMIT = 1024;
+
 export default function AdminPage() {
   const auth = useAuth();
   const queryClient = useQueryClient();
@@ -657,7 +659,11 @@ export default function AdminPage() {
                   setBookFormState((current) => ({ ...current, synopsis: event.target.value }))
                 }
                 placeholder="Optional"
+                maxLength={SYNOPSIS_LIMIT}
               />
+              <div className="char-counter" aria-live="polite">
+                {bookFormState.synopsis.length}/{SYNOPSIS_LIMIT}
+              </div>
             </label>
             <label>
               Cover image URL
@@ -723,9 +729,12 @@ export default function AdminPage() {
                   <textarea
                     value={synopsisDraft}
                     onChange={(event) => setSynopsisDraft(event.target.value)}
-                    maxLength={1024}
+                  maxLength={SYNOPSIS_LIMIT}
                     placeholder="Add a spoiler-free synopsis"
                   />
+                <div className="char-counter" aria-live="polite">
+                  {synopsisDraft.length}/{SYNOPSIS_LIMIT}
+                </div>
                 </label>
                 <label>
                   Cover image URL

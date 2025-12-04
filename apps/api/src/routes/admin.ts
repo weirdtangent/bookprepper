@@ -127,7 +127,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
         title: body.title,
         subtitle: body.subtitle ?? null,
         slug,
-        synopsis: body.synopsis ?? null,
+        synopsis: truncateSynopsis(body.synopsis),
         coverImageUrl: body.coverImageUrl ?? null,
         publishedYear: body.publishedYear ?? null,
         authorId
@@ -171,7 +171,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
       updates.subtitle = body.subtitle ?? null;
     }
     if (body.synopsis !== undefined) {
-      updates.synopsis = body.synopsis ?? null;
+      updates.synopsis = truncateSynopsis(body.synopsis);
     }
     if (body.coverImageUrl !== undefined) {
       updates.coverImageUrl = body.coverImageUrl ?? null;
