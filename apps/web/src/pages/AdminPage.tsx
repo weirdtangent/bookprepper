@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   api,
   type AdminBookListItem,
@@ -715,7 +715,9 @@ export default function AdminPage() {
             <h2>Book detail</h2>
             {bookDetail && (
               <div className="admin-panel__header-meta">
-                <span className="admin-panel__book-title">{bookDetail.title}</span>
+                <Link to={`/books/${bookDetail.slug}`} className="admin-panel__book-title">
+                  {bookDetail.title}
+                </Link>
                 <small>{bookDetail.updatedAt ? new Date(bookDetail.updatedAt).toLocaleString() : ""}</small>
               </div>
             )}

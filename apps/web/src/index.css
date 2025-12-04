@@ -762,6 +762,12 @@ a {
 .admin-panel__book-title {
   font-weight: 600;
   color: var(--color-text);
+  text-decoration: none;
+}
+
+.admin-panel__book-title:hover,
+.admin-panel__book-title:focus-visible {
+  text-decoration: underline;
 }
 
 .admin-form {
