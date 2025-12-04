@@ -2728,11 +2728,13 @@ async function main() {
       throw new Error(`Author missing for ${book.title}`);
     }
 
+    const synopsisText = truncateText(book.synopsis, SYNOPSIS_MAX_CHARS) ?? book.synopsis;
+
     const bookRecord = await prisma.book.upsert({
       where: { slug: slugify(book.title) },
       update: {
         title: book.title,
-        synopsis: book.synopsis,
+        synopsis: synopsisText,
         publishedYear: book.publishedYear,
         coverImageUrl: book.coverImageUrl ?? null,
         authorId
@@ -2740,7 +2742,7 @@ async function main() {
       create: {
         title: book.title,
         slug: slugify(book.title),
-        synopsis: book.synopsis,
+        synopsis: synopsisText,
         publishedYear: book.publishedYear,
         coverImageUrl: book.coverImageUrl ?? null,
         authorId
@@ -2816,6 +2818,7 @@ main()
   });
 
 const AUTO_GENRE: GenreSlug = "literary-fiction";
+const SYNOPSIS_MAX_CHARS = 191;
 
 async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBook[]> {
   try {
