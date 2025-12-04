@@ -33,9 +33,7 @@ export default function BookDetailPage() {
     enabled: Boolean(slug)
   });
 
-const SYNOPSIS_LIMIT = 1024;
-
-const genresQuery = useQuery<{ genres: Genre[] }>({
+  const genresQuery = useQuery<{ genres: Genre[] }>({
     queryKey: ["genres"],
     queryFn: () => api.listGenres()
   });
