@@ -386,7 +386,8 @@ a {
 
 .book-card__media {
   display: block;
-  width: 100%;
+  width: 55%;
+  margin: 0 auto;
   border-radius: 10px;
   border: 1px solid var(--color-border);
   overflow: hidden;
@@ -492,12 +493,14 @@ a {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  justify-items: center;
 }
 
 @media (min-width: 768px) {
   .book-hero {
-    grid-template-columns: minmax(160px, 220px) 1fr;
+    grid-template-columns: auto 1fr;
     align-items: start;
+    justify-items: stretch;
   }
 
   .book-hero__meta {
@@ -529,7 +532,8 @@ a {
 }
 
 .book-hero__media {
-  width: 100%;
+  width: min(240px, 70%);
+  margin: 0 auto;
   border-radius: 12px;
   border: 1px solid var(--color-border);
   overflow: hidden;

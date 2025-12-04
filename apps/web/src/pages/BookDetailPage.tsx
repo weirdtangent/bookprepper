@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
+import type { Genre } from "../lib/api";
 import { PrepCard } from "../components/preps/PrepCard";
 import { useAuth } from "../lib/auth";
 
@@ -12,11 +13,17 @@ export default function BookDetailPage() {
   const [prepTitle, setPrepTitle] = useState("");
   const [prepDescription, setPrepDescription] = useState("");
   const [prepKeywords, setPrepKeywords] = useState("");
+  const [synopsisSuggestion, setSynopsisSuggestion] = useState("");
+  const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
 
   useEffect(() => {
     setPrepTitle("");
     setPrepDescription("");
     setPrepKeywords("");
+    setSynopsisSuggestion("");
+    setGenreSuggestions([]);
+    setMetadataError(null);
   }, [slug]);
 
   const bookQuery = useQuery({
@@ -24,6 +31,13 @@ export default function BookDetailPage() {
     queryFn: ({ signal }) => api.getBook(slug, signal),
     enabled: Boolean(slug)
   });
+
+  const genresQuery = useQuery<{ genres: Genre[] }>({
+    queryKey: ["genres"],
+    queryFn: () => api.listGenres()
+  });
+
+  const availableGenres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
 
   const voteMutation = useMutation({
     mutationFn: async ({ prepId, value }: { prepId: string; value: "AGREE" | "DISAGREE" }) => {
@@ -60,6 +74,25 @@ export default function BookDetailPage() {
     }
   });
 
+  const metadataMutation = useMutation({
+    mutationFn: async () => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.suggestBookMetadata({
+        slug,
+        synopsis: synopsisSuggestion.trim() || undefined,
+        genres: genreSuggestions,
+        token: auth.token
+      });
+    },
+    onSuccess: () => {
+      setSynopsisSuggestion("");
+      setGenreSuggestions([]);
+      setMetadataError(null);
+    }
+  });
+
   const handleVote = (prepId: string, value: "AGREE" | "DISAGREE") => {
     if (auth.isLoading) {
       return;
@@ -85,6 +118,31 @@ export default function BookDetailPage() {
       }
     }
     suggestPrepMutation.mutate();
+  };
+
+  const toggleGenreSuggestion = (slug: string) => {
+    setGenreSuggestions((current) => {
+      const exists = current.includes(slug);
+      return exists ? current.filter((entry) => entry !== slug) : [...current, slug];
+    });
+  };
+
+  const handleMetadataSuggest = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!synopsisSuggestion.trim() && genreSuggestions.length === 0) {
+      setMetadataError("Add a synopsis or select at least one genre.");
+      return;
+    }
+    if (auth.isLoading) {
+      return;
+    }
+    if (!auth.isAuthenticated) {
+      const allowed = auth.requireAuth();
+      if (!allowed) {
+        return;
+      }
+    }
+    metadataMutation.mutate();
   };
 
   if (bookQuery.isLoading) {
@@ -203,6 +261,57 @@ export default function BookDetailPage() {
           </label>
           <button type="submit" disabled={suggestPrepMutation.isPending}>
             {suggestPrepMutation.isPending ? "Submitting..." : "Submit prep suggestion"}
+          </button>
+        </form>
+      </section>
+
+      <section className="panel">
+        <h3>Suggest a synopsis or genre</h3>
+        <p>Help fill in missing metadata so future readers know what to expect.</p>
+        <form className="form" onSubmit={handleMetadataSuggest}>
+          <label>
+            Synopsis (optional)
+            <textarea
+              minLength={40}
+              maxLength={2000}
+              value={synopsisSuggestion}
+              onChange={(event) => setSynopsisSuggestion(event.target.value)}
+              placeholder="Write a spoiler-free synopsis for this book."
+            />
+          </label>
+          <div className="filter-group">
+            <div className="filter-group__header">
+              <span>Genres (optional)</span>
+              <small>{genreSuggestions.length} selected</small>
+            </div>
+            <div className="chip-grid">
+              {availableGenres.map((genre) => {
+                const isSelected = genreSuggestions.includes(genre.slug);
+                return (
+                  <button
+                    key={genre.id}
+                    type="button"
+                    className={`chip ${isSelected ? "chip--selected" : ""}`}
+                    onClick={() => toggleGenreSuggestion(genre.slug)}
+                  >
+                    {genre.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {metadataError && (
+            <p className="error-text" role="alert">
+              {metadataError}
+            </p>
+          )}
+          {metadataMutation.isSuccess && !metadataError && (
+            <p className="success-text" role="status">
+              Thanks! Your suggestion is waiting for moderator review.
+            </p>
+          )}
+          <button type="submit" disabled={metadataMutation.isPending}>
+            {metadataMutation.isPending ? "Submitting..." : "Submit metadata suggestion"}
           </button>
         </form>
       </section>

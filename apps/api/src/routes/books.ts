@@ -4,8 +4,10 @@ import { prisma } from "db";
 import {
   bookSlugParamsSchema,
   listBooksQuerySchema,
+  metadataSuggestionBodySchema,
   type ListBooksQuery
 } from "../schemas.js";
+import { ensureUserProfile } from "../utils/profile.js";
 
 type CatalogStats = {
   books: number;
@@ -214,6 +216,44 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
       preps: book.preps.map(formatPrep)
     };
   });
+
+  fastify.post(
+    "/books/:slug/metadata/suggest",
+    { onRequest: [fastify.verifyJwt] },
+    async (request) => {
+      const params = bookSlugParamsSchema.parse(request.params);
+      const body = metadataSuggestionBodySchema.parse(request.body);
+
+      const book = await prisma.book.findUnique({
+        where: { slug: params.slug },
+        select: { id: true }
+      });
+
+      if (!book) {
+        throw fastify.httpErrors.notFound("Book not found");
+      }
+
+      const user = await ensureUserProfile(request);
+
+      const suggestion = await prisma.bookMetadataSuggestion.create({
+        data: {
+          bookId: book.id,
+          submittedById: user.id,
+          suggestedSynopsis: body.synopsis ?? null,
+          suggestedGenres: body.genres ?? [],
+          status: "PENDING"
+        }
+      });
+
+      fastify.log.info(`"Received metadata suggestion ${suggestion.id} for book ${book.id}"`);
+
+      return {
+        message: "Metadata suggestion submitted",
+        suggestionId: suggestion.id,
+        status: suggestion.status
+      };
+    }
+  );
 };
 
 function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {

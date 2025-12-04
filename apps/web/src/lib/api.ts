@@ -215,6 +215,20 @@ export const api = {
       },
       token: params.token
     }),
+  suggestBookMetadata: (params: {
+    slug: string;
+    synopsis?: string;
+    genres?: string[];
+    token: string;
+  }) =>
+    apiFetch<{ suggestionId: string }>(`/api/books/${params.slug}/metadata/suggest`, {
+      method: "POST",
+      body: {
+        synopsis: params.synopsis,
+        genres: params.genres
+      },
+      token: params.token
+    }),
   catalogStats: () => apiFetch<CatalogStats>("/api/stats")
 };
 

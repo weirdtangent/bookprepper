@@ -32,6 +32,21 @@ export const prepSuggestionBodySchema = z.object({
   colorHint: z.string().max(12).optional()
 });
 
+export const metadataSuggestionBodySchema = z
+  .object({
+    synopsis: z
+      .string()
+      .trim()
+      .min(40, "Synopsis should be at least 40 characters.")
+      .max(2000, "Synopsis too long.")
+      .optional(),
+    genres: z.array(z.string().min(2).max(60)).max(10).optional()
+  })
+  .refine(
+    (value) => Boolean(value.synopsis) || Boolean(value.genres && value.genres.length > 0),
+    "Provide a synopsis or at least one genre."
+  );
+
 export const bookSuggestionBodySchema = z.object({
   title: z.string().min(3).max(180),
   authorName: z.string().min(3).max(120),
@@ -45,5 +60,6 @@ export type BookSlugParams = z.infer<typeof bookSlugParamsSchema>;
 export type PrepParams = z.infer<typeof prepParamsSchema>;
 export type VoteBody = z.infer<typeof voteBodySchema>;
 export type PrepSuggestionBody = z.infer<typeof prepSuggestionBodySchema>;
+export type MetadataSuggestionBody = z.infer<typeof metadataSuggestionBodySchema>;
 export type BookSuggestionBody = z.infer<typeof bookSuggestionBodySchema>;
 

@@ -57,6 +57,7 @@ model Book {
   genres         BookGenre[]
   preps          BookPrep[]
   prepSuggestions PrepSuggestion[]
+  metadataSuggestions BookMetadataSuggestion[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
@@ -147,6 +148,20 @@ model BookSuggestion {
   reviewedAt     DateTime?
 }
 
+model BookMetadataSuggestion {
+  id                String           @id @default(cuid())
+  bookId            String
+  submittedById     String?
+  suggestedSynopsis String?          @db.Text
+  suggestedGenres   Json?
+  status            SuggestionStatus @default(PENDING)
+  moderatorNote     String?
+  createdAt         DateTime         @default(now())
+  reviewedAt        DateTime?
+  book              Book             @relation(fields: [bookId], references: [id])
+  submittedBy       UserProfile?     @relation(fields: [submittedById], references: [id])
+}
+
 model UserProfile {
   id              String          @id @default(cuid())
   cognitoSub      String          @unique
@@ -157,6 +172,7 @@ model UserProfile {
   prepVotes       PrepVote[]
   prepSuggestions PrepSuggestion[]
   bookSuggestions BookSuggestion[]
+  metadataSuggestions BookMetadataSuggestion[]
   createdPreps    BookPrep[]      @relation("UserProfileToBookPrep")
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
