@@ -93,6 +93,16 @@ export type Author = {
   bookCount: number;
 };
 
+export type CatalogStats = {
+  books: number;
+  authors: number;
+  preps: number;
+  years: {
+    earliest: number | null;
+    latest: number | null;
+  };
+};
+
 export type BookQueryParams = {
   search?: string;
   author?: string;
@@ -202,6 +212,7 @@ export const api = {
         prepIdeas: params.prepIdeas
       },
       token: params.token
-    })
+    }),
+  catalogStats: () => apiFetch<CatalogStats>("/api/stats")
 };
 

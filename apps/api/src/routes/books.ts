@@ -7,6 +7,16 @@ import {
   type ListBooksQuery
 } from "../schemas.js";
 
+type CatalogStats = {
+  books: number;
+  authors: number;
+  preps: number;
+  years: {
+    earliest: number | null;
+    latest: number | null;
+  };
+};
+
 type BookListResult = Prisma.BookGetPayload<{
   include: {
     author: true;
@@ -35,7 +45,28 @@ type PrepWithRelations = Prisma.BookPrepGetPayload<{
   };
 }>;
 
+const CATALOG_STATS_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+
+let catalogStatsCache: {
+  expiresAt: number;
+  value: CatalogStats;
+} | null = null;
+
 const booksRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.get("/stats", async () => {
+    const now = Date.now();
+    if (catalogStatsCache && catalogStatsCache.expiresAt > now) {
+      return catalogStatsCache.value;
+    }
+
+    const stats = await loadCatalogStats();
+    catalogStatsCache = {
+      value: stats,
+      expiresAt: now + CATALOG_STATS_TTL_MS
+    };
+    return stats;
+  });
+
   fastify.get("/genres", async () => {
     const genres = await prisma.genre.findMany({
       orderBy: { name: "asc" }
@@ -287,4 +318,26 @@ function formatPrep(prep: PrepWithRelations) {
 }
 
 export default booksRoutes;
+
+async function loadCatalogStats(): Promise<CatalogStats> {
+  const [bookCount, authorCount, prepCount, yearBounds] = await Promise.all([
+    prisma.book.count(),
+    prisma.author.count(),
+    prisma.bookPrep.count(),
+    prisma.book.aggregate({
+      _min: { publishedYear: true },
+      _max: { publishedYear: true }
+    })
+  ]);
+
+  return {
+    books: bookCount,
+    authors: authorCount,
+    preps: prepCount,
+    years: {
+      earliest: yearBounds._min.publishedYear ?? null,
+      latest: yearBounds._max.publishedYear ?? null
+    }
+  };
+}
 
