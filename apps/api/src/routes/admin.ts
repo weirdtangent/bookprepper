@@ -563,7 +563,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post("/admin/suggestions/books/:id/approve", guardHooks, async (request) => {
     const params = suggestionIdParamsSchema.parse(request.params);
-    const body = adminModerationNoteSchema.parse(request.body ?? {});
+    adminModerationNoteSchema.parse(request.body ?? {});
 
     const suggestion = await prisma.bookSuggestion.findUnique({
       where: { id: params.id }
@@ -599,7 +599,6 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
       where: { id: suggestion.id },
       data: {
         status: "APPROVED",
-        moderatorNote: body.note ?? null,
         reviewedAt: new Date()
       }
     });
@@ -615,7 +614,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post("/admin/suggestions/books/:id/reject", guardHooks, async (request) => {
     const params = suggestionIdParamsSchema.parse(request.params);
-    const body = adminModerationNoteSchema.parse(request.body ?? {});
+    adminModerationNoteSchema.parse(request.body ?? {});
 
     const suggestion = await prisma.bookSuggestion.findUnique({
       where: { id: params.id }
@@ -633,7 +632,6 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
       where: { id: suggestion.id },
       data: {
         status: "REJECTED",
-        moderatorNote: body.note ?? null,
         reviewedAt: new Date()
       }
     });
