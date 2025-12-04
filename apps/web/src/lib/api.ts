@@ -1,7 +1,7 @@
 import { config } from "./config";
 
 type RequestOptions = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   token?: string | null;
   signal?: AbortSignal;
