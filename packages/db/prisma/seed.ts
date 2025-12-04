@@ -378,6 +378,7 @@ type SeedBook = {
   author: string;
   synopsis: string;
   publishedYear?: number;
+  coverImageUrl?: string;
   genres: GenreSlug[];
   preps: SeedPrep[];
 };
@@ -2733,6 +2734,7 @@ async function main() {
         title: book.title,
         synopsis: book.synopsis,
         publishedYear: book.publishedYear,
+        coverImageUrl: book.coverImageUrl ?? null,
         authorId
       },
       create: {
@@ -2740,6 +2742,7 @@ async function main() {
         slug: slugify(book.title),
         synopsis: book.synopsis,
         publishedYear: book.publishedYear,
+        coverImageUrl: book.coverImageUrl ?? null,
         authorId
       }
     });
@@ -2764,13 +2767,17 @@ async function main() {
         throw new Error(`Missing template for keyword ${prep.keyword}`);
       }
 
-      const summaryText = truncateText(template.summary(book.title, prep.note));
-      const watchForText = truncateText(template.watchFor(prep.focus ?? prep.note));
+      const headingSource = prep.heading ?? template.heading;
+      const headingText = truncateText(headingSource, 120) ?? headingSource;
+      const summarySource = template.summary(book.title, prep.note);
+      const summaryText = truncateText(summarySource) ?? summarySource;
+      const watchForSource = template.watchFor(prep.focus ?? prep.note);
+      const watchForText = truncateText(watchForSource) ?? watchForSource;
 
       const bookPrep = await prisma.bookPrep.create({
         data: {
           bookId: bookRecord.id,
-          heading: truncateText(prep.heading ?? template.heading, 120),
+          heading: headingText,
           summary: summaryText,
           watchFor: watchForText,
           colorHint: prep.color ?? template.colorHint,
@@ -2812,9 +2819,12 @@ const AUTO_GENRE: GenreSlug = "literary-fiction";
 
 async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBook[]> {
   try {
-    const overridePath = process.env.GOODREADS_CSV?.trim();
-    const source = overridePath && overridePath.length > 0 ? overridePath : new URL("../../../tmp/goodreads_cleaned.csv", import.meta.url);
-    const raw = await readFile(source, "utf-8");
+    const raw = await readGoodreadsCsvContents();
+    if (!raw) {
+      console.warn("\"Goodreads CSV missing; skipping bulk import\"");
+      return [];
+    }
+
     const rows = raw.split(/\r?\n/);
 
     while (rows.length > 0 && !rows[0]?.trim()) {
@@ -2822,6 +2832,7 @@ async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBo
     }
 
     if (rows.length === 0) {
+      console.warn("\"Goodreads CSV empty; skipping bulk import\"");
       return [];
     }
 
@@ -2838,16 +2849,26 @@ async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBo
     const normalizedHeaders = headers.map((header, index) =>
       (index === 0 ? header.replace(/^\uFEFF/, "") : header).trim().toLowerCase()
     );
-    const titleIdx = normalizedHeaders.indexOf("booktitle");
-    const authorIdx = normalizedHeaders.indexOf("authorname");
+
+    const titleIdx = findHeaderIndex(normalizedHeaders, ["title", "booktitle", "original_title"]);
+    const authorIdx = findHeaderIndex(normalizedHeaders, ["authors", "authorname"]);
 
     if (titleIdx === -1 || authorIdx === -1) {
-      console.warn("\"Goodreads CSV missing bookTitle/authorName columns\"");
+      console.warn("\"Goodreads CSV missing title/authors columns\"");
       return [];
     }
 
-    const ratingIdx = normalizedHeaders.indexOf("average_rating");
-    const ratingsCountIdx = normalizedHeaders.indexOf("num_ratings");
+    const originalTitleIdx = findHeaderIndex(normalizedHeaders, ["original_title"]);
+    const publishedYearIdx = findHeaderIndex(normalizedHeaders, [
+      "original_publication_year",
+      "originalpublicationyear",
+      "publication_year"
+    ]);
+    const averageRatingIdx = findHeaderIndex(normalizedHeaders, ["average_rating", "averagerating"]);
+    const ratingsCountIdx = findHeaderIndex(normalizedHeaders, ["ratings_count", "num_ratings", "work_ratings_count"]);
+    const imageUrlIdx = findHeaderIndex(normalizedHeaders, ["image_url", "imageurl"]);
+    const smallImageUrlIdx = findHeaderIndex(normalizedHeaders, ["small_image_url", "smallimage_url"]);
+
     const additions: SeedBook[] = [];
 
     for (const row of rows) {
@@ -2856,34 +2877,34 @@ async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBo
       }
 
       const columns = parseCsvLine(row);
-      const title = columns[titleIdx];
-      const author = columns[authorIdx];
+      const primaryTitle = columns[titleIdx];
+      const fallbackTitle = originalTitleIdx !== -1 ? columns[originalTitleIdx] : undefined;
+      const title = (primaryTitle || fallbackTitle)?.trim();
+      const primaryAuthor = selectPrimaryAuthor(columns[authorIdx]);
 
-      if (!title || !author) {
+      if (!title || !primaryAuthor) {
         continue;
       }
 
-      const key = buildBookKey(title, author);
+      const key = buildBookKey(title, primaryAuthor);
       if (existingBookKeys.has(key)) {
         continue;
       }
 
-      let averageRating: number | undefined;
-      if (ratingIdx !== -1 && columns[ratingIdx]) {
-        const parsed = Number.parseFloat(columns[ratingIdx]);
-        averageRating = Number.isNaN(parsed) ? undefined : parsed;
-      }
-
-      let ratingsCount: number | undefined;
-      if (ratingsCountIdx !== -1 && columns[ratingsCountIdx]) {
-        const parsed = Number.parseInt(columns[ratingsCountIdx].replace(/,/g, ""), 10);
-        ratingsCount = Number.isNaN(parsed) ? undefined : parsed;
-      }
+      const averageRating = averageRatingIdx !== -1 ? parseOptionalFloat(columns[averageRatingIdx]) : undefined;
+      const ratingsCount = ratingsCountIdx !== -1 ? parseOptionalInteger(columns[ratingsCountIdx]) : undefined;
+      const publishedYear = publishedYearIdx !== -1 ? parseOptionalYear(columns[publishedYearIdx]) : undefined;
+      const coverImageUrl = firstNonEmpty(
+        imageUrlIdx !== -1 ? columns[imageUrlIdx] : undefined,
+        smallImageUrlIdx !== -1 ? columns[smallImageUrlIdx] : undefined
+      );
 
       additions.push({
         title,
-        author,
+        author: primaryAuthor,
         synopsis: buildGoodreadsSynopsis(title, averageRating, ratingsCount),
+        publishedYear,
+        coverImageUrl,
         genres: [AUTO_GENRE],
         preps: buildAutoPreps(title)
       });
@@ -2892,8 +2913,8 @@ async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBo
     }
 
     return additions;
-  } catch {
-    console.warn("\"Goodreads CSV missing; skipping bulk import\"");
+  } catch (error) {
+    console.warn(`"Failed to parse Goodreads CSV: ${(error as Error).message}"`);
     return [];
   }
 }
@@ -2966,6 +2987,98 @@ function buildAutoPreps(title: string): SeedPrep[] {
 function truncateText(value: string | null | undefined, max = 180) {
   if (!value) return value;
   return value.length > max ? `${value.slice(0, max - 1).trim()}…` : value;
+}
+
+async function readGoodreadsCsvContents(): Promise<string | null> {
+  const overridePath = process.env.GOODREADS_CSV?.trim();
+  const candidates: Array<string | URL> = [];
+
+  candidates.push(new URL("../../../tmp/books.csv", import.meta.url));
+
+  if (overridePath && overridePath.length > 0) {
+    candidates.push(overridePath);
+  }
+
+  candidates.push(new URL("../../../tmp/goodreads_cleaned.csv", import.meta.url));
+
+  for (const candidate of candidates) {
+    try {
+      return await readFile(candidate, "utf-8");
+    } catch {
+      // Ignore and keep trying other sources.
+    }
+  }
+
+  return null;
+}
+
+function findHeaderIndex(headers: string[], candidates: string[]): number {
+  for (const candidate of candidates) {
+    const normalized = candidate.trim().toLowerCase();
+    const index = headers.indexOf(normalized);
+    if (index !== -1) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function selectPrimaryAuthor(raw?: string): string | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const segments = trimmed
+    .split(",")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  if (segments.length === 0) {
+    return trimmed;
+  }
+
+  return segments[0];
+}
+
+function parseOptionalFloat(value?: string): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const sanitized = value.replace(/,/g, "");
+  const parsed = Number.parseFloat(sanitized);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function parseOptionalInteger(value?: string): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const sanitized = value.replace(/,/g, "");
+  const parsed = Number.parseInt(sanitized, 10);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function parseOptionalYear(value?: string): number | undefined {
+  const parsed = parseOptionalFloat(value);
+  if (typeof parsed !== "number" || Number.isNaN(parsed)) {
+    return undefined;
+  }
+  const rounded = Math.round(parsed);
+  return Number.isNaN(rounded) ? undefined : rounded;
+}
+
+function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return undefined;
 }
 
 
