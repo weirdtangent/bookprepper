@@ -1,4 +1,3 @@
-
 -- CreateTable
 CREATE TABLE `Author` (
     `id` VARCHAR(191) NOT NULL,
@@ -182,3 +181,4 @@ ALTER TABLE `PrepSuggestion` ADD CONSTRAINT `PrepSuggestion_submittedById_fkey` 
 
 -- AddForeignKey
 ALTER TABLE `BookSuggestion` ADD CONSTRAINT `BookSuggestion_submittedById_fkey` FOREIGN KEY (`submittedById`) REFERENCES `UserProfile`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
