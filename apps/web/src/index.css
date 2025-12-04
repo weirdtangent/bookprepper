@@ -748,6 +748,22 @@ a {
   gap: 1rem;
 }
 
+.admin-panel__header--spread {
+  align-items: flex-start;
+}
+
+.admin-panel__header-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.admin-panel__book-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .admin-form {
   display: flex;
   flex-direction: column;

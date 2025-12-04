@@ -631,9 +631,14 @@ export default function AdminPage() {
         </div>
 
         <div className="admin-panel">
-          <div className="admin-panel__header">
+          <div className="admin-panel__header admin-panel__header--spread">
             <h2>Book detail</h2>
-            {bookDetail && <small>{bookDetail.updatedAt ? new Date(bookDetail.updatedAt).toLocaleString() : ""}</small>}
+            {bookDetail && (
+              <div className="admin-panel__header-meta">
+                <span className="admin-panel__book-title">{bookDetail.title}</span>
+                <small>{bookDetail.updatedAt ? new Date(bookDetail.updatedAt).toLocaleString() : ""}</small>
+              </div>
+            )}
           </div>
           {!bookDetail && <p>Select a book to edit it.</p>}
           {bookDetail && (
