@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "db";
 import { profileUpdateBodySchema } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
+import { updateCognitoDisplayName } from "../lib/cognito.js";
 
 const profileRoutes: FastifyPluginAsync = async (fastify) => {
   const guard = { onRequest: [fastify.verifyJwt] };
@@ -21,6 +22,16 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
         displayName: body.displayName
       }
     });
+
+    try {
+      await updateCognitoDisplayName({
+        cognitoSub: authProfile.cognitoSub,
+        displayName: body.displayName
+      });
+    } catch (error) {
+      fastify.log.error(`"Failed to update Cognito nickname: ${(error as Error).message}"`);
+      throw fastify.httpErrors.internalServerError("Unable to update Cognito profile");
+    }
 
     return {
       profile: mapProfile(updated)
