@@ -23,6 +23,7 @@
     "seed": "pnpm run seed"
   },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "dotenv": "^16.4.5"
   },
