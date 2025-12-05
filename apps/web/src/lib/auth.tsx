@@ -1,5 +1,5 @@
 import { Amplify } from "aws-amplify";
-import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
+import { fetchAuthSession, signInWithRedirect, signOut, updateUserAttributes } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import {
   createContext,
@@ -157,6 +157,13 @@ export function AuthProvider({ children }: Props) {
       if (!trimmed) {
         throw new Error("Nickname cannot be empty");
       }
+      await updateUserAttributes({
+        userAttributes: {
+          nickname: trimmed,
+          preferred_username: trimmed
+        }
+      });
+      debugLog("AuthProvider: nickname updated in Cognito");
       await api.updateProfile({ displayName: trimmed, token });
       setUser((current) => ({
         ...current,
