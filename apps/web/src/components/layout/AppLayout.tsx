@@ -5,11 +5,13 @@ import { useAuth } from "../../lib/auth";
 import { api } from "../../lib/api";
 import type { CatalogStats } from "../../lib/api";
 import { debugLog, isDebugEnabled } from "../../lib/debug";
+import { useTheme } from "../../hooks/useTheme";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 export function AppLayout() {
   const auth = useAuth();
+  useTheme();
   debugLog("AppLayout: render", {
     isAuthenticated: auth.isAuthenticated,
     isLoading: auth.isLoading,

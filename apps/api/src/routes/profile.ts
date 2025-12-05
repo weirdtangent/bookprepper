@@ -23,18 +23,25 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       }
     });
 
+    let cognitoSynced = false;
     try {
       await updateCognitoDisplayName({
         cognitoSub: authProfile.cognitoSub,
         displayName: body.displayName
       });
+      cognitoSynced = true;
     } catch (error) {
-      fastify.log.error(`"Failed to update Cognito nickname: ${(error as Error).message}"`);
-      throw fastify.httpErrors.internalServerError("Unable to update Cognito profile");
+      fastify.log.error(
+        `"Failed to update Cognito nickname: ${(error as Error).message}"`,
+        {
+          cognitoSub: authProfile.cognitoSub
+        }
+      );
     }
 
     return {
-      profile: mapProfile(updated)
+      profile: mapProfile(updated),
+      cognitoSynced
     };
   });
 };
