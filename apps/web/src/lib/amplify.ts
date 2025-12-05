@@ -17,7 +17,7 @@ export const amplifyConfig = {
       loginWith: {
         oauth: {
           domain: normalizeDomain(rawDomain),
-          scopes: ["email", "openid", "profile", "aws.cognito.signin.user.admin"],
+          scopes: ["email", "openid", "profile"],
           redirectSignIn: [redirectSignIn],
           redirectSignOut: [redirectSignOut],
           responseType: "code" as const
