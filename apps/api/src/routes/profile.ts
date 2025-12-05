@@ -32,10 +32,10 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       cognitoSynced = true;
     } catch (error) {
       fastify.log.error(
-        `"Failed to update Cognito nickname: ${(error as Error).message}"`,
         {
           cognitoSub: authProfile.cognitoSub
-        }
+        },
+        `"Failed to update Cognito nickname: ${(error as Error).message}"`
       );
     }
 
