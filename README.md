@@ -40,6 +40,7 @@ See `docs/deploy.md` for MySQL seeding, Cognito setup, systemd, and Nginx guidan
 | `pnpm --filter api typecheck` / `lint` | TypeScript + ESLint |
 | `pnpm --filter web dev` | Vite dev server |
 | `pnpm --filter web typecheck` / `lint` | SPA linting/tsc |
+| `pnpm covers:cache` | Cache Open Library covers into `apps/web/public/assets/covers` and refresh manifests (runs before `pnpm build`) |
 | `pnpm --filter db prisma ...` | Prisma CLI (generate/migrate/seed) |
 
 ## Environment variables
@@ -48,4 +49,8 @@ See `docs/deploy.md` for MySQL seeding, Cognito setup, systemd, and Nginx guidan
 - Frontend: `VITE_API_BASE_URL`, `VITE_COGNITO_*`, `VITE_ADMIN_EMAIL`, `VITE_DEBUG_MODE` (optional).
 
 Copy `.env.example`, populate values, and ensure both API and web builds load the same config.
+
+### Cover assets
+
+Running `pnpm covers:cache` fetches each ISBN’s cover art once, stores it under `apps/web/public/assets/covers`, and generates a manifest consumed by both the API and the SPA. The Vite build copies these files to `apps/web/dist/assets/covers`, so the client can load covers via `/assets/covers/<isbn>.jpg` without hitting Open Library at runtime. Set `DATABASE_URL` so the script can query Prisma for ISBNs; if it’s missing, the script simply keeps the existing cache.
 

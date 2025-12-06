@@ -53,6 +53,9 @@ export function AppLayout() {
             <NavLink to="/" className={({ isActive }) => (isActive ? "active" : "")}>
               Library
             </NavLink>
+            <NavLink to="/about" className={({ isActive }) => (isActive ? "active" : "")}>
+              About
+            </NavLink>
             <NavLink to="/suggest" className={({ isActive }) => (isActive ? "active" : "")}>
               Suggest a Book
             </NavLink>
@@ -120,7 +123,12 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="app-footer">
-        <p>BookPrepper &middot; Prep smarter, read deeper.</p>
+        <p>
+          BookPrepper &middot; Prep smarter, read deeper.{" "}
+          <NavLink to="/about" className="inline-link">
+            About
+          </NavLink>
+        </p>
       </footer>
     </div>
   );

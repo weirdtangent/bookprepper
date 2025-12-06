@@ -209,6 +209,12 @@ export default function BookDetailPage() {
               </span>
             ))}
           </div>
+          {book.isbn && (
+            <div className="book-hero__detail-row">
+              <span className="book-hero__detail-label">ISBN</span>
+              <code className="book-hero__detail-value">{book.isbn}</code>
+            </div>
+          )}
         </div>
       </div>
 
