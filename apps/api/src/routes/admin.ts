@@ -11,6 +11,7 @@ import {
   prepParamsSchema,
   suggestionIdParamsSchema
 } from "../schemas.js";
+import { normalizeIsbn } from "../utils/isbn.js";
 
 const adminBookDetailInclude = {
   include: {
@@ -94,6 +95,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
           name: book.author.name
         },
         synopsis: book.synopsis,
+        isbn: book.isbn,
         prepCount: book._count.preps,
         updatedAt: book.updatedAt
       }))
@@ -121,6 +123,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const body = adminBookCreateSchema.parse(request.body);
     const authorId = await resolveAuthorId(body.authorId, body.authorName);
     const slug = await ensureUniqueSlug("book", body.slug ?? body.title);
+    const isbn = normalizeIsbn(body.isbn);
 
     const createdBook = await prisma.book.create({
       data: {
@@ -130,6 +133,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
         synopsis: truncateSynopsis(body.synopsis),
         coverImageUrl: body.coverImageUrl ?? null,
         publishedYear: body.publishedYear ?? null,
+        isbn,
         authorId
       }
     });
@@ -178,6 +182,9 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
     }
     if (body.publishedYear !== undefined) {
       updates.publishedYear = body.publishedYear ?? null;
+    }
+    if (body.isbn !== undefined) {
+      updates.isbn = normalizeIsbn(body.isbn);
     }
 
     if (Object.keys(updates).length > 0) {
@@ -690,6 +697,7 @@ function mapAdminBook(book: AdminBookDetail) {
     subtitle: book.subtitle,
     synopsis: book.synopsis,
     coverImageUrl: book.coverImageUrl,
+    isbn: book.isbn,
     publishedYear: book.publishedYear,
     author: {
       id: book.author.id,

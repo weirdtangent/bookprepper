@@ -51,6 +51,7 @@ model Book {
   synopsis       String?          @db.VarChar(1024)
   publishedYear  Int?
   coverImageUrl  String?
+  isbn           String?          @unique
   authorId       String
   author         Author           @relation(fields: [authorId], references: [id])
   genres         BookGenre[]

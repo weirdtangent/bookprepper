@@ -8,6 +8,7 @@ import {
   type ListBooksQuery
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
+import { resolveCoverImageUrl } from "../utils/covers.js";
 
 type CatalogStats = {
   books: number;
@@ -142,7 +143,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         slug: book.slug,
         title: book.title,
         synopsis: book.synopsis,
-        coverImageUrl: book.coverImageUrl,
+        coverImageUrl: resolveCoverImageUrl(book, "M"),
+        isbn: book.isbn,
         author: {
           name: book.author.name,
           slug: book.author.slug
@@ -340,7 +342,8 @@ function mapBookDetail(book: BookDetailResult) {
     slug: book.slug,
     title: book.title,
     synopsis: book.synopsis,
-    coverImageUrl: book.coverImageUrl,
+    coverImageUrl: resolveCoverImageUrl(book, "L"),
+    isbn: book.isbn,
     author: {
       id: book.author.id,
       name: book.author.name,

@@ -390,6 +390,7 @@ type SeedBook = {
   synopsis: string;
   publishedYear?: number;
   coverImageUrl?: string;
+  isbn?: string;
   genres: GenreSlug[];
   preps: SeedPrep[];
 };
@@ -2746,6 +2747,7 @@ async function main() {
         synopsis: synopsisText,
         publishedYear: book.publishedYear,
         coverImageUrl: book.coverImageUrl ?? null,
+        isbn: book.isbn ?? null,
         authorId
       },
       create: {
@@ -2754,6 +2756,7 @@ async function main() {
         synopsis: synopsisText,
         publishedYear: book.publishedYear,
         coverImageUrl: book.coverImageUrl ?? null,
+        isbn: book.isbn ?? null,
         authorId
       }
     });

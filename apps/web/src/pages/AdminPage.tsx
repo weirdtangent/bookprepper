@@ -34,6 +34,7 @@ const emptyBookForm = {
   slug: "",
   synopsis: "",
   coverImageUrl: "",
+  isbn: "",
   publishedYear: ""
 };
 
@@ -51,6 +52,7 @@ export default function AdminPage() {
   const [selectedSlug, setSelectedSlugState] = useState<string | null>(paramSlug);
   const [synopsisDraft, setSynopsisDraft] = useState("");
   const [coverDraft, setCoverDraft] = useState("");
+  const [isbnDraft, setIsbnDraft] = useState("");
   const [publishedYearDraft, setPublishedYearDraft] = useState("");
   const [genreSelection, setGenreSelection] = useState<string[]>([]);
   const [prepDrafts, setPrepDrafts] = useState<Record<string, PrepDraft>>({});
@@ -176,6 +178,7 @@ export default function AdminPage() {
     if (!bookDetail) {
       setSynopsisDraft("");
       setCoverDraft("");
+      setIsbnDraft("");
       setPublishedYearDraft("");
       setGenreSelection([]);
       setPrepDrafts({});
@@ -184,6 +187,7 @@ export default function AdminPage() {
 
     setSynopsisDraft(bookDetail.synopsis ?? "");
     setCoverDraft(bookDetail.coverImageUrl ?? "");
+    setIsbnDraft(bookDetail.isbn ?? "");
     setPublishedYearDraft(bookDetail.publishedYear?.toString() ?? "");
     setGenreSelection(bookDetail.genres.map((genre) => genre.id));
     setPrepDrafts(
@@ -400,6 +404,7 @@ export default function AdminPage() {
       body: {
         synopsis: synopsisDraft.trim() || null,
         coverImageUrl: coverDraft.trim() || null,
+        isbn: isbnDraft.trim() || null,
         publishedYear: parseYear(publishedYearDraft),
         genreIds: genreSelection
       }
@@ -477,6 +482,7 @@ export default function AdminPage() {
       slug: bookFormState.slug || undefined,
       synopsis: bookFormState.synopsis || undefined,
       coverImageUrl: bookFormState.coverImageUrl || undefined,
+      isbn: bookFormState.isbn?.trim() ? bookFormState.isbn.trim() : undefined,
       publishedYear: parseYear(bookFormState.publishedYear) ?? undefined,
       genreIds: bookFormGenres.length > 0 ? bookFormGenres : undefined
     };
@@ -676,6 +682,17 @@ export default function AdminPage() {
               />
             </label>
             <label>
+              ISBN
+              <input
+                value={bookFormState.isbn}
+                onChange={(event) =>
+                  setBookFormState((current) => ({ ...current, isbn: event.target.value }))
+                }
+                placeholder="978…"
+              />
+              <small>Used for Open Library cover fallbacks.</small>
+            </label>
+            <label>
               Published year
               <input
                 type="number"
@@ -745,6 +762,15 @@ export default function AdminPage() {
                     onChange={(event) => setCoverDraft(event.target.value)}
                     placeholder="https://…"
                   />
+                </label>
+                <label>
+                  ISBN
+                  <input
+                    value={isbnDraft}
+                    onChange={(event) => setIsbnDraft(event.target.value)}
+                    placeholder="978…"
+                  />
+                  <small>Uses Open Library covers when no custom image is set.</small>
                 </label>
                 <label>
                   Published year

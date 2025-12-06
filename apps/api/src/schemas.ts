@@ -72,6 +72,13 @@ export const adminBookCreateSchema = z
     synopsis: z.string().max(1024).optional(),
     coverImageUrl: z.string().url().optional(),
     publishedYear: z.coerce.number().int().min(0).max(9999).optional(),
+    isbn: z
+      .string()
+      .trim()
+      .min(10)
+      .max(20)
+      .regex(/^[0-9Xx -]+$/, "ISBN can include digits, X, spaces, or hyphens.")
+      .optional(),
     authorId: z.string().cuid().optional(),
     authorName: z.string().min(2).max(180).optional(),
     genreIds: z.array(z.string().cuid()).optional()
@@ -91,6 +98,24 @@ export const adminBookUpdateSchema = z.object({
   coverImageUrl: z
     .union([z.string().url(), z.literal(""), z.null()])
     .transform((value) => (value === "" ? null : value ?? undefined))
+    .optional(),
+  isbn: z
+    .union([
+      z
+        .string()
+        .trim()
+        .min(10)
+        .max(20)
+        .regex(/^[0-9Xx -]+$/, "ISBN can include digits, X, spaces, or hyphens."),
+      z.literal(""),
+      z.null()
+    ])
+    .transform((value) => {
+      if (value === "" || value === null) {
+        return null;
+      }
+      return value;
+    })
     .optional(),
   publishedYear: z
     .union([z.coerce.number().int().min(0).max(9999), z.literal(""), z.null()])

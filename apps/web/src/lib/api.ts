@@ -21,6 +21,7 @@ export type BookSummary = {
   title: string;
   synopsis: string | null;
   coverImageUrl: string | null;
+  isbn: string | null;
   author: {
     name: string;
     slug: string;
@@ -60,6 +61,7 @@ export type BookDetail = {
   title: string;
   synopsis: string | null;
   coverImageUrl: string | null;
+  isbn: string | null;
   author: {
     id: string;
     name: string;
@@ -130,6 +132,7 @@ export type AdminBookListItem = {
     name: string;
   };
   synopsis: string | null;
+  isbn: string | null;
   prepCount: number;
   updatedAt: string;
 };
@@ -156,6 +159,7 @@ export type AdminBookDetail = {
   subtitle?: string | null;
   synopsis: string | null;
   coverImageUrl: string | null;
+  isbn: string | null;
   publishedYear: number | null;
   author: {
     id: string;
@@ -173,6 +177,7 @@ export type AdminCreateBookInput = {
   slug?: string;
   synopsis?: string;
   coverImageUrl?: string;
+  isbn?: string;
   publishedYear?: number | null;
   authorId?: string;
   authorName?: string;
@@ -184,6 +189,7 @@ export type AdminUpdateBookInput = {
   subtitle?: string | null;
   synopsis?: string | null;
   coverImageUrl?: string | null;
+  isbn?: string | null;
   publishedYear?: number | null;
   genreIds?: string[];
 };
