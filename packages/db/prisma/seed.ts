@@ -2641,23 +2641,24 @@ function slugify(value: string) {
 async function main() {
   console.log("\"Seeding BookPrepper catalog\"");
 
-  await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS=0`;
-
-  try {
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepVote`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepKeywordOnPrep`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `BookPrep`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepSuggestion`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `BookGenre`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `Book`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `Author`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `Genre`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `PrepKeyword`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `BookSuggestion`");
-    await prisma.$executeRawUnsafe("TRUNCATE TABLE `UserProfile`");
-  } finally {
-    await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS=1`;
-  }
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRawUnsafe("SET FOREIGN_KEY_CHECKS=0");
+    try {
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `PrepVote`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `PrepKeywordOnPrep`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `BookPrep`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `PrepSuggestion`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `BookGenre`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `Book`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `Author`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `Genre`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `PrepKeyword`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `BookSuggestion`");
+      await tx.$executeRawUnsafe("TRUNCATE TABLE `UserProfile`");
+    } finally {
+      await tx.$executeRawUnsafe("SET FOREIGN_KEY_CHECKS=1");
+    }
+  });
 
   const systemUser = await prisma.userProfile.upsert({
     where: { email: SYSTEM_USER_EMAIL },
