@@ -147,6 +147,14 @@ export default function BookDetailPage() {
     metadataMutation.mutate();
   };
 
+  useEffect(() => {
+    if (!bookQuery.data) {
+      setCoverError(false);
+      return;
+    }
+    setCoverError(false);
+  }, [bookQuery.data?.coverImageUrl, bookQuery.data?.id]);
+
   if (bookQuery.isLoading) {
     return (
       <section className="page">
@@ -167,10 +175,6 @@ export default function BookDetailPage() {
   }
 
   const book = bookQuery.data;
-
-  useEffect(() => {
-    setCoverError(false);
-  }, [book.coverImageUrl, book.id]);
   const votingDisabled = !auth.isAuthenticated || auth.isLoading;
   const votingPrepId = voteMutation.variables?.prepId;
   const adminEditLink = `/admin?book=${encodeURIComponent(book.slug)}`;
