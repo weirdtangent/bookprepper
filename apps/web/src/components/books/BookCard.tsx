@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { BookSummary } from "../../lib/api";
 
@@ -10,7 +10,12 @@ export function BookCard({ book }: Props) {
   const coverAlt = `${book.title} cover art`;
   const coverInitial = book.title.charAt(0).toUpperCase();
   const [coverError, setCoverError] = useState(false);
-  const showFallback = !book.coverImageUrl || coverError;
+  const coverSrc = book.coverImageUrl ?? undefined;
+  const showFallback = !coverSrc || coverError;
+
+  useEffect(() => {
+    setCoverError(false);
+  }, [coverSrc, book.id]);
 
   return (
     <article className="book-card">
@@ -25,7 +30,7 @@ export function BookCard({ book }: Props) {
           </div>
         ) : (
           <img
-            src={book.coverImageUrl}
+            src={coverSrc}
             alt={coverAlt}
             loading="lazy"
             decoding="async"
