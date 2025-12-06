@@ -10,18 +10,27 @@ export default function ConfigPage() {
   const [nickname, setNickname] = useState(auth.user?.name ?? "");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [shuffleDefault, setShuffleDefault] = useState(auth.preferences.shuffleDefault ?? true);
+  const [shuffleStatus, setShuffleStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [shuffleError, setShuffleError] = useState<string | null>(null);
 
   debugLog("ConfigPage: render", {
     isAuthenticated,
     isLoading,
     nickname,
     status,
-    theme
+    theme,
+    shuffleDefault,
+    shuffleStatus
   });
 
   useEffect(() => {
     setNickname(auth.user?.name ?? "");
   }, [auth.user?.name]);
+
+  useEffect(() => {
+    setShuffleDefault(auth.preferences.shuffleDefault ?? true);
+  }, [auth.preferences.shuffleDefault]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -50,6 +59,25 @@ export default function ConfigPage() {
       setStatus("error");
       const message = err instanceof Error ? err.message : "Failed to update nickname";
       setError(message);
+    }
+  };
+
+  const handleShuffleToggle = async (checked: boolean) => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
+    setShuffleStatus("saving");
+    setShuffleError(null);
+    try {
+      await auth.updatePreferences({ shuffleDefault: checked });
+      setShuffleDefault(checked);
+      setShuffleStatus("success");
+    } catch (err) {
+      setShuffleStatus("error");
+      const message =
+        err instanceof Error ? err.message : "Failed to update shuffle preference. Please try again.";
+      setShuffleError(message);
     }
   };
 
@@ -98,6 +126,35 @@ export default function ConfigPage() {
           <input type="checkbox" checked={theme === "dark"} onChange={toggleTheme} />
           <span>{theme === "dark" ? "Dark mode enabled" : "Dark mode disabled"}</span>
         </label>
+      </section>
+
+      <section className="panel config-preferences">
+        <h2>Library defaults</h2>
+        <label className="theme-toggle">
+          <input
+            type="checkbox"
+            checked={shuffleDefault}
+            onChange={(event) => handleShuffleToggle(event.target.checked)}
+            disabled={shuffleStatus === "saving"}
+          />
+          <span>
+            {shuffleDefault
+              ? "Shuffle view enabled by default"
+              : "Shuffle view disabled by default"}
+          </span>
+        </label>
+        <p className="helper-text">
+          This controls whether the Library page starts with randomized book picks or alphabetical
+          results after you sign in.
+        </p>
+        {shuffleStatus === "success" && (
+          <p className="success-text">Shuffle preference updated.</p>
+        )}
+        {shuffleStatus === "error" && shuffleError && (
+          <p className="error-text" role="alert">
+            {shuffleError}
+          </p>
+        )}
       </section>
     </div>
   );

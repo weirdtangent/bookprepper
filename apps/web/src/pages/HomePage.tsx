@@ -8,7 +8,6 @@ import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../lib/auth";
 
 const PAGE_SIZE = 12;
-const SHUFFLE_STORAGE_KEY = "bookprepper:shuffle-default";
 const parseListParam = (value: string | null) =>
   value
     ?.split(",")
@@ -24,42 +23,14 @@ export default function HomePage() {
   const [genreFilters, setGenreFilters] = useState<string[]>([]);
   const [prepFilters, setPrepFilters] = useState<string[]>(() => parseListParam(searchParams.get("prep")));
   const [page, setPage] = useState(1);
-  const [shuffleEnabled, setShuffleEnabled] = useState(() =>
-    resolveInitialShufflePreference(auth.user?.preferences?.shuffleDefault)
-  );
   const debouncedSearch = useDebounce(search, 350);
   const typeaheadSearch = useDebounce(search, 200);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchBlurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setShuffleEnabled(resolveInitialShufflePreference(auth.user?.preferences?.shuffleDefault));
-  }, [auth.user?.preferences?.shuffleDefault]);
-
-  useEffect(() => {
     setPage(1);
   }, [debouncedSearch, authorSlug, genreFilters, prepFilters]);
-
-  useEffect(() => {
-    if (shuffleEnabled) {
-      setPage(1);
-    }
-  }, [shuffleEnabled]);
-
-  const handleShuffleToggle = (value: boolean) => {
-    if (value === shuffleEnabled) {
-      return;
-    }
-    setShuffleEnabled(value);
-    setPage(1);
-    if (auth.isAuthenticated) {
-      auth
-        .updatePreferences({ shuffleDefault: value })
-        .catch((error) => console.error("Failed to update shuffle preference", error));
-    } else {
-      persistShufflePreference(value);
-    }
-  };
 
   const authorParam = searchParams.get("author") ?? "";
   const prepParam = searchParams.get("prep") ?? "";
@@ -87,6 +58,8 @@ export default function HomePage() {
     queryKey: ["prep-keywords"],
     queryFn: () => api.listPrepKeywords()
   });
+
+  const shuffleEnabled = auth.preferences.shuffleDefault ?? true;
 
   const booksQuery = useQuery<BookListResponse>({
     queryKey: ["books", { debouncedSearch, authorSlug, genreFilters, prepFilters, page, shuffleEnabled }],
@@ -230,19 +203,6 @@ export default function HomePage() {
       </div>
 
       <section className="filters-panel">
-        <div className="filter-group shuffle-toggle-group">
-          <label className="shuffle-toggle">
-            <input
-              type="checkbox"
-              checked={shuffleEnabled}
-              onChange={(event) => handleShuffleToggle(event.target.checked)}
-            />
-            <span>{shuffleEnabled ? "Shuffle view enabled" : "Shuffle view disabled"}</span>
-          </label>
-          <small className="shuffle-toggle__hint">
-            {shuffleEnabled ? "Showing random picks by default" : "Showing alphabetical list"}
-          </small>
-        </div>
         <div className="filter-group">
           <label htmlFor="search">Search the library</label>
           <div className="typeahead-wrapper">
@@ -382,32 +342,6 @@ export default function HomePage() {
       </section>
     </section>
   );
-}
-
-function resolveInitialShufflePreference(userPreference?: boolean): boolean {
-  if (typeof userPreference === "boolean") {
-    return userPreference;
-  }
-  const stored = getStoredShufflePreference();
-  return stored ?? true;
-}
-
-function getStoredShufflePreference(): boolean | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  const stored = window.localStorage.getItem(SHUFFLE_STORAGE_KEY);
-  if (stored === null) {
-    return null;
-  }
-  return stored === "true";
-}
-
-function persistShufflePreference(value: boolean) {
-  if (typeof window === "undefined") {
-    return;
-  }
-  window.localStorage.setItem(SHUFFLE_STORAGE_KEY, String(value));
 }
 
 function areArraysEqual(a: string[], b: string[]) {
