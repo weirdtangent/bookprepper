@@ -11,26 +11,31 @@ import {
   useState
 } from "react";
 import { amplifyConfig } from "./amplify";
-import { api } from "./api";
+import { api, type UserPreferences } from "./api";
 import { config } from "./config";
 import { debugLog, isDebugEnabled } from "./debug";
 
 Amplify.configure(amplifyConfig);
 const ADMIN_EMAIL = config.adminEmail.trim().toLowerCase();
 
+type AuthUser = {
+  name?: string | null;
+  email?: string | null;
+  preferences?: UserPreferences;
+} | null;
+
 type AuthContextValue = {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
   token: string | null;
-  user: {
-    name?: string | null;
-    email?: string | null;
-  } | null;
+  user: AuthUser;
+  preferences: UserPreferences;
   signIn: () => void;
   signOut: () => void;
   requireAuth: () => boolean;
   updateNickname: (nickname: string) => Promise<void>;
+  updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -39,10 +44,12 @@ const AuthContext = createContext<AuthContextValue>({
   isLoading: true,
   token: null,
   user: null,
+  preferences: {},
   signIn: () => undefined,
   signOut: () => undefined,
   requireAuth: () => false,
-  updateNickname: async () => undefined
+  updateNickname: async () => undefined,
+  updatePreferences: async () => undefined
 });
 
 type Props = {
@@ -52,7 +59,7 @@ type Props = {
 export function AuthProvider({ children }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<{ name?: string | null; email?: string | null } | null>(null);
+  const [user, setUser] = useState<AuthUser>(null);
 
   const hydrateSession = useCallback(async () => {
     debugLog("AuthProvider: hydrateSession invoked");
@@ -74,17 +81,20 @@ export function AuthProvider({ children }: Props) {
         (payload["cognito:username"] as string | undefined);
       const idToken = session.tokens?.idToken?.toString() ?? null;
       let profileName: string | null = null;
+      let preferences: UserPreferences = {};
       if (idToken) {
         try {
           const response = await api.getProfile(idToken);
           profileName = response.profile.displayName;
+          preferences = response.profile.preferences ?? {};
         } catch (profileError) {
           debugLog("AuthProvider: failed to load profile", profileError);
         }
       }
       setUser({
         name: profileName ?? fallbackName,
-        email: payload.email as string | undefined
+        email: payload.email as string | undefined,
+        preferences
       });
       setToken(idToken);
     } catch (error) {
@@ -158,11 +168,38 @@ export function AuthProvider({ children }: Props) {
         throw new Error("Nickname cannot be empty");
       }
       await api.updateProfile({ displayName: trimmed, token });
-      setUser((current) => ({
-        ...current,
-        name: trimmed
-      }));
+      setUser((current) =>
+        current
+          ? {
+              ...current,
+              name: trimmed
+            }
+          : current
+      );
       debugLog("AuthProvider: nickname updated locally");
+    },
+    [token]
+  );
+
+  const updatePreferences = useCallback(
+    async (preferences: Partial<UserPreferences>) => {
+      debugLog("AuthProvider: updatePreferences requested", preferences);
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+      await api.updateProfile({ preferences, token });
+      setUser((current) =>
+        current
+          ? {
+              ...current,
+              preferences: {
+                ...current.preferences,
+                ...preferences
+              }
+            }
+          : current
+      );
+      debugLog("AuthProvider: preferences updated locally");
     },
     [token]
   );
@@ -173,10 +210,12 @@ export function AuthProvider({ children }: Props) {
     isLoading: true,
     token: null,
     user: null,
+    preferences: {},
     signIn: () => undefined,
     signOut: () => undefined,
     requireAuth: () => false,
-    updateNickname: async () => undefined
+    updateNickname: async () => undefined,
+    updatePreferences: async () => undefined
   });
 
   const isAdmin = Boolean(
@@ -190,14 +229,26 @@ export function AuthProvider({ children }: Props) {
       isLoading,
       token,
       user,
+      preferences: user?.preferences ?? {},
       signIn: handleSignIn,
       signOut: handleSignOut,
       requireAuth,
-      updateNickname
+      updateNickname,
+      updatePreferences
     };
     valueRef.current = nextValue;
     return nextValue;
-  }, [token, isLoading, user, handleSignIn, handleSignOut, requireAuth, updateNickname, isAdmin]);
+  }, [
+    token,
+    isLoading,
+    user,
+    handleSignIn,
+    handleSignOut,
+    requireAuth,
+    updateNickname,
+    updatePreferences,
+    isAdmin
+  ]);
 
   useEffect(() => {
     if (isDebugEnabled()) {

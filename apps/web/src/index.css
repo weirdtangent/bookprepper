@@ -381,6 +381,29 @@ a {
   gap: 0.5rem;
 }
 
+.shuffle-toggle-group {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.shuffle-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.shuffle-toggle input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.shuffle-toggle__hint {
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+}
+
 .filter-group label {
   font-weight: 600;
 }
@@ -437,6 +460,31 @@ a {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.shuffle-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shuffle-controls button {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-panel);
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.shuffle-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shuffle-hint {
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
 }
 
 .book-grid {

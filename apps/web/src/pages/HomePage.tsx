@@ -5,8 +5,10 @@ import { api } from "../lib/api";
 import type { Author, BookListResponse, Genre, Keyword } from "../lib/api";
 import { BookCard } from "../components/books/BookCard";
 import { useDebounce } from "../hooks/useDebounce";
+import { useAuth } from "../lib/auth";
 
 const PAGE_SIZE = 12;
+const SHUFFLE_STORAGE_KEY = "bookprepper:shuffle-default";
 const parseListParam = (value: string | null) =>
   value
     ?.split(",")
@@ -16,19 +18,48 @@ const parseListParam = (value: string | null) =>
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const auth = useAuth();
   const [search, setSearch] = useState("");
   const [authorSlug, setAuthorSlug] = useState(() => searchParams.get("author") ?? "");
   const [genreFilters, setGenreFilters] = useState<string[]>([]);
   const [prepFilters, setPrepFilters] = useState<string[]>(() => parseListParam(searchParams.get("prep")));
   const [page, setPage] = useState(1);
+  const [shuffleEnabled, setShuffleEnabled] = useState(() =>
+    resolveInitialShufflePreference(auth.user?.preferences?.shuffleDefault)
+  );
   const debouncedSearch = useDebounce(search, 350);
   const typeaheadSearch = useDebounce(search, 200);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchBlurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    setShuffleEnabled(resolveInitialShufflePreference(auth.user?.preferences?.shuffleDefault));
+  }, [auth.user?.preferences?.shuffleDefault]);
+
+  useEffect(() => {
     setPage(1);
   }, [debouncedSearch, authorSlug, genreFilters, prepFilters]);
+
+  useEffect(() => {
+    if (shuffleEnabled) {
+      setPage(1);
+    }
+  }, [shuffleEnabled]);
+
+  const handleShuffleToggle = (value: boolean) => {
+    if (value === shuffleEnabled) {
+      return;
+    }
+    setShuffleEnabled(value);
+    setPage(1);
+    if (auth.isAuthenticated) {
+      auth
+        .updatePreferences({ shuffleDefault: value })
+        .catch((error) => console.error("Failed to update shuffle preference", error));
+    } else {
+      persistShufflePreference(value);
+    }
+  };
 
   const authorParam = searchParams.get("author") ?? "";
   const prepParam = searchParams.get("prep") ?? "";
@@ -58,7 +89,7 @@ export default function HomePage() {
   });
 
   const booksQuery = useQuery<BookListResponse>({
-    queryKey: ["books", { debouncedSearch, authorSlug, genreFilters, prepFilters, page }],
+    queryKey: ["books", { debouncedSearch, authorSlug, genreFilters, prepFilters, page, shuffleEnabled }],
     queryFn: ({ signal }) =>
       api.listBooks(
         {
@@ -67,7 +98,8 @@ export default function HomePage() {
           genres: genreFilters,
           prep: prepFilters,
           page,
-          pageSize: PAGE_SIZE
+          pageSize: PAGE_SIZE,
+          shuffle: shuffleEnabled
         },
         signal
       ),
@@ -198,6 +230,19 @@ export default function HomePage() {
       </div>
 
       <section className="filters-panel">
+        <div className="filter-group shuffle-toggle-group">
+          <label className="shuffle-toggle">
+            <input
+              type="checkbox"
+              checked={shuffleEnabled}
+              onChange={(event) => handleShuffleToggle(event.target.checked)}
+            />
+            <span>{shuffleEnabled ? "Shuffle view enabled" : "Shuffle view disabled"}</span>
+          </label>
+          <small className="shuffle-toggle__hint">
+            {shuffleEnabled ? "Showing random picks by default" : "Showing alphabetical list"}
+          </small>
+        </div>
         <div className="filter-group">
           <label htmlFor="search">Search the library</label>
           <div className="typeahead-wrapper">
@@ -292,7 +337,9 @@ export default function HomePage() {
       </section>
 
       <section className="results-panel">
-        {booksQuery.isLoading && <p>Loading books...</p>}
+        {booksQuery.isLoading && (
+          <p>{shuffleEnabled ? "Gathering random reading suggestions..." : "Loading books..."}</p>
+        )}
         {booksQuery.isError && (
           <p role="alert">Something went wrong while loading books. Please try again.</p>
         )}
@@ -304,17 +351,26 @@ export default function HomePage() {
                 <BookCard key={book.id} book={book} />
               ))}
             </div>
-            <div className="pagination">
-              <button disabled={!canGoBack} onClick={() => canGoBack && setPage((p) => p - 1)}>
-                Previous
-              </button>
-              <span>
-                Page {booksQuery.data?.pagination.page} of {totalPages}
-              </span>
-              <button disabled={!canGoForward} onClick={() => canGoForward && setPage((p) => p + 1)}>
-                Next
-              </button>
-            </div>
+            {shuffleEnabled ? (
+              <div className="shuffle-controls">
+                <button type="button" onClick={() => booksQuery.refetch()} disabled={booksQuery.isFetching}>
+                  {booksQuery.isFetching ? "Shuffling..." : "Shuffle again"}
+                </button>
+                <span className="shuffle-hint">Showing random picks</span>
+              </div>
+            ) : (
+              <div className="pagination">
+                <button disabled={!canGoBack} onClick={() => canGoBack && setPage((p) => p - 1)}>
+                  Previous
+                </button>
+                <span>
+                  Page {booksQuery.data?.pagination.page} of {totalPages}
+                </span>
+                <button disabled={!canGoForward} onClick={() => canGoForward && setPage((p) => p + 1)}>
+                  Next
+                </button>
+              </div>
+            )}
           </>
         )}
 
@@ -326,6 +382,32 @@ export default function HomePage() {
       </section>
     </section>
   );
+}
+
+function resolveInitialShufflePreference(userPreference?: boolean): boolean {
+  if (typeof userPreference === "boolean") {
+    return userPreference;
+  }
+  const stored = getStoredShufflePreference();
+  return stored ?? true;
+}
+
+function getStoredShufflePreference(): boolean | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  const stored = window.localStorage.getItem(SHUFFLE_STORAGE_KEY);
+  if (stored === null) {
+    return null;
+  }
+  return stored === "true";
+}
+
+function persistShufflePreference(value: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(SHUFFLE_STORAGE_KEY, String(value));
 }
 
 function areArraysEqual(a: string[], b: string[]) {

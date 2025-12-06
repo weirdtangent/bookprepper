@@ -110,23 +110,71 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
     const query = listBooksQuerySchema.parse(request.query);
     const where = buildBookFilters(query);
 
+    const include = {
+      author: true,
+      genres: {
+        include: {
+          genre: true
+        }
+      },
+      _count: {
+        select: { preps: true }
+      }
+    } as const;
+
+    if (query.shuffle) {
+      const ids = await prisma.book.findMany({
+        where,
+        select: { id: true }
+      });
+
+      const total = ids.length;
+      const shuffledIds = shuffleIds(ids.map((entry) => entry.id));
+      const start = (query.page - 1) * query.pageSize;
+      const pageIds = shuffledIds.slice(start, start + query.pageSize);
+
+      if (pageIds.length === 0) {
+        return {
+          pagination: {
+            total,
+            page: query.page,
+            pageSize: query.pageSize,
+            totalPages: Math.max(1, Math.ceil(total / query.pageSize))
+          },
+          results: []
+        };
+      }
+
+      const books = await prisma.book.findMany({
+        where: {
+          id: { in: pageIds }
+        },
+        include
+      });
+
+      const booksById = new Map(books.map((book) => [book.id, book]));
+      const orderedBooks = pageIds
+        .map((id) => booksById.get(id))
+        .filter((book): book is BookListResult => Boolean(book));
+
+      return {
+        pagination: {
+          total,
+          page: query.page,
+          pageSize: query.pageSize,
+          totalPages: Math.max(1, Math.ceil(total / query.pageSize))
+        },
+        results: orderedBooks.map(mapBookListResult)
+      };
+    }
+
     const totalPromise = prisma.book.count({ where });
     const booksPromise = prisma.book.findMany({
       where,
       orderBy: { title: "asc" },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
-      include: {
-        author: true,
-        genres: {
-          include: {
-            genre: true
-          }
-        },
-        _count: {
-          select: { preps: true }
-        }
-      }
+      include
     });
 
     const [total, books] = await Promise.all([totalPromise, booksPromise]);
@@ -138,24 +186,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         pageSize: query.pageSize,
         totalPages: Math.ceil(total / query.pageSize)
       },
-      results: books.map((book: BookListResult) => ({
-        id: book.id,
-        slug: book.slug,
-        title: book.title,
-        synopsis: book.synopsis,
-        coverImageUrl: resolveCoverImageUrl(book, "M"),
-        isbn: book.isbn,
-        author: {
-          name: book.author.name,
-          slug: book.author.slug
-        },
-        genres: book.genres.map((entry) => ({
-          id: entry.genre.id,
-          name: entry.genre.name,
-          slug: entry.genre.slug
-        })),
-        prepCount: book._count.preps
-      }))
+      results: books.map(mapBookListResult)
     };
   });
 
@@ -358,6 +389,27 @@ function mapBookDetail(book: BookDetailResult) {
   };
 }
 
+function mapBookListResult(book: BookListResult) {
+  return {
+    id: book.id,
+    slug: book.slug,
+    title: book.title,
+    synopsis: book.synopsis,
+    coverImageUrl: resolveCoverImageUrl(book, "M"),
+    isbn: book.isbn,
+    author: {
+      name: book.author.name,
+      slug: book.author.slug
+    },
+    genres: book.genres.map((entry) => ({
+      id: entry.genre.id,
+      name: entry.genre.name,
+      slug: entry.genre.slug
+    })),
+    prepCount: book._count.preps
+  };
+}
+
 function formatPrep(prep: PrepWithRelations) {
   const agree = prep.votes.filter((vote) => vote.value === "AGREE").length;
   const disagree = prep.votes.filter((vote) => vote.value === "DISAGREE").length;
@@ -410,5 +462,14 @@ function tokenizeSearch(raw: string) {
     .trim()
     .split(/\s+/)
     .filter(Boolean);
+}
+
+function shuffleIds<T>(input: T[]): T[] {
+  const result = [...input];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 

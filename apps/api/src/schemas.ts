@@ -9,7 +9,8 @@ export const listBooksQuerySchema = paginationSchema.extend({
   search: z.string().trim().min(1).optional(),
   author: z.string().trim().min(1).optional(),
   genres: z.string().trim().optional(),
-  prep: z.string().trim().optional()
+  prep: z.string().trim().optional(),
+  shuffle: z.coerce.boolean().optional().default(false)
 });
 
 export const bookSlugParamsSchema = z.object({
@@ -145,9 +146,24 @@ export const adminModerationNoteSchema = z.object({
   note: z.string().max(500).optional()
 });
 
-export const profileUpdateBodySchema = z.object({
-  displayName: z.string().trim().min(2).max(120)
+const userPreferencesSchema = z.object({
+  shuffleDefault: z.boolean().optional()
 });
+
+export const profileUpdateBodySchema = z
+  .object({
+    displayName: z.string().trim().min(2).max(120).optional(),
+    preferences: userPreferencesSchema.optional()
+  })
+  .refine((value) => {
+    if (value.displayName) {
+      return true;
+    }
+    if (value.preferences) {
+      return Object.values(value.preferences).some((pref) => pref !== undefined);
+    }
+    return false;
+  }, "Provide displayName or preferences to update.");
 
 export type ListBooksQuery = z.infer<typeof listBooksQuerySchema>;
 export type BookSlugParams = z.infer<typeof bookSlugParamsSchema>;
@@ -162,4 +178,5 @@ export type AdminBookUpdateBody = z.infer<typeof adminBookUpdateSchema>;
 export type AdminPrepUpsertBody = z.infer<typeof adminPrepUpsertSchema>;
 export type SuggestionIdParams = z.infer<typeof suggestionIdParamsSchema>;
 export type ProfileUpdateBody = z.infer<typeof profileUpdateBodySchema>;
+export type UserPreferences = z.infer<typeof userPreferencesSchema>;
 

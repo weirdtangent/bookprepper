@@ -112,6 +112,11 @@ export type UserProfile = {
   displayName: string;
   email: string;
   role: string;
+  preferences: UserPreferences;
+};
+
+export type UserPreferences = {
+  shuffleDefault?: boolean;
 };
 
 export type BookQueryParams = {
@@ -121,6 +126,7 @@ export type BookQueryParams = {
   prep?: string[];
   page?: number;
   pageSize?: number;
+  shuffle?: boolean;
 };
 
 export type AdminBookListItem = {
@@ -296,7 +302,8 @@ export const api = {
         genres: params.genres,
         prep: params.prep,
         page: params.page,
-        pageSize: params.pageSize
+        pageSize: params.pageSize,
+        shuffle: params.shuffle ? "true" : undefined
       },
       signal
     }),
@@ -481,11 +488,27 @@ export const api = {
     apiFetch<{ profile: UserProfile }>("/api/profile", {
       token
     }),
-  updateProfile: (params: { displayName: string; token: string }) =>
-    apiFetch<{ profile: UserProfile }>("/api/profile", {
+  updateProfile: (params: {
+    token: string;
+    displayName?: string;
+    preferences?: Partial<UserPreferences>;
+  }) => {
+    const body: Record<string, unknown> = {};
+    if (params.displayName) {
+      body.displayName = params.displayName;
+    }
+    if (params.preferences) {
+      body.preferences = params.preferences;
+    }
+    if (Object.keys(body).length === 0) {
+      throw new Error("No profile fields provided");
+    }
+
+    return apiFetch<{ profile: UserProfile }>("/api/profile", {
       method: "PATCH",
-      body: { displayName: params.displayName },
+      body,
       token: params.token
-    })
+    });
+  }
 };
 

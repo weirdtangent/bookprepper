@@ -54,3 +54,7 @@ Copy `.env.example`, populate values, and ensure both API and web builds load th
 
 Running `pnpm covers:cache` fetches each ISBN’s cover art once, stores it under `apps/web/public/assets/covers`, and writes a runtime manifest to `apps/api/.cover-cache/cover-manifest.generated.json` (both outputs are gitignored so you can keep local caches without dirtying the repo). The Vite build copies the cached JPEGs to `apps/web/dist/assets/covers`, so the client can load `/assets/covers/<isbn>.jpg` without touching Open Library at runtime. Set `DATABASE_URL` so the script can query Prisma for ISBNs; if it’s missing, the script simply reindexes whatever covers already exist. If your API runs outside the repo tree, point it at a custom manifest using `COVER_MANIFEST_PATH=/absolute/path/to/cover-manifest.generated.json`.
 
+### Library shuffle mode
+
+The `/api/books` endpoint now accepts a `shuffle=true` query parameter, returning a randomly ordered slice of the catalog on each request. The web client enables shuffle mode by default and saves each signed-in user’s preference in their profile (anonymous visitors fall back to local storage), so they can keep browsing randomized picks across visits.
+
