@@ -16,6 +16,7 @@ export default function BookDetailPage() {
   const [synopsisSuggestion, setSynopsisSuggestion] = useState("");
   const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
   const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [coverError, setCoverError] = useState(false);
   const SYNOPSIS_LIMIT = 1024;
 
   useEffect(() => {
@@ -166,6 +167,10 @@ export default function BookDetailPage() {
   }
 
   const book = bookQuery.data;
+
+  useEffect(() => {
+    setCoverError(false);
+  }, [book.coverImageUrl, book.id]);
   const votingDisabled = !auth.isAuthenticated || auth.isLoading;
   const votingPrepId = voteMutation.variables?.prepId;
   const adminEditLink = `/admin?book=${encodeURIComponent(book.slug)}`;
@@ -185,10 +190,17 @@ export default function BookDetailPage() {
 
       <div className="book-hero">
         <div className="book-hero__media" aria-hidden={!book.coverImageUrl}>
-          {book.coverImageUrl ? (
-            <img src={book.coverImageUrl} alt={`${book.title} cover`} loading="lazy" />
+          {!book.coverImageUrl || coverError ? (
+            <div className="book-hero__media-placeholder">
+              {book.title.charAt(0).toUpperCase()}
+            </div>
           ) : (
-            <div className="book-hero__media-placeholder">{book.title.charAt(0).toUpperCase()}</div>
+            <img
+              src={book.coverImageUrl}
+              alt={`${book.title} cover`}
+              loading="lazy"
+              onError={() => setCoverError(true)}
+            />
           )}
         </div>
         <div className="book-hero__content">
