@@ -1,10 +1,22 @@
+// @ts-nocheck
 import { PrismaClient } from "@prisma/client";
-import { readFile } from "node:fs/promises";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { config as loadEnv } from "dotenv";
 
 loadEnv();
 
-const prisma = new PrismaClient();
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not set");
+}
+
+const adapter = new PrismaMariaDb(databaseUrl);
+
+const prisma = new PrismaClient({
+  adapter,
+  log: process.env.PRISMA_LOG_LEVEL === "silent" ? [] : ["warn", "error"]
+});
 
 type KeywordTemplate = {
   name: string;
@@ -2616,7 +2628,6 @@ const AUTHOR_BIOS: Record<string, string> = {
 };
 
 const SYSTEM_USER_EMAIL = "curator@bookprepper.com";
-const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
 
 function slugify(value: string) {
   return value
@@ -2661,9 +2672,7 @@ async function main() {
     }
   });
 
-  const existingBookKeys = new Set(BASE_BOOKS.map((book) => buildBookKey(book.title, book.author)));
-  const goodreadsBooks = await loadGoodreadsBooks(existingBookKeys);
-  const books = [...BASE_BOOKS, ...goodreadsBooks];
+  const books = BASE_BOOKS;
 
   const authorRecords = new Map<string, string>();
   for (const authorName of new Set(books.map((book) => book.author))) {
@@ -2803,9 +2812,7 @@ async function main() {
     }
   }
 
-  console.log(
-    `"Seeded ${books.length} books with curated preps (${goodreadsBooks.length} Goodreads additions)"`
-  );
+  console.log(`"Seeded ${books.length} curated books with preps"`);
 }
 
 main()
@@ -2817,271 +2824,10 @@ main()
     await prisma.$disconnect();
   });
 
-const AUTO_GENRE: GenreSlug = "literary-fiction";
 const SYNOPSIS_MAX_CHARS = 191;
-
-async function loadGoodreadsBooks(existingBookKeys: Set<string>): Promise<SeedBook[]> {
-  try {
-    const raw = await readGoodreadsCsvContents();
-    if (!raw) {
-      console.warn("\"Goodreads CSV missing; skipping bulk import\"");
-      return [];
-    }
-
-    const rows = raw.split(/\r?\n/);
-
-    while (rows.length > 0 && !rows[0]?.trim()) {
-      rows.shift();
-    }
-
-    if (rows.length === 0) {
-      console.warn("\"Goodreads CSV empty; skipping bulk import\"");
-      return [];
-    }
-
-    const headerLine = rows.shift();
-    if (!headerLine) {
-      return [];
-    }
-
-    const headers = parseCsvLine(headerLine);
-    if (headers.length === 0) {
-      return [];
-    }
-
-    const normalizedHeaders = headers.map((header, index) =>
-      (index === 0 ? header.replace(/^\uFEFF/, "") : header).trim().toLowerCase()
-    );
-
-    const titleIdx = findHeaderIndex(normalizedHeaders, ["title", "booktitle", "original_title"]);
-    const authorIdx = findHeaderIndex(normalizedHeaders, ["authors", "authorname"]);
-
-    if (titleIdx === -1 || authorIdx === -1) {
-      console.warn("\"Goodreads CSV missing title/authors columns\"");
-      return [];
-    }
-
-    const originalTitleIdx = findHeaderIndex(normalizedHeaders, ["original_title"]);
-    const publishedYearIdx = findHeaderIndex(normalizedHeaders, [
-      "original_publication_year",
-      "originalpublicationyear",
-      "publication_year"
-    ]);
-    const averageRatingIdx = findHeaderIndex(normalizedHeaders, ["average_rating", "averagerating"]);
-    const ratingsCountIdx = findHeaderIndex(normalizedHeaders, ["ratings_count", "num_ratings", "work_ratings_count"]);
-    const imageUrlIdx = findHeaderIndex(normalizedHeaders, ["image_url", "imageurl"]);
-    const smallImageUrlIdx = findHeaderIndex(normalizedHeaders, ["small_image_url", "smallimage_url"]);
-
-    const additions: SeedBook[] = [];
-
-    for (const row of rows) {
-      if (!row?.trim()) {
-        continue;
-      }
-
-      const columns = parseCsvLine(row);
-      const primaryTitle = columns[titleIdx];
-      const fallbackTitle = originalTitleIdx !== -1 ? columns[originalTitleIdx] : undefined;
-      const title = (primaryTitle || fallbackTitle)?.trim();
-      const primaryAuthor = selectPrimaryAuthor(columns[authorIdx]);
-
-      if (!title || !primaryAuthor) {
-        continue;
-      }
-
-      const key = buildBookKey(title, primaryAuthor);
-      if (existingBookKeys.has(key)) {
-        continue;
-      }
-
-      const averageRating = averageRatingIdx !== -1 ? parseOptionalFloat(columns[averageRatingIdx]) : undefined;
-      const ratingsCount = ratingsCountIdx !== -1 ? parseOptionalInteger(columns[ratingsCountIdx]) : undefined;
-      const publishedYear = publishedYearIdx !== -1 ? parseOptionalYear(columns[publishedYearIdx]) : undefined;
-      const coverImageUrl = firstNonEmpty(
-        imageUrlIdx !== -1 ? columns[imageUrlIdx] : undefined,
-        smallImageUrlIdx !== -1 ? columns[smallImageUrlIdx] : undefined
-      );
-
-      additions.push({
-        title,
-        author: primaryAuthor,
-        synopsis: buildGoodreadsSynopsis(title, averageRating, ratingsCount),
-        publishedYear,
-        coverImageUrl,
-        genres: [AUTO_GENRE],
-        preps: buildAutoPreps(title)
-      });
-
-      existingBookKeys.add(key);
-    }
-
-    return additions;
-  } catch (error) {
-    console.warn(`"Failed to parse Goodreads CSV: ${(error as Error).message}"`);
-    return [];
-  }
-}
-
-function buildGoodreadsSynopsis(title: string, averageRating?: number, ratingsCount?: number) {
-  if (averageRating && ratingsCount) {
-    return `Imported Goodreads catalog entry for ${title} (avg rating ${averageRating.toFixed(2)} from ${NUMBER_FORMATTER.format(
-      ratingsCount
-    )} readers). Community suggestions welcome.`;
-  }
-
-  if (averageRating) {
-    return `Imported Goodreads catalog entry for ${title} (avg rating ${averageRating.toFixed(2)}). Community suggestions welcome.`;
-  }
-
-  return `Imported Goodreads catalog entry for ${title}. Community suggestions welcome.`;
-}
-
-function parseCsvLine(line: string): string[] {
-  const values: string[] = [];
-  let current = "";
-  let inQuotes = false;
-  const sanitized = line.replace(/\r$/, "");
-
-  for (let i = 0; i < sanitized.length; i++) {
-    const char = sanitized[i];
-    const nextChar = sanitized[i + 1];
-
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        current += '"';
-        i++;
-        continue;
-      }
-
-      inQuotes = !inQuotes;
-      continue;
-    }
-
-    if (char === "," && !inQuotes) {
-      values.push(current.trim());
-      current = "";
-      continue;
-    }
-
-    current += char;
-  }
-
-  values.push(current.trim());
-  return values;
-}
-
-function buildBookKey(title: string, author: string) {
-  return `${title.trim().toLowerCase()}|${author.trim().toLowerCase()}`;
-}
-
-function buildAutoPreps(title: string): SeedPrep[] {
-  return [
-    {
-      keyword: "storytelling",
-      note: `Track how ${title} frames its narration across chapters.`
-    },
-    {
-      keyword: "resilience",
-      note: `Watch how characters in ${title} adapt when the stakes rise.`
-    }
-  ];
-}
 
 function truncateText(value: string | null | undefined, max = 180) {
   if (!value) return value;
   return value.length > max ? `${value.slice(0, max - 1).trim()}…` : value;
 }
-
-async function readGoodreadsCsvContents(): Promise<string | null> {
-  const overridePath = process.env.GOODREADS_CSV?.trim();
-  const candidates: Array<string | URL> = [];
-
-  candidates.push(new URL("../../../tmp/books.csv", import.meta.url));
-
-  if (overridePath && overridePath.length > 0) {
-    candidates.push(overridePath);
-  }
-
-  candidates.push(new URL("../../../tmp/goodreads_cleaned.csv", import.meta.url));
-
-  for (const candidate of candidates) {
-    try {
-      return await readFile(candidate, "utf-8");
-    } catch {
-      // Ignore and keep trying other sources.
-    }
-  }
-
-  return null;
-}
-
-function findHeaderIndex(headers: string[], candidates: string[]): number {
-  for (const candidate of candidates) {
-    const normalized = candidate.trim().toLowerCase();
-    const index = headers.indexOf(normalized);
-    if (index !== -1) {
-      return index;
-    }
-  }
-  return -1;
-}
-
-function selectPrimaryAuthor(raw?: string): string | undefined {
-  if (!raw) {
-    return undefined;
-  }
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-
-  const segments = trimmed
-    .split(",")
-    .map((segment) => segment.trim())
-    .filter(Boolean);
-
-  if (segments.length === 0) {
-    return trimmed;
-  }
-
-  return segments[0];
-}
-
-function parseOptionalFloat(value?: string): number | undefined {
-  if (!value) {
-    return undefined;
-  }
-  const sanitized = value.replace(/,/g, "");
-  const parsed = Number.parseFloat(sanitized);
-  return Number.isNaN(parsed) ? undefined : parsed;
-}
-
-function parseOptionalInteger(value?: string): number | undefined {
-  if (!value) {
-    return undefined;
-  }
-  const sanitized = value.replace(/,/g, "");
-  const parsed = Number.parseInt(sanitized, 10);
-  return Number.isNaN(parsed) ? undefined : parsed;
-}
-
-function parseOptionalYear(value?: string): number | undefined {
-  const parsed = parseOptionalFloat(value);
-  if (typeof parsed !== "number" || Number.isNaN(parsed)) {
-    return undefined;
-  }
-  const rounded = Math.round(parsed);
-  return Number.isNaN(rounded) ? undefined : rounded;
-}
-
-function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
-  for (const value of values) {
-    const trimmed = value?.trim();
-    if (trimmed) {
-      return trimmed;
-    }
-  }
-  return undefined;
-}
-
 
