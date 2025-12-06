@@ -6,7 +6,7 @@ build
 .env
 coverage
 tmp
-apps/web/public/assets/covers/*.jpg
-apps/web/public/assets/covers/manifest.generated.json
+apps/web/public/assets/covers
+apps/web/public/assets/coversC/manifest.generated.json
 apps/api/.cover-cache/
 
