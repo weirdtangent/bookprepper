@@ -1,4 +1,4 @@
-import coverManifest from "../data/cover-manifest.json" assert { type: "json" };
+import coverManifest from "../data/cover-manifest.json" with { type: "json" };
 import { normalizeIsbn } from "./isbn.js";
 
 const OPEN_LIBRARY_BASE = "https://covers.openlibrary.org/b/isbn";
