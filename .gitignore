@@ -4,8 +4,9 @@ dist
 build
 .DS_Store
 .env
-.env.*
-!.env.example
 coverage
 tmp
+apps/web/public/assets/covers/*.jpg
+apps/web/public/assets/covers/manifest.generated.json
+apps/api/.cover-cache/
 

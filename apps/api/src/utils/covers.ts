@@ -1,17 +1,23 @@
-import coverManifest from "../data/cover-manifest.json" with { type: "json" };
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { normalizeIsbn } from "./isbn.js";
 
 const OPEN_LIBRARY_BASE = "https://covers.openlibrary.org/b/isbn";
 const COVER_ASSET_PREFIX = (process.env.COVER_ASSET_PREFIX ?? "/assets/covers").replace(/\/$/, "");
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_MANIFEST_PATH = path.resolve(
+  moduleDir,
+  "../../.cover-cache/cover-manifest.generated.json"
+);
+const manifestPath = process.env.COVER_MANIFEST_PATH ?? DEFAULT_MANIFEST_PATH;
 
 type CoverManifest = {
   generatedAt?: string;
   files: Record<string, string>;
 };
 
-const cachedCoverFiles = new Map<string, string>(
-  Object.entries((coverManifest as CoverManifest).files ?? {})
-);
+const cachedCoverFiles = loadCoverManifest(manifestPath);
 
 export function buildOpenLibraryCoverUrl(
   isbn?: string | null,
@@ -40,4 +46,21 @@ export function resolveCoverImageUrl<
   }
 
   return buildOpenLibraryCoverUrl(book.isbn, size);
+}
+
+function loadCoverManifest(targetPath: string) {
+  if (!existsSync(targetPath)) {
+    return new Map<string, string>();
+  }
+
+  try {
+    const contents = readFileSync(targetPath, "utf8");
+    const parsed = JSON.parse(contents) as CoverManifest;
+    return new Map<string, string>(Object.entries(parsed.files ?? {}));
+  } catch (error) {
+    console.warn(
+      `"Failed to read cached cover manifest from ${targetPath}: ${(error as Error).message}"`
+    );
+    return new Map<string, string>();
+  }
 }

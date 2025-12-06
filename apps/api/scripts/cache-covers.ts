@@ -10,8 +10,9 @@ type PrismaClient = import("@prisma/client").PrismaClient;
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "../../..");
 const publicCoverDir = path.resolve(repoRoot, "apps/web/public/assets/covers");
-const publicManifestPath = path.resolve(publicCoverDir, "manifest.json");
-const apiManifestPath = path.resolve(repoRoot, "apps/api/src/data/cover-manifest.json");
+const publicManifestPath = path.resolve(publicCoverDir, "manifest.generated.json");
+const apiCoverCacheDir = path.resolve(repoRoot, "apps/api/.cover-cache");
+const apiManifestPath = path.resolve(apiCoverCacheDir, "cover-manifest.generated.json");
 
 loadEnv({ path: path.resolve(repoRoot, ".env") });
 loadEnv();
