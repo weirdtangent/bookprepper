@@ -29,7 +29,9 @@ export type PromptVoteSummary = {
 type AggregateRow = {
   dimension: PromptFeedbackDimension;
   value: PrepVoteValue;
-  _count: number;
+  _count: {
+    _all: number;
+  };
 };
 
 export async function syncPromptScore(prepId: string, feedbackTimestamp = new Date()): Promise<PromptVoteSummary> {
@@ -48,7 +50,7 @@ export async function syncPromptScore(prepId: string, feedbackTimestamp = new Da
       disagreeCount: summary.disagree,
       totalCount: summary.total,
       score: summary.score,
-      dimensionTallies: summary.dimensions as unknown as Prisma.JsonValue,
+      dimensionTallies: summary.dimensions as unknown as Prisma.InputJsonValue,
       lastFeedbackAt: summary.total > 0 ? feedbackTimestamp : null
     },
     create: {
@@ -57,7 +59,7 @@ export async function syncPromptScore(prepId: string, feedbackTimestamp = new Da
       disagreeCount: summary.disagree,
       totalCount: summary.total,
       score: summary.score,
-      dimensionTallies: summary.dimensions as unknown as Prisma.JsonValue,
+      dimensionTallies: summary.dimensions as unknown as Prisma.InputJsonValue,
       lastFeedbackAt: summary.total > 0 ? feedbackTimestamp : null
     }
   });
@@ -76,11 +78,11 @@ export function summarizeAggregates(rows: AggregateRow[]): PromptVoteSummary {
       continue;
     }
     if (row.value === "AGREE") {
-      target.agree += row._count;
-      agree += row._count;
+      target.agree += row._count._all;
+      agree += row._count._all;
     } else {
-      target.disagree += row._count;
-      disagree += row._count;
+      target.disagree += row._count._all;
+      disagree += row._count._all;
     }
     target.total = target.agree + target.disagree;
   }
