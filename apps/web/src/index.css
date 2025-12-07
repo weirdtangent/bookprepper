@@ -249,19 +249,14 @@ a {
 .app-nav a {
   color: var(--color-text-muted);
   transition: color 0.2s ease;
-  position: relative;
   display: inline-flex;
   align-items: center;
 }
 
-.app-nav a + a {
-  padding-left: 1rem;
-}
-
 .app-nav a + a::before {
   content: "•";
-  position: absolute;
-  left: 0.2rem;
+  display: inline-block;
+  margin: 0 0.65rem 0 0.35rem;
   color: var(--color-text-subtle);
 }
 
@@ -319,20 +314,15 @@ a {
 }
 
 .page-actions > * {
-  position: relative;
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
 }
 
-.page-actions > * + * {
-  padding-left: 1rem;
-}
-
 .page-actions > * + *::before {
   content: "•";
-  position: absolute;
-  left: 0.2rem;
+  display: inline-block;
+  margin-right: 0.75rem;
   color: var(--color-text-subtle);
   pointer-events: none;
 }
@@ -340,12 +330,6 @@ a {
 .admin-edit-link {
   color: #b91c1c;
   font-weight: 600;
-  border-bottom: 1px solid transparent;
-}
-
-.admin-edit-link:hover,
-.admin-edit-link:focus-visible {
-  border-bottom-color: currentColor;
 }
 
 .page.narrow {

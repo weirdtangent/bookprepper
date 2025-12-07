@@ -279,11 +279,6 @@ export default function BookDetailPage() {
         <Link to="/" className="link-button">
           &larr; Back to library
         </Link>
-        {auth.isAdmin && (
-          <Link to={adminEditLink} className="admin-edit-link">
-            Edit in Admin
-          </Link>
-        )}
         {auth.isAuthenticated && (
           <button
             type="button"
@@ -297,6 +292,11 @@ export default function BookDetailPage() {
                 ? "Mark finished"
                 : "Start reading"}
           </button>
+        )}
+        {auth.isAdmin && (
+          <Link to={adminEditLink} className="admin-edit-link">
+            Edit in Admin
+          </Link>
         )}
       </div>
 
