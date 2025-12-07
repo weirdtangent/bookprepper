@@ -747,24 +747,41 @@ a {
   color: var(--color-text-subtle);
 }
 
-.prep-card__votes {
-  align-self: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  color: var(--color-text-subtle);
-  font-size: 0.85rem;
-}
-
-.prep-card__votes span {
-  white-space: nowrap;
-}
-
 .prep-card header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  align-items: flex-start;
 }
+
+.prep-card__votes {
+  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.prep-card__vote-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  line-height: 1.1;
+}
+
+.prep-card__vote-counts span {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.prep-card__dimension {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, var(--color-text-subtle));
+}
+
 
 .prep-card__keywords {
   display: flex;
