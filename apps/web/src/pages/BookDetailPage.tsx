@@ -63,6 +63,17 @@ export default function BookDetailPage() {
 
   const availableGenres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
 
+  const readingNowQuery = useQuery({
+    queryKey: ["reading-now"],
+    enabled: auth.isAuthenticated && Boolean(auth.token),
+    queryFn: async () => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.listReadingNow(auth.token);
+    }
+  });
+
   const voteMutation = useMutation({
     mutationFn: async ({
       prepId,
@@ -158,6 +169,34 @@ export default function BookDetailPage() {
     });
   };
 
+  const readingMutation = useMutation({
+    mutationFn: async (action: "start" | "finish") => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      if (action === "start") {
+        return api.startReading({ slug, token: auth.token });
+      }
+      return api.finishReading({ slug, token: auth.token });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reading-now"] });
+    }
+  });
+
+  const handleReadingToggle = (action: "start" | "finish") => {
+    if (auth.isLoading) {
+      return;
+    }
+    if (!auth.isAuthenticated) {
+      const allowed = auth.requireAuth();
+      if (!allowed) {
+        return;
+      }
+    }
+    readingMutation.mutate(action);
+  };
+
   const handleSuggestPrep = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (auth.isLoading) {
@@ -228,6 +267,11 @@ export default function BookDetailPage() {
   const votingDisabled = !auth.isAuthenticated || auth.isLoading;
   const votingPrepId = voteMutation.variables?.prepId;
   const adminEditLink = `/admin?book=${encodeURIComponent(book.slug)}`;
+  const isReading = Boolean(
+    readingNowQuery.data?.entries?.some(
+      (entry) => entry.book.slug === book.slug && entry.status === "READING"
+    )
+  );
 
   return (
     <section className="page">
@@ -239,6 +283,20 @@ export default function BookDetailPage() {
           <Link to={adminEditLink} className="admin-edit-link">
             Edit in Admin
           </Link>
+        )}
+        {auth.isAuthenticated && (
+          <button
+            type="button"
+            className="link-button"
+            disabled={readingMutation.isPending}
+            onClick={() => handleReadingToggle(isReading ? "finish" : "start")}
+          >
+            {readingMutation.isPending
+              ? "Updating..."
+              : isReading
+                ? "Mark finished"
+                : "Start reading"}
+          </button>
         )}
       </div>
 

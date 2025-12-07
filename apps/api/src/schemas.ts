@@ -37,6 +37,10 @@ export const prepSuggestionBodySchema = z.object({
   colorHint: z.string().max(12).optional()
 });
 
+export const readingStatusBodySchema = z.object({
+  status: z.enum(["READING", "DONE"]).optional()
+});
+
 export const metadataSuggestionBodySchema = z
   .object({
     synopsis: z
@@ -175,6 +179,7 @@ export type PrepParams = z.infer<typeof prepParamsSchema>;
 export type PromptFeedbackDimension = z.infer<typeof promptFeedbackDimensionSchema>;
 export type PrepFeedbackBody = z.infer<typeof prepFeedbackBodySchema>;
 export type PrepSuggestionBody = z.infer<typeof prepSuggestionBodySchema>;
+export type ReadingStatusBody = z.infer<typeof readingStatusBodySchema>;
 export type MetadataSuggestionBody = z.infer<typeof metadataSuggestionBodySchema>;
 export type BookSuggestionBody = z.infer<typeof bookSuggestionBodySchema>;
 export type AdminListBooksQuery = z.infer<typeof adminListBooksQuerySchema>;

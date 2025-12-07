@@ -9,6 +9,7 @@ import prepsRoutes from "./routes/preps.js";
 import suggestionsRoutes from "./routes/suggestions.js";
 import adminRoutes from "./routes/admin.js";
 import profileRoutes from "./routes/profile.js";
+import readingRoutes from "./routes/reading.js";
 import { env } from "config";
 import { randomUUID } from "crypto";
 
@@ -41,6 +42,7 @@ async function buildServer() {
   await server.register(suggestionsRoutes, { prefix: "/api" });
   await server.register(profileRoutes, { prefix: "/api" });
   await server.register(adminRoutes, { prefix: "/api" });
+  await server.register(readingRoutes, { prefix: "/api" });
 
   return server;
 }

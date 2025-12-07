@@ -2732,6 +2732,8 @@ async function main() {
     keywordRecords.set(slug, keyword.id);
   }
 
+  const seededBookIds: string[] = [];
+
   for (const book of books) {
     const authorId = authorRecords.get(book.author);
     if (!authorId) {
@@ -2760,6 +2762,8 @@ async function main() {
         authorId
       }
     });
+
+    seededBookIds.push(bookRecord.id);
 
     await prisma.bookGenre.deleteMany({ where: { bookId: bookRecord.id } });
     for (const genreSlug of book.genres) {
@@ -2832,6 +2836,27 @@ async function main() {
         });
       }
     }
+  }
+
+  // Mark a couple of titles as \"Reading\" for local preview purposes.
+  const readingSeeds = seededBookIds.slice(0, 2);
+  for (const bookId of readingSeeds) {
+    await prisma.readingStatus.upsert({
+      where: {
+        userId_bookId: {
+          userId: systemUser.id,
+          bookId
+        }
+      },
+      update: {
+        status: "READING"
+      },
+      create: {
+        userId: systemUser.id,
+        bookId,
+        status: "READING"
+      }
+    });
   }
 
   console.log(`"Seeded ${books.length} curated books with preps"`);

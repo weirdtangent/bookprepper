@@ -18,6 +18,11 @@ enum PromptFeedbackDimension {
   SURPRISING
 }
 
+enum ReadingState {
+  READING
+  DONE
+}
+
 enum SuggestionStatus {
   PENDING
   APPROVED
@@ -65,6 +70,7 @@ model Book {
   preps          BookPrep[]
   prepSuggestions PrepSuggestion[]
   metadataSuggestions BookMetadataSuggestion[]
+  readingStatuses ReadingStatus[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
@@ -213,7 +219,21 @@ model UserProfile {
   bookSuggestions BookSuggestion[]
   metadataSuggestions BookMetadataSuggestion[]
   createdPreps    BookPrep[]      @relation("UserProfileToBookPrep")
+  readingStatuses ReadingStatus[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+}
+
+model ReadingStatus {
+  id        String       @id @default(cuid())
+  userId    String
+  bookId    String
+  status    ReadingState @default(READING)
+  user      UserProfile  @relation(fields: [userId], references: [id])
+  book      Book         @relation(fields: [bookId], references: [id])
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([userId, bookId])
 }
 

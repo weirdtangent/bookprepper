@@ -225,6 +225,14 @@ export type PromptFeedbackInsights = {
   }>;
 };
 
+export type ReadingEntry = {
+  id: string;
+  status: "READING" | "DONE";
+  startedAt: string;
+  updatedAt: string;
+  book: BookSummary;
+};
+
 export type AdminCreateBookInput = {
   title: string;
   subtitle?: string;
@@ -572,6 +580,27 @@ export const api = {
   getPromptFeedbackInsights: (token: string) =>
     apiFetch<PromptFeedbackInsights>("/api/preps/feedback/insights", {
       token
-    })
+    }),
+  listReadingNow: (token: string) =>
+    apiFetch<{ entries: ReadingEntry[] }>("/api/reading", {
+      token
+    }),
+  startReading: (params: { slug: string; token: string; status?: "READING" | "DONE" }) =>
+    apiFetch<{ id: string; status: "READING" | "DONE"; updatedAt: string }>(
+      `/api/books/${params.slug}/reading`,
+      {
+        method: "POST",
+        token: params.token,
+        body: params.status ? { status: params.status } : undefined
+      }
+    ),
+  finishReading: (params: { slug: string; token: string }) =>
+    apiFetch<{ id: string; status: "READING" | "DONE"; updatedAt: string }>(
+      `/api/books/${params.slug}/reading`,
+      {
+        method: "DELETE",
+        token: params.token
+      }
+    )
 };
 
