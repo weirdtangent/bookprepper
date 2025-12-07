@@ -22,6 +22,10 @@ type Props = {
   order?: number;
 };
 
+type PrepCardStyle = CSSProperties & {
+  "--prep-accent-color"?: string;
+};
+
 export function PrepCard({
   prep,
   feedbackDraft,
@@ -32,7 +36,7 @@ export function PrepCard({
   order
 }: Props) {
   const accentColor = prep.colorHint ?? "#d1d5db";
-  const cardStyle: CSSProperties = {
+  const cardStyle: PrepCardStyle = {
     borderColor: accentColor,
     "--prep-accent-color": accentColor
   };
