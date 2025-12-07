@@ -58,7 +58,7 @@ export const metadataSuggestionBodySchema = z
       .string()
       .trim()
       .min(40, "Synopsis should be at least 40 characters.")
-      .max(1024, "Synopsis too long.")
+      .max(10000, "Synopsis too long (max 10k characters).")
       .optional(),
     genres: z.array(z.string().min(2).max(60)).max(10).optional()
   })
@@ -89,7 +89,7 @@ export const adminBookCreateSchema = z
       .min(3)
       .max(240)
       .optional(),
-    synopsis: z.string().max(1024).optional(),
+    synopsis: z.string().max(10000).optional(),
     coverImageUrl: z.string().url().optional(),
     publishedYear: z.coerce.number().int().min(0).max(9999).optional(),
     isbn: z
@@ -112,7 +112,7 @@ export const adminBookUpdateSchema = z.object({
   title: z.string().min(3).max(240).optional(),
   subtitle: z.string().max(240).optional(),
   synopsis: z
-    .union([z.string().max(1024), z.literal(""), z.null()])
+    .union([z.string().max(10000), z.literal(""), z.null()])
     .transform((value) => (value === "" ? null : value ?? undefined))
     .optional(),
   coverImageUrl: z

@@ -1,0 +1,2 @@
+ALTER TABLE `Book`
+  MODIFY `synopsis` VARCHAR(10000) NULL;

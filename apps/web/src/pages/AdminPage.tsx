@@ -38,7 +38,7 @@ const emptyBookForm = {
   publishedYear: ""
 };
 
-const SYNOPSIS_LIMIT = 1024;
+const SYNOPSIS_LIMIT = 10000;
 
 export default function AdminPage() {
   const auth = useAuth();

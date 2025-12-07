@@ -66,7 +66,7 @@ model Book {
   title          String
   slug           String           @unique
   subtitle       String?
-  synopsis       String?          @db.VarChar(1024)
+  synopsis       String?          @db.VarChar(10000)
   publishedYear  Int?
   coverImageUrl  String?
   isbn           String?          @unique

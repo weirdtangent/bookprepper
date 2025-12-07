@@ -26,7 +26,7 @@ export default function BookDetailPage() {
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
   const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, PrepFeedbackDraft>>({});
-  const SYNOPSIS_LIMIT = 1024;
+  const SYNOPSIS_LIMIT = 10000;
 
   useEffect(() => {
     setPrepTitle("");

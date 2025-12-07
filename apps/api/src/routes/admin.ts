@@ -940,6 +940,6 @@ function truncateSynopsis(value?: string | null) {
   if (!value) {
     return null;
   }
-  return value.length > 1024 ? value.slice(0, 1024) : value;
+  return value.length > 10000 ? value.slice(0, 10000) : value;
 }
 
