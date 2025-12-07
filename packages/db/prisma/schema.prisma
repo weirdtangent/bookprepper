@@ -13,9 +13,15 @@ enum PrepVoteValue {
 
 enum PromptFeedbackDimension {
   CORRECT
+  INCORRECT
   FUN
+  BORING
   USEFUL
+  NOT_USEFUL
   SURPRISING
+  CONFUSING
+  COMMON
+  SPARSE
 }
 
 enum ReadingState {

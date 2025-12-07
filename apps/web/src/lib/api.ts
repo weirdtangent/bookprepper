@@ -39,7 +39,17 @@ export type BookListResponse = {
   results: BookSummary[];
 };
 
-export type PromptFeedbackDimension = "CORRECT" | "FUN" | "USEFUL" | "SURPRISING";
+export type PromptFeedbackDimension =
+  | "CORRECT"
+  | "INCORRECT"
+  | "FUN"
+  | "BORING"
+  | "USEFUL"
+  | "SURPRISING"
+  | "NOT_USEFUL"
+  | "CONFUSING"
+  | "COMMON"
+  | "SPARSE";
 
 export type PromptVoteDimensionBreakdown = {
   dimension: PromptFeedbackDimension;

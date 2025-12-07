@@ -4,9 +4,15 @@ import { prisma } from "db";
 
 export const PROMPT_FEEDBACK_DIMENSIONS: PromptFeedbackDimension[] = [
   "CORRECT",
+  "INCORRECT",
   "FUN",
+  "BORING",
   "USEFUL",
-  "SURPRISING"
+  "SURPRISING",
+  "NOT_USEFUL",
+  "CONFUSING",
+  "COMMON",
+  "SPARSE"
 ];
 
 export type DimensionVoteBreakdown = Record<

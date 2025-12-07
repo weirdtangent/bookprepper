@@ -3,7 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../hooks/useTheme";
 import { debugLog, isDebugEnabled } from "../lib/debug";
-import { api, type PromptFeedbackInsights, type PromptVoteSummary } from "../lib/api";
+import {
+  api,
+  type PromptFeedbackDimension,
+  type PromptFeedbackInsights,
+  type PromptVoteSummary
+} from "../lib/api";
 import { getPromptFeedbackLabel } from "../lib/promptFeedback";
 
 export default function ConfigPage() {
@@ -114,6 +119,26 @@ export default function ConfigPage() {
     return `${scorePercent}% score · ${votes.total} votes`;
   };
 
+  const mostNegativeDimension = (votes: PromptVoteSummary) => {
+    const negativeOrder: PromptFeedbackDimension[] = [
+      "INCORRECT",
+      "BORING",
+      "NOT_USEFUL",
+      "CONFUSING",
+      "SPARSE"
+    ];
+    const sorted = negativeOrder
+      .map((dimension) => {
+        const entry = votes.dimensions.find((d) => d.dimension === dimension);
+        return entry ? { dimension, disagree: entry.disagree } : null;
+      })
+      .filter(
+        (entry): entry is { dimension: PromptFeedbackDimension; disagree: number } => Boolean(entry)
+      )
+      .sort((a, b) => b.disagree - a.disagree);
+    return sorted[0] && sorted[0].disagree > 0 ? sorted[0].dimension : null;
+  };
+
   const renderInsightList = (title: string, items: PromptFeedbackInsights["topPrompts"]) => (
     <div className="config-insight-block">
       <h3>{title}</h3>
@@ -127,7 +152,15 @@ export default function ConfigPage() {
                 <strong>{item.book.title}</strong>
               </p>
               <p className="insight-heading">{item.heading}</p>
-              <small>{formatVoteSummary(item.votes)}</small>
+              <small>
+                {formatVoteSummary(item.votes)}
+                {mostNegativeDimension(item.votes) && (
+                  <>
+                    {" "}
+                    · Most flagged: {getPromptFeedbackLabel(mostNegativeDimension(item.votes)!)}
+                  </>
+                )}
+              </small>
             </li>
           ))}
         </ul>

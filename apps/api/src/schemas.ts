@@ -22,7 +22,18 @@ export const prepParamsSchema = z.object({
   prepId: z.string().cuid()
 });
 
-export const promptFeedbackDimensionSchema = z.enum(["CORRECT", "FUN", "USEFUL", "SURPRISING"]);
+export const promptFeedbackDimensionSchema = z.enum([
+  "CORRECT",
+  "INCORRECT",
+  "FUN",
+  "BORING",
+  "USEFUL",
+  "SURPRISING",
+  "NOT_USEFUL",
+  "CONFUSING",
+  "COMMON",
+  "SPARSE"
+]);
 
 export const prepFeedbackBodySchema = z.object({
   value: z.enum(["AGREE", "DISAGREE"]),

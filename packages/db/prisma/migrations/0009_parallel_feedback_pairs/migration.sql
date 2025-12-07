@@ -1,0 +1,9 @@
+UPDATE `PromptFeedback`
+SET `dimension` = CASE `dimension`
+    WHEN 'INACCURATE' THEN 'INCORRECT'
+    WHEN 'NOT_FOUND' THEN 'COMMON'
+    ELSE `dimension`
+END;
+
+ALTER TABLE `PromptFeedback`
+MODIFY `dimension` ENUM('CORRECT','INCORRECT','FUN','BORING','USEFUL','NOT_USEFUL','SURPRISING','CONFUSING','COMMON','SPARSE') NOT NULL;

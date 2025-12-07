@@ -80,12 +80,24 @@ export function PrepCard({
               }
               disabled={votingDisabled || isVoting}
             >
-              {PROMPT_FEEDBACK_DIMENSIONS.map((dimension) => (
-                <option key={dimension} value={dimension}>
-                  {getPromptFeedbackLabel(dimension)}
-                </option>
-              ))}
+              <optgroup label="Positive signals">
+                {["CORRECT", "FUN", "USEFUL", "SURPRISING", "COMMON"].map((dimension) => (
+                  <option key={dimension} value={dimension}>
+                    {getPromptFeedbackLabel(dimension as PromptFeedbackDimension)}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Needs attention">
+                {["INCORRECT", "BORING", "NOT_USEFUL", "CONFUSING", "SPARSE"].map((dimension) => (
+                  <option key={dimension} value={dimension}>
+                    {getPromptFeedbackLabel(dimension as PromptFeedbackDimension)}
+                  </option>
+                ))}
+              </optgroup>
             </select>
+            <small className="helper-text">
+              Pick the best descriptor so curators can tune or retire weak prompts.
+            </small>
           </label>
           <label>
             Optional note
