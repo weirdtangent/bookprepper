@@ -34,14 +34,17 @@ async function main() {
   await ensureDir(publicCoverDir);
   await ensureDir(path.dirname(apiManifestPath));
 
-  const manifestFiles = await hydrateCovers();
+  const existingFiles = await scanExistingFiles();
+  const manifestFiles = await hydrateCovers(existingFiles);
   await writeManifest(manifestFiles);
 }
 
-async function hydrateCovers(): Promise<Record<string, string>> {
+async function hydrateCovers(existingFiles: Record<string, string>): Promise<Record<string, string>> {
+  const knownIsbns = new Set(Object.keys(existingFiles));
+
   if (!process.env.DATABASE_URL) {
     console.warn("\"DATABASE_URL is not set; using existing cached covers\"");
-    return scanExistingFiles();
+    return existingFiles;
   }
 
   const dbModule = await import("db");
@@ -55,7 +58,7 @@ async function hydrateCovers(): Promise<Record<string, string>> {
 
   if (books.length === 0) {
     console.warn("\"No ISBN data found; skipping cover download\"");
-    return scanExistingFiles();
+    return existingFiles;
   }
 
   let downloaded = 0;
@@ -64,13 +67,15 @@ async function hydrateCovers(): Promise<Record<string, string>> {
     if (!normalized) {
       continue;
     }
-    const destination = path.join(publicCoverDir, `${normalized}.jpg`);
-    if (await fileExists(destination)) {
+    if (knownIsbns.has(normalized)) {
       continue;
     }
+    const destination = path.join(publicCoverDir, `${normalized}.jpg`);
     const success = await downloadCover(normalized, destination);
     if (success) {
       downloaded += 1;
+      knownIsbns.add(normalized);
+      existingFiles[normalized] = `${normalized}.jpg`;
       await sleep(200);
     }
   }
@@ -89,8 +94,16 @@ async function downloadCover(isbn: string, destination: string) {
       return false;
     }
     const buffer = Buffer.from(await response.arrayBuffer());
-    await writeFile(destination, buffer);
-    return true;
+    try {
+      await writeFile(destination, buffer, { flag: "wx" });
+      return true;
+    } catch (writeError) {
+      if ((writeError as NodeJS.ErrnoException).code === "EEXIST") {
+        console.log(`"Cover for ISBN ${isbn} already exists; skipping overwrite"`);
+        return false;
+      }
+      throw writeError;
+    }
   } catch (error) {
     console.warn(`"Error downloading ISBN ${isbn}: ${(error as Error).message}"`);
     return false;
