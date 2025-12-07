@@ -4,6 +4,10 @@
   gap: 0.25rem;
 }
 
+.prep-card__feedback label + label {
+  margin-top: 0.75rem;
+}
+
 .prep-card__feedback select {
   border-radius: 8px;
   padding: 0.4rem 0.6rem;
@@ -767,8 +771,63 @@ a {
 
 .prep-card__header {
   display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.prep-card__heading-group {
+  display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.prep-card__text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prep-card__text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prep-card__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.1rem 0.65rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  background: var(--prep-accent-color, var(--color-border-bold));
+  color: var(--color-primary-text);
+}
+
+.prep-card__label--secondary {
+  background: transparent;
+  color: var(--prep-accent-color, var(--color-text));
+  border: 1px solid currentColor;
+}
+
+.prep-card__badge {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 2px solid var(--prep-accent-color, var(--color-border-bold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--color-primary-text);
+  background: var(--prep-accent-color, var(--color-border-bold));
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .prep-card__eyebrow {
@@ -783,6 +842,13 @@ a {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.45;
+}
+
+.prep-card__watchfor {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
 }
 
 .prep-card__sidebar {

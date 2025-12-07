@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import type { Prep, PromptFeedbackDimension } from "../../lib/api";
 import { getPromptFeedbackLabel, PROMPT_FEEDBACK_DIMENSIONS } from "../../lib/promptFeedback";
@@ -11,9 +12,14 @@ type Props = {
   prep: Prep;
   feedbackDraft: PrepFeedbackDraft;
   onFeedbackDraftChange: (updates: Partial<PrepFeedbackDraft>) => void;
-  onVote: (payload: { value: "AGREE" | "DISAGREE"; dimension: PromptFeedbackDimension; note?: string }) => void;
+  onVote: (payload: {
+    value: "AGREE" | "DISAGREE";
+    dimension: PromptFeedbackDimension;
+    note?: string;
+  }) => void;
   votingDisabled: boolean;
   isVoting: boolean;
+  order?: number;
 };
 
 export function PrepCard({
@@ -22,8 +28,15 @@ export function PrepCard({
   onFeedbackDraftChange,
   onVote,
   votingDisabled,
-  isVoting
+  isVoting,
+  order
 }: Props) {
+  const accentColor = prep.colorHint ?? "#d1d5db";
+  const cardStyle: CSSProperties = {
+    borderColor: accentColor,
+    "--prep-accent-color": accentColor
+  };
+
   const scorePercent = Math.round(((prep.votes.score + 1) / 2) * 100);
   const leadingDimension = [...prep.votes.dimensions]
     .filter((dimension) => dimension.total > 0)
@@ -38,14 +51,31 @@ export function PrepCard({
   };
 
   return (
-    <article className="prep-card" style={{ borderColor: prep.colorHint ?? "#d1d5db" }}>
+    <article className="prep-card" style={cardStyle}>
       <div className="prep-card__content">
         <header className="prep-card__header">
-          <p className="prep-card__eyebrow">Watch for</p>
-          <h3>{prep.heading}</h3>
+          {typeof order === "number" && (
+            <div className="prep-card__badge" aria-label={`Prep ${order}`}>
+              <span aria-hidden="true">{order}</span>
+            </div>
+          )}
+          <div className="prep-card__heading-group">
+            <p className="prep-card__eyebrow">Watch for</p>
+            <h3>{prep.heading}</h3>
+          </div>
         </header>
-        <p className="prep-card__summary">{prep.summary}</p>
-        {prep.watchFor && <p className="prep-card__watchfor">{prep.watchFor}</p>}
+        <div className="prep-card__text-group">
+          <div className="prep-card__text-block">
+            <span className="prep-card__label">Prep</span>
+            <p className="prep-card__summary">{prep.summary}</p>
+          </div>
+          {prep.watchFor && (
+            <div className="prep-card__text-block">
+              <span className="prep-card__label prep-card__label--secondary">Highlight</span>
+              <p className="prep-card__watchfor">{prep.watchFor}</p>
+            </div>
+          )}
+        </div>
         <div className="prep-card__keywords">
           {prep.keywords.map((keyword) => (
             <Link key={keyword.slug} className="prep-card__keyword-link" to={`/?prep=${keyword.slug}`}>

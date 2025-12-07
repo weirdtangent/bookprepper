@@ -362,10 +362,11 @@ export default function BookDetailPage() {
         {book.preps.length === 0 && <p>No preps yet. Be the first to suggest one!</p>}
 
         <div className="prep-grid">
-          {book.preps.map((prep) => (
+          {book.preps.map((prep, index) => (
             <PrepCard
               key={prep.id}
               prep={prep}
+              order={index + 1}
               feedbackDraft={getFeedbackDraft(prep.id)}
               onFeedbackDraftChange={(updates) => updateFeedbackDraft(prep.id, updates)}
               votingDisabled={votingDisabled}

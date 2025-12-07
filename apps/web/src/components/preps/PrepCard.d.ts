@@ -14,6 +14,7 @@ type Props = {
     }) => void;
     votingDisabled: boolean;
     isVoting: boolean;
+    order?: number;
 };
-export declare function PrepCard({ prep, feedbackDraft, onFeedbackDraftChange, onVote, votingDisabled, isVoting }: Props): import("react/jsx-runtime").JSX.Element;
+export declare function PrepCard({ prep, feedbackDraft, onFeedbackDraftChange, onVote, votingDisabled, isVoting, order }: Props): import("react/jsx-runtime").JSX.Element;
 export {};
