@@ -322,6 +322,7 @@ a {
   position: relative;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 .page-actions > * + * {
@@ -333,6 +334,7 @@ a {
   position: absolute;
   left: 0.2rem;
   color: var(--color-text-subtle);
+  pointer-events: none;
 }
 
 .admin-edit-link {
