@@ -2799,6 +2799,25 @@ async function main() {
         }
       });
 
+      await prisma.promptScore.upsert({
+        where: { prepId: bookPrep.id },
+        update: {
+          agreeCount: 0,
+          disagreeCount: 0,
+          totalCount: 0,
+          score: 0,
+          dimensionTallies: {}
+        },
+        create: {
+          prepId: bookPrep.id,
+          agreeCount: 0,
+          disagreeCount: 0,
+          totalCount: 0,
+          score: 0,
+          dimensionTallies: {}
+        }
+      });
+
       const keywordSlugs = new Set<KeywordSlug>([prep.keyword, ...(prep.extraKeywords ?? [])]);
       for (const keywordSlug of keywordSlugs) {
         const keywordId = keywordRecords.get(keywordSlug);

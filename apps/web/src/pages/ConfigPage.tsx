@@ -1,7 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../hooks/useTheme";
 import { debugLog, isDebugEnabled } from "../lib/debug";
+import { api, type PromptFeedbackInsights, type PromptVoteSummary } from "../lib/api";
+import { getPromptFeedbackLabel } from "../lib/promptFeedback";
 
 export default function ConfigPage() {
   const auth = useAuth();
@@ -13,6 +16,16 @@ export default function ConfigPage() {
   const [shuffleDefault, setShuffleDefault] = useState(auth.preferences.shuffleDefault ?? true);
   const [shuffleStatus, setShuffleStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [shuffleError, setShuffleError] = useState<string | null>(null);
+  const insightsQuery = useQuery({
+    queryKey: ["prompt-feedback-insights"],
+    enabled: auth.isAdmin && Boolean(auth.token),
+    queryFn: async () => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.getPromptFeedbackInsights(auth.token);
+    }
+  });
 
   debugLog("ConfigPage: render", {
     isAuthenticated,
@@ -96,6 +109,32 @@ export default function ConfigPage() {
     }
   }, [isAuthenticated, isLoading, nickname, status, theme]);
 
+  const formatVoteSummary = (votes: PromptVoteSummary) => {
+    const scorePercent = Math.round(((votes.score + 1) / 2) * 100);
+    return `${scorePercent}% score · ${votes.total} votes`;
+  };
+
+  const renderInsightList = (title: string, items: PromptFeedbackInsights["topPrompts"]) => (
+    <div className="config-insight-block">
+      <h3>{title}</h3>
+      {items.length === 0 ? (
+        <p className="helper-text">No feedback captured yet.</p>
+      ) : (
+        <ul>
+          {items.map((item) => (
+            <li key={item.prepId}>
+              <p className="insight-book">
+                <strong>{item.book.title}</strong>
+              </p>
+              <p className="insight-heading">{item.heading}</p>
+              <small>{formatVoteSummary(item.votes)}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
   return (
     <div className="page narrow">
       <h1>Reader Preferences</h1>
@@ -156,6 +195,49 @@ export default function ConfigPage() {
           </p>
         )}
       </section>
+
+      {auth.isAdmin && (
+        <section className="panel config-feedback">
+          <h2>Prompt feedback trends</h2>
+          {insightsQuery.isLoading && <p>Loading feedback insights...</p>}
+          {insightsQuery.isError && (
+            <p className="error-text" role="alert">
+              {insightsQuery.error instanceof Error
+                ? insightsQuery.error.message
+                : "Unable to load feedback insights."}
+            </p>
+          )}
+          {insightsQuery.data && (
+            <>
+              <div className="insight-grid">
+                {renderInsightList("Top prompts", insightsQuery.data.topPrompts)}
+                {renderInsightList("Needs attention", insightsQuery.data.needsAttention)}
+              </div>
+              <div className="recent-feedback">
+                <h3>Recent notes</h3>
+                {insightsQuery.data.recentFeedback.length === 0 ? (
+                  <p className="helper-text">No curator notes yet.</p>
+                ) : (
+                  <ul>
+                    {insightsQuery.data.recentFeedback.map((entry) => (
+                      <li key={entry.id}>
+                        <p>
+                          <strong>{entry.book.title}</strong> · {entry.prep.heading}
+                        </p>
+                        <small>
+                          {getPromptFeedbackLabel(entry.dimension)} · {entry.value.toLowerCase()} ·{" "}
+                          {new Date(entry.createdAt).toLocaleDateString()}
+                        </small>
+                        {entry.note && <p className="insight-note">{entry.note}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 }

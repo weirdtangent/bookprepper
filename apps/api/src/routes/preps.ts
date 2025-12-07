@@ -1,12 +1,19 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "db";
 import {
   bookSlugParamsSchema,
+  prepFeedbackBodySchema,
   prepParamsSchema,
-  prepSuggestionBodySchema,
-  voteBodySchema
+  prepSuggestionBodySchema
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
+import {
+  createEmptyDimensionBreakdown,
+  summaryFromScoreRecord,
+  syncPromptScore,
+  toVotesPayload
+} from "../utils/promptScores.js";
 
 const prepsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/preps/keywords", async () => {
@@ -29,7 +36,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
     { onRequest: [fastify.verifyJwt] },
     async (request) => {
       const params = prepParamsSchema.parse(request.params);
-      const body = voteBodySchema.parse(request.body);
+      const body = prepFeedbackBodySchema.parse(request.body);
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
@@ -51,34 +58,52 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const user = await ensureUserProfile(request);
 
-      await prisma.prepVote.upsert({
-        where: {
-          prepId_userId: {
+      await Promise.all([
+        prisma.prepVote.upsert({
+          where: {
+            prepId_userId: {
+              prepId: prep.id,
+              userId: user.id
+            }
+          },
+          update: { value: body.value },
+          create: {
             prepId: prep.id,
-            userId: user.id
+            userId: user.id,
+            value: body.value
           }
-        },
-        update: { value: body.value },
-        create: {
-          prepId: prep.id,
-          userId: user.id,
-          value: body.value
-        }
-      });
-
-      const [agree, disagree] = await Promise.all([
-        prisma.prepVote.count({ where: { prepId: prep.id, value: "AGREE" } }),
-        prisma.prepVote.count({ where: { prepId: prep.id, value: "DISAGREE" } })
+        }),
+        prisma.promptFeedback.upsert({
+          where: {
+            prepId_userId_dimension: {
+              prepId: prep.id,
+              userId: user.id,
+              dimension: body.dimension
+            }
+          },
+          update: {
+            value: body.value,
+            note: body.note ?? null
+          },
+          create: {
+            prepId: prep.id,
+            userId: user.id,
+            value: body.value,
+            dimension: body.dimension,
+            note: body.note ?? null
+          }
+        })
       ]);
 
-      fastify.log.info(`"Recorded ${body.value.toLowerCase()} vote for prep ${prep.id}"`);
+      const summary = await syncPromptScore(prep.id);
+
+      fastify.log.info(
+        `"Recorded ${body.value.toLowerCase()} ${body.dimension.toLowerCase()} feedback for prep ${prep.id}"`
+      );
 
       return {
         prepId: prep.id,
-        votes: {
-          agree,
-          disagree
-        }
+        votes: toVotesPayload(summary)
       };
     }
   );
@@ -121,7 +146,141 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
       };
     }
   );
+
+  fastify.get(
+    "/preps/feedback/insights",
+    { onRequest: [fastify.verifyJwt] },
+    async (request) => {
+      const user = await ensureUserProfile(request);
+      if (user.role === "MEMBER") {
+        throw fastify.httpErrors.forbidden("Administrator access required");
+      }
+
+      const selectPrep = {
+        select: {
+          id: true,
+          heading: true,
+          summary: true,
+          book: {
+            select: {
+              id: true,
+              title: true,
+              slug: true
+            }
+          }
+        }
+      } as const;
+
+      const [topScores, lowestScores, recentFeedback] = await Promise.all([
+        prisma.promptScore.findMany({
+          where: { totalCount: { gt: 0 } },
+          take: 6,
+          orderBy: [
+            { score: "desc" },
+            { totalCount: "desc" },
+            { prepId: "asc" }
+          ],
+          include: {
+            prep: selectPrep
+          }
+        }),
+        prisma.promptScore.findMany({
+          where: { totalCount: { gt: 0 } },
+          take: 6,
+          orderBy: [
+            { score: "asc" },
+            { totalCount: "desc" },
+            { prepId: "asc" }
+          ],
+          include: {
+            prep: selectPrep
+          }
+        }),
+        prisma.promptFeedback.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          include: {
+            prep: {
+              select: {
+                id: true,
+                heading: true,
+                book: {
+                  select: {
+                    id: true,
+                    title: true,
+                    slug: true
+                  }
+                }
+              }
+            }
+          }
+        })
+      ]);
+
+      return {
+        topPrompts: topScores.map(mapScoreEntry),
+        needsAttention: lowestScores.map(mapScoreEntry),
+        recentFeedback: recentFeedback.map((entry) => ({
+          id: entry.id,
+          dimension: entry.dimension,
+          value: entry.value,
+          note: entry.note,
+          createdAt: entry.createdAt.toISOString(),
+          prep: {
+            id: entry.prep.id,
+            heading: entry.prep.heading
+          },
+          book: {
+            id: entry.prep.book.id,
+            title: entry.prep.book.title,
+            slug: entry.prep.book.slug
+          }
+        }))
+      };
+    }
+  );
 };
 
 export default prepsRoutes;
+
+type PromptScoreWithPrep = Prisma.PromptScoreGetPayload<{
+  include: {
+    prep: {
+      select: {
+        id: true;
+        heading: true;
+        summary: true;
+        book: {
+          select: {
+            id: true;
+            title: true;
+            slug: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+function mapScoreEntry(entry: PromptScoreWithPrep) {
+  const summary = summaryFromScoreRecord(entry) ?? {
+    agree: entry.agreeCount,
+    disagree: entry.disagreeCount,
+    total: entry.totalCount,
+    score: Number(entry.score ?? 0),
+    dimensions: createEmptyDimensionBreakdown()
+  };
+
+  return {
+    prepId: entry.prepId,
+    heading: entry.prep.heading,
+    summary: entry.prep.summary,
+    book: {
+      id: entry.prep.book.id,
+      title: entry.prep.book.title,
+      slug: entry.prep.book.slug
+    },
+    votes: toVotesPayload(summary)
+  };
+}
 

@@ -1,9 +1,19 @@
-import type { Prep } from "../../lib/api";
+import type { Prep, PromptFeedbackDimension } from "../../lib/api";
+export type PrepFeedbackDraft = {
+    dimension: PromptFeedbackDimension;
+    note: string;
+};
 type Props = {
     prep: Prep;
-    onVote: (value: "AGREE" | "DISAGREE") => void;
+    feedbackDraft: PrepFeedbackDraft;
+    onFeedbackDraftChange: (updates: Partial<PrepFeedbackDraft>) => void;
+    onVote: (payload: {
+        value: "AGREE" | "DISAGREE";
+        dimension: PromptFeedbackDimension;
+        note?: string;
+    }) => void;
     votingDisabled: boolean;
     isVoting: boolean;
 };
-export declare function PrepCard({ prep, onVote, votingDisabled, isVoting }: Props): import("react/jsx-runtime").JSX.Element;
+export declare function PrepCard({ prep, feedbackDraft, onFeedbackDraftChange, onVote, votingDisabled, isVoting }: Props): import("react/jsx-runtime").JSX.Element;
 export {};

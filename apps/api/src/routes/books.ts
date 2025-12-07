@@ -9,6 +9,14 @@ import {
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
 import { resolveCoverImageUrl } from "../utils/covers.js";
+import {
+  calculatePromptScore,
+  createEmptyDimensionBreakdown,
+  summaryFromScoreRecord,
+  toVotesPayload
+} from "../utils/promptScores.js";
+
+const MAX_VISIBLE_PREPS = 3;
 
 type CatalogStats = {
   books: number;
@@ -36,6 +44,7 @@ type BookDetailResult = Prisma.BookGetPayload<{
       include: {
         keywords: { include: { keyword: true } };
         votes: true;
+        score: true;
       };
     };
   };
@@ -45,6 +54,7 @@ type PrepWithRelations = Prisma.BookPrepGetPayload<{
   include: {
     keywords: { include: { keyword: true } };
     votes: true;
+    score: true;
   };
 }>;
 
@@ -205,7 +215,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
                 keyword: true
               }
             },
-            votes: true
+            votes: true,
+            score: true
           },
           orderBy: {
             heading: "asc"
@@ -233,7 +244,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
             keywords: {
               include: { keyword: true }
             },
-            votes: true
+            votes: true,
+            score: true
           },
           orderBy: { heading: "asc" }
         }
@@ -368,6 +380,8 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
 }
 
 function mapBookDetail(book: BookDetailResult) {
+  const formattedPreps = book.preps.map(formatPrep);
+
   return {
     id: book.id,
     slug: book.slug,
@@ -385,7 +399,8 @@ function mapBookDetail(book: BookDetailResult) {
       name: entry.genre.name,
       slug: entry.genre.slug
     })),
-    preps: book.preps.map(formatPrep)
+    prepCount: formattedPreps.length,
+    preps: rankPreps(formattedPreps)
   };
 }
 
@@ -411,8 +426,16 @@ function mapBookListResult(book: BookListResult) {
 }
 
 function formatPrep(prep: PrepWithRelations) {
-  const agree = prep.votes.filter((vote) => vote.value === "AGREE").length;
-  const disagree = prep.votes.filter((vote) => vote.value === "DISAGREE").length;
+  const legacyAgree = prep.votes.filter((vote) => vote.value === "AGREE").length;
+  const legacyDisagree = prep.votes.filter((vote) => vote.value === "DISAGREE").length;
+  const fallbackSummary = {
+    agree: legacyAgree,
+    disagree: legacyDisagree,
+    total: legacyAgree + legacyDisagree,
+    score: calculatePromptScore(legacyAgree, legacyDisagree),
+    dimensions: createEmptyDimensionBreakdown()
+  };
+  const summary = summaryFromScoreRecord(prep.score) ?? fallbackSummary;
 
   return {
     id: prep.id,
@@ -424,11 +447,26 @@ function formatPrep(prep: PrepWithRelations) {
       slug: entry.keyword.slug,
       name: entry.keyword.name
     })),
-    votes: {
-      agree,
-      disagree
-    }
+    votes: toVotesPayload(summary)
   };
+}
+
+function rankPreps(preps: ReturnType<typeof formatPrep>[]) {
+  if (preps.length <= MAX_VISIBLE_PREPS) {
+    return preps;
+  }
+
+  return [...preps]
+    .sort((a, b) => {
+      if (b.votes.score !== a.votes.score) {
+        return b.votes.score - a.votes.score;
+      }
+      if (b.votes.total !== a.votes.total) {
+        return b.votes.total - a.votes.total;
+      }
+      return a.heading.localeCompare(b.heading);
+    })
+    .slice(0, MAX_VISIBLE_PREPS);
 }
 
 export default booksRoutes;

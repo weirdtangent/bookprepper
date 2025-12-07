@@ -11,6 +11,13 @@ enum PrepVoteValue {
   DISAGREE
 }
 
+enum PromptFeedbackDimension {
+  CORRECT
+  FUN
+  USEFUL
+  SURPRISING
+}
+
 enum SuggestionStatus {
   PENDING
   APPROVED
@@ -103,6 +110,8 @@ model BookPrep {
   createdBy    UserProfile?      @relation("UserProfileToBookPrep", fields: [createdById], references: [id])
   keywords     PrepKeywordOnPrep[]
   votes        PrepVote[]
+  feedback     PromptFeedback[]
+  score        PromptScore?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 }
@@ -117,6 +126,34 @@ model PrepVote {
   createdAt DateTime     @default(now())
 
   @@unique([prepId, userId])
+}
+
+model PromptFeedback {
+  id         String                   @id @default(cuid())
+  prepId     String
+  userId     String
+  dimension  PromptFeedbackDimension
+  value      PrepVoteValue
+  note       String?                  @db.VarChar(500)
+  prep       BookPrep                 @relation(fields: [prepId], references: [id])
+  user       UserProfile              @relation(fields: [userId], references: [id])
+  createdAt  DateTime                 @default(now())
+  updatedAt  DateTime                 @updatedAt
+
+  @@unique([prepId, userId, dimension])
+}
+
+model PromptScore {
+  prepId           String   @id
+  agreeCount       Int      @default(0)
+  disagreeCount    Int      @default(0)
+  totalCount       Int      @default(0)
+  score            Float    @default(0)
+  dimensionTallies Json?
+  lastFeedbackAt   DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  prep             BookPrep @relation(fields: [prepId], references: [id])
 }
 
 model PrepSuggestion {
@@ -171,6 +208,7 @@ model UserProfile {
   preferences     Json?
   role            UserRole        @default(MEMBER)
   prepVotes       PrepVote[]
+  promptFeedback  PromptFeedback[]
   prepSuggestions PrepSuggestion[]
   bookSuggestions BookSuggestion[]
   metadataSuggestions BookMetadataSuggestion[]

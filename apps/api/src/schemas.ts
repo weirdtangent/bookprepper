@@ -22,8 +22,12 @@ export const prepParamsSchema = z.object({
   prepId: z.string().cuid()
 });
 
-export const voteBodySchema = z.object({
-  value: z.enum(["AGREE", "DISAGREE"])
+export const promptFeedbackDimensionSchema = z.enum(["CORRECT", "FUN", "USEFUL", "SURPRISING"]);
+
+export const prepFeedbackBodySchema = z.object({
+  value: z.enum(["AGREE", "DISAGREE"]),
+  dimension: promptFeedbackDimensionSchema.default("CORRECT"),
+  note: z.string().trim().max(500).optional()
 });
 
 export const prepSuggestionBodySchema = z.object({
@@ -168,7 +172,8 @@ export const profileUpdateBodySchema = z
 export type ListBooksQuery = z.infer<typeof listBooksQuerySchema>;
 export type BookSlugParams = z.infer<typeof bookSlugParamsSchema>;
 export type PrepParams = z.infer<typeof prepParamsSchema>;
-export type VoteBody = z.infer<typeof voteBodySchema>;
+export type PromptFeedbackDimension = z.infer<typeof promptFeedbackDimensionSchema>;
+export type PrepFeedbackBody = z.infer<typeof prepFeedbackBodySchema>;
 export type PrepSuggestionBody = z.infer<typeof prepSuggestionBodySchema>;
 export type MetadataSuggestionBody = z.infer<typeof metadataSuggestionBodySchema>;
 export type BookSuggestionBody = z.infer<typeof bookSuggestionBodySchema>;

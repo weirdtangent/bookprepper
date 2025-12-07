@@ -1,14 +1,42 @@
 import { Link } from "react-router-dom";
-import type { Prep } from "../../lib/api";
+import type { Prep, PromptFeedbackDimension } from "../../lib/api";
+import { getPromptFeedbackLabel, PROMPT_FEEDBACK_DIMENSIONS } from "../../lib/promptFeedback";
+
+export type PrepFeedbackDraft = {
+  dimension: PromptFeedbackDimension;
+  note: string;
+};
 
 type Props = {
   prep: Prep;
-  onVote: (value: "AGREE" | "DISAGREE") => void;
+  feedbackDraft: PrepFeedbackDraft;
+  onFeedbackDraftChange: (updates: Partial<PrepFeedbackDraft>) => void;
+  onVote: (payload: { value: "AGREE" | "DISAGREE"; dimension: PromptFeedbackDimension; note?: string }) => void;
   votingDisabled: boolean;
   isVoting: boolean;
 };
 
-export function PrepCard({ prep, onVote, votingDisabled, isVoting }: Props) {
+export function PrepCard({
+  prep,
+  feedbackDraft,
+  onFeedbackDraftChange,
+  onVote,
+  votingDisabled,
+  isVoting
+}: Props) {
+  const scorePercent = Math.round(((prep.votes.score + 1) / 2) * 100);
+  const leadingDimension = [...prep.votes.dimensions]
+    .filter((dimension) => dimension.total > 0)
+    .sort((a, b) => b.total - a.total)[0];
+
+  const handleVote = (value: "AGREE" | "DISAGREE") => {
+    onVote({
+      value,
+      dimension: feedbackDraft.dimension,
+      note: feedbackDraft.note.trim() || undefined
+    });
+  };
+
   return (
     <article className="prep-card" style={{ borderColor: prep.colorHint ?? "#d1d5db" }}>
       <header>
@@ -17,8 +45,17 @@ export function PrepCard({ prep, onVote, votingDisabled, isVoting }: Props) {
           <h3>{prep.heading}</h3>
         </div>
         <div className="prep-card__votes">
-          <span>{prep.votes.agree} agree</span>
-          <span>{prep.votes.disagree} disagree</span>
+          <div className="prep-card__vote-counts">
+            <span>
+              {prep.votes.agree} agree · {prep.votes.disagree} disagree
+            </span>
+            <span>Score {scorePercent}%</span>
+          </div>
+          {leadingDimension && (
+            <small className="prep-card__dimension">
+              Most feedback: {getPromptFeedbackLabel(leadingDimension.dimension)}
+            </small>
+          )}
         </div>
       </header>
       <p>{prep.summary}</p>
@@ -30,11 +67,45 @@ export function PrepCard({ prep, onVote, votingDisabled, isVoting }: Props) {
           </Link>
         ))}
       </div>
+      <div className="prep-card__feedback">
+        <label>
+          Focus your feedback
+          <select
+            value={feedbackDraft.dimension}
+            onChange={(event) =>
+              onFeedbackDraftChange({
+                dimension: event.target.value as PromptFeedbackDimension
+              })
+            }
+            disabled={votingDisabled || isVoting}
+          >
+            {PROMPT_FEEDBACK_DIMENSIONS.map((dimension) => (
+              <option key={dimension} value={dimension}>
+                {getPromptFeedbackLabel(dimension)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Optional note
+          <textarea
+            value={feedbackDraft.note}
+            maxLength={500}
+            placeholder="Add a quick note for curators (optional)"
+            onChange={(event) =>
+              onFeedbackDraftChange({
+                note: event.target.value
+              })
+            }
+            disabled={votingDisabled || isVoting}
+          />
+        </label>
+      </div>
       <div className="prep-card__actions">
-        <button disabled={votingDisabled || isVoting} onClick={() => onVote("AGREE")}>
+        <button disabled={votingDisabled || isVoting} onClick={() => handleVote("AGREE")}>
           Agree
         </button>
-        <button disabled={votingDisabled || isVoting} onClick={() => onVote("DISAGREE")}>
+        <button disabled={votingDisabled || isVoting} onClick={() => handleVote("DISAGREE")}>
           Disagree
         </button>
       </div>

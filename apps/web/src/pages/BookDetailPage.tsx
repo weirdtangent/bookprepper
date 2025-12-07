@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "../lib/api";
+import { api, type PromptFeedbackDimension } from "../lib/api";
 import type { Genre } from "../lib/api";
-import { PrepCard } from "../components/preps/PrepCard";
+import { PrepCard, type PrepFeedbackDraft } from "../components/preps/PrepCard";
 import { useAuth } from "../lib/auth";
+
+const DEFAULT_FEEDBACK_DIMENSION: PromptFeedbackDimension = "CORRECT";
+
+const ensureDraft = (draft?: PrepFeedbackDraft): PrepFeedbackDraft =>
+  draft ?? {
+    dimension: DEFAULT_FEEDBACK_DIMENSION,
+    note: ""
+  };
 
 export default function BookDetailPage() {
   const { slug = "" } = useParams();
@@ -17,6 +25,7 @@ export default function BookDetailPage() {
   const [genreSuggestions, setGenreSuggestions] = useState<string[]>([]);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState(false);
+  const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, PrepFeedbackDraft>>({});
   const SYNOPSIS_LIMIT = 1024;
 
   useEffect(() => {
@@ -26,7 +35,20 @@ export default function BookDetailPage() {
     setSynopsisSuggestion("");
     setGenreSuggestions([]);
     setMetadataError(null);
+    setFeedbackDrafts({});
   }, [slug]);
+
+  const getFeedbackDraft = (prepId: string) => ensureDraft(feedbackDrafts[prepId]);
+
+  const updateFeedbackDraft = (prepId: string, updates: Partial<PrepFeedbackDraft>) => {
+    setFeedbackDrafts((current) => ({
+      ...current,
+      [prepId]: {
+        ...ensureDraft(current[prepId]),
+        ...updates
+      }
+    }));
+  };
 
   const bookQuery = useQuery({
     queryKey: ["book", slug],
@@ -42,14 +64,34 @@ export default function BookDetailPage() {
   const availableGenres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
 
   const voteMutation = useMutation({
-    mutationFn: async ({ prepId, value }: { prepId: string; value: "AGREE" | "DISAGREE" }) => {
+    mutationFn: async ({
+      prepId,
+      value,
+      dimension,
+      note
+    }: {
+      prepId: string;
+      value: "AGREE" | "DISAGREE";
+      dimension: PromptFeedbackDimension;
+      note?: string;
+    }) => {
       if (!auth.token) {
         throw new Error("Authentication required");
       }
-      return api.voteOnPrep({ slug, prepId, value, token: auth.token });
+      return api.voteOnPrep({ slug, prepId, value, dimension, note, token: auth.token });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["book", slug] });
+      const lastPrepId = voteMutation.variables?.prepId;
+      if (lastPrepId) {
+        setFeedbackDrafts((current) => ({
+          ...current,
+          [lastPrepId]: {
+            ...ensureDraft(current[lastPrepId]),
+            note: ""
+          }
+        }));
+      }
     }
   });
 
@@ -95,7 +137,10 @@ export default function BookDetailPage() {
     }
   });
 
-  const handleVote = (prepId: string, value: "AGREE" | "DISAGREE") => {
+  const handleVote = (
+    prepId: string,
+    payload: { value: "AGREE" | "DISAGREE"; dimension: PromptFeedbackDimension; note?: string }
+  ) => {
     if (auth.isLoading) {
       return;
     }
@@ -105,7 +150,12 @@ export default function BookDetailPage() {
         return;
       }
     }
-    voteMutation.mutate({ prepId, value });
+    voteMutation.mutate({
+      prepId,
+      value: payload.value,
+      dimension: payload.dimension,
+      note: payload.note
+    });
   };
 
   const handleSuggestPrep = (event: React.FormEvent<HTMLFormElement>) => {
@@ -240,8 +290,16 @@ export default function BookDetailPage() {
             <h2>Prep notes</h2>
             <p>See what veteran readers track while they read this title.</p>
           </div>
-          <span>{book.preps.length} prep{book.preps.length === 1 ? "" : "s"}</span>
+          <span>
+            {book.prepCount} prep{book.prepCount === 1 ? "" : "s"}
+          </span>
         </header>
+
+        {book.prepCount > book.preps.length && (
+          <p className="helper-text">
+            Showing the top {book.preps.length} prompts right now. Vote to help reorder the list.
+          </p>
+        )}
 
         {book.preps.length === 0 && <p>No preps yet. Be the first to suggest one!</p>}
 
@@ -250,9 +308,11 @@ export default function BookDetailPage() {
             <PrepCard
               key={prep.id}
               prep={prep}
+              feedbackDraft={getFeedbackDraft(prep.id)}
+              onFeedbackDraftChange={(updates) => updateFeedbackDraft(prep.id, updates)}
               votingDisabled={votingDisabled}
               isVoting={voteMutation.isPending && votingPrepId === prep.id}
-              onVote={(value) => handleVote(prep.id, value)}
+              onVote={(payload) => handleVote(prep.id, payload)}
             />
           ))}
         </div>

@@ -12,6 +12,12 @@ import {
   suggestionIdParamsSchema
 } from "../schemas.js";
 import { normalizeIsbn } from "../utils/isbn.js";
+import {
+  calculatePromptScore,
+  createEmptyDimensionBreakdown,
+  summaryFromScoreRecord,
+  toVotesPayload
+} from "../utils/promptScores.js";
 
 const adminBookDetailInclude = {
   include: {
@@ -33,7 +39,8 @@ const adminBookDetailInclude = {
             keyword: true
           }
         },
-        votes: true
+        votes: true,
+        score: true
       },
       orderBy: {
         updatedAt: "desc"
@@ -49,7 +56,8 @@ const adminPrepInclude = {
         keyword: true
       }
     },
-    votes: true
+    votes: true,
+    score: true
   }
 } as const;
 
@@ -715,8 +723,16 @@ function mapAdminBook(book: AdminBookDetail) {
 }
 
 function mapAdminPrep(prep: AdminPrepDetail) {
-  const agree = prep.votes.filter((vote) => vote.value === "AGREE").length;
-  const disagree = prep.votes.filter((vote) => vote.value === "DISAGREE").length;
+  const legacyAgree = prep.votes.filter((vote) => vote.value === "AGREE").length;
+  const legacyDisagree = prep.votes.filter((vote) => vote.value === "DISAGREE").length;
+  const fallbackSummary = {
+    agree: legacyAgree,
+    disagree: legacyDisagree,
+    total: legacyAgree + legacyDisagree,
+    score: calculatePromptScore(legacyAgree, legacyDisagree),
+    dimensions: createEmptyDimensionBreakdown()
+  };
+  const summary = summaryFromScoreRecord(prep.score) ?? fallbackSummary;
 
   return {
     id: prep.id,
@@ -729,10 +745,7 @@ function mapAdminPrep(prep: AdminPrepDetail) {
       slug: entry.keyword.slug,
       name: entry.keyword.name
     })),
-    votes: {
-      agree,
-      disagree
-    },
+    votes: toVotesPayload(summary),
     updatedAt: prep.updatedAt
   };
 }

@@ -39,6 +39,23 @@ export type BookListResponse = {
   results: BookSummary[];
 };
 
+export type PromptFeedbackDimension = "CORRECT" | "FUN" | "USEFUL" | "SURPRISING";
+
+export type PromptVoteDimensionBreakdown = {
+  dimension: PromptFeedbackDimension;
+  agree: number;
+  disagree: number;
+  total: number;
+};
+
+export type PromptVoteSummary = {
+  agree: number;
+  disagree: number;
+  total: number;
+  score: number;
+  dimensions: PromptVoteDimensionBreakdown[];
+};
+
 export type Prep = {
   id: string;
   heading: string;
@@ -49,10 +66,7 @@ export type Prep = {
     slug: string;
     name: string;
   }>;
-  votes: {
-    agree: number;
-    disagree: number;
-  };
+  votes: PromptVoteSummary;
 };
 
 export type BookDetail = {
@@ -72,6 +86,7 @@ export type BookDetail = {
     name: string;
     slug: string;
   }>;
+  prepCount: number;
   preps: Prep[];
 };
 
@@ -154,7 +169,7 @@ export type AdminPrepDetail = {
     slug: string;
     name: string;
   }>;
-  votes: Prep["votes"];
+  votes: PromptVoteSummary;
   updatedAt: string;
 };
 
@@ -175,6 +190,39 @@ export type AdminBookDetail = {
   genres: Genre[];
   preps: AdminPrepDetail[];
   updatedAt: string;
+};
+
+export type PromptInsightSummary = {
+  prepId: string;
+  heading: string;
+  summary: string;
+  book: {
+    id: string;
+    title: string;
+    slug: string;
+  };
+  votes: PromptVoteSummary;
+};
+
+export type PromptFeedbackInsights = {
+  topPrompts: PromptInsightSummary[];
+  needsAttention: PromptInsightSummary[];
+  recentFeedback: Array<{
+    id: string;
+    dimension: PromptFeedbackDimension;
+    value: "AGREE" | "DISAGREE";
+    note: string | null;
+    createdAt: string;
+    prep: {
+      id: string;
+      heading: string;
+    };
+    book: {
+      id: string;
+      title: string;
+      slug: string;
+    };
+  }>;
 };
 
 export type AdminCreateBookInput = {
@@ -312,12 +360,23 @@ export const api = {
   listGenres: () => apiFetch<{ genres: Genre[] }>("/api/genres"),
   listAuthors: () => apiFetch<{ authors: Author[] }>("/api/authors"),
   listPrepKeywords: () => apiFetch<{ keywords: Keyword[] }>("/api/preps/keywords"),
-  voteOnPrep: (params: { slug: string; prepId: string; value: "AGREE" | "DISAGREE"; token: string }) =>
+  voteOnPrep: (params: {
+    slug: string;
+    prepId: string;
+    value: "AGREE" | "DISAGREE";
+    dimension: PromptFeedbackDimension;
+    note?: string;
+    token: string;
+  }) =>
     apiFetch<{ prepId: string; votes: Prep["votes"] }>(
       `/api/books/${params.slug}/preps/${params.prepId}/vote`,
       {
         method: "POST",
-        body: { value: params.value },
+        body: {
+          value: params.value,
+          dimension: params.dimension,
+          note: params.note
+        },
         token: params.token
       }
     ),
@@ -509,6 +568,10 @@ export const api = {
       body,
       token: params.token
     });
-  }
+  },
+  getPromptFeedbackInsights: (token: string) =>
+    apiFetch<PromptFeedbackInsights>("/api/preps/feedback/insights", {
+      token
+    })
 };
 
