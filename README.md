@@ -32,6 +32,10 @@ pnpm --filter web build
 
 See `docs/deploy.md` for MySQL seeding, Cognito setup, systemd, and Nginx guidance. To keep the API running on a server, point systemd or pm2 at `apps/api/dist/server.js` and serve the SPA from `apps/web/dist`.
 
+### Production make script
+
+`scripts/make_bookprepper.sh` reproduces the production build + deploy workflow used on our server. By default it expects the repo at `/opt/bookprepper` and serves the built SPA from `/www/bookprepper`; edit the `REPO_DIR` / `WEB_DIR` constants (or export those env vars before running) to match your host, then run `zsh scripts/make_bookprepper.sh`. The script restores Prisma artifacts, restarts the `bookprepper` service, and preserves manually curated cover JPEGs by syncing them with `rsync --ignore-existing`.
+
 ## Scripts
 
 | Command | Description |
