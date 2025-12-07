@@ -32,6 +32,7 @@ export type BookSummary = {
     slug: string;
   }>;
   prepCount: number;
+  keywords?: Keyword[];
 };
 
 export type BookListResponse = {

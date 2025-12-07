@@ -127,6 +127,22 @@ const readingBookArgs = {
         genre: true
       }
     },
+    preps: {
+      select: {
+        keywords: {
+          select: {
+            keyword: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                description: true
+              }
+            }
+          }
+        }
+      }
+    },
     _count: {
       select: { preps: true }
     }
@@ -134,6 +150,32 @@ const readingBookArgs = {
 } satisfies Prisma.BookDefaultArgs;
 
 function mapReadingBook(book: Prisma.BookGetPayload<typeof readingBookArgs>) {
+  const keywordMap = new Map<
+    string,
+    {
+      id: string;
+      slug: string;
+      name: string;
+      description: string | null;
+    }
+  >();
+
+  for (const prep of book.preps) {
+    for (const entry of prep.keywords) {
+      const keyword = entry.keyword;
+      if (!keywordMap.has(keyword.id)) {
+        keywordMap.set(keyword.id, {
+          id: keyword.id,
+          slug: keyword.slug,
+          name: keyword.name,
+          description: keyword.description ?? null
+        });
+      }
+    }
+  }
+
+  const keywords = Array.from(keywordMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
   return {
     id: book.id,
     slug: book.slug,
@@ -150,7 +192,8 @@ function mapReadingBook(book: Prisma.BookGetPayload<typeof readingBookArgs>) {
       name: entry.genre.name,
       slug: entry.genre.slug
     })),
-    prepCount: book._count.preps
+    prepCount: book._count.preps,
+    keywords
   };
 }
 

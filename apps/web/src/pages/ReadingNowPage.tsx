@@ -82,6 +82,19 @@ export default function ReadingNowPage() {
                 <h3>{entry.book.title}</h3>
                 <p className="reading-card__author">{entry.book.author.name}</p>
                 {entry.book.synopsis && <p className="reading-card__synopsis">{entry.book.synopsis}</p>}
+                {entry.book.keywords && entry.book.keywords.length > 0 && (
+                  <div className="reading-card__keywords">
+                    {entry.book.keywords.map((keyword) => (
+                      <Link
+                        key={keyword.id}
+                        className="reading-card__keyword-link"
+                        to={`/?prep=${keyword.slug}`}
+                      >
+                        {keyword.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="reading-card__actions">
                 <Link to={`/books/${entry.book.slug}`} className="primary-button">
