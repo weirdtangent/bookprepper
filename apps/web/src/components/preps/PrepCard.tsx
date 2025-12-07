@@ -39,11 +39,22 @@ export function PrepCard({
 
   return (
     <article className="prep-card" style={{ borderColor: prep.colorHint ?? "#d1d5db" }}>
-      <header>
-        <div>
+      <div className="prep-card__content">
+        <header className="prep-card__header">
           <p className="prep-card__eyebrow">Watch for</p>
           <h3>{prep.heading}</h3>
+        </header>
+        <p className="prep-card__summary">{prep.summary}</p>
+        {prep.watchFor && <p className="prep-card__watchfor">{prep.watchFor}</p>}
+        <div className="prep-card__keywords">
+          {prep.keywords.map((keyword) => (
+            <Link key={keyword.slug} className="prep-card__keyword-link" to={`/?prep=${keyword.slug}`}>
+              {keyword.name}
+            </Link>
+          ))}
         </div>
+      </div>
+      <div className="prep-card__sidebar">
         <div className="prep-card__votes">
           <div className="prep-card__vote-counts">
             <span>
@@ -57,57 +68,48 @@ export function PrepCard({
             </small>
           )}
         </div>
-      </header>
-      <p>{prep.summary}</p>
-      {prep.watchFor && <p className="prep-card__watchfor">{prep.watchFor}</p>}
-      <div className="prep-card__keywords">
-        {prep.keywords.map((keyword) => (
-          <Link key={keyword.slug} className="prep-card__keyword-link" to={`/?prep=${keyword.slug}`}>
-            {keyword.name}
-          </Link>
-        ))}
-      </div>
-      <div className="prep-card__feedback">
-        <label>
-          Focus your feedback
-          <select
-            value={feedbackDraft.dimension}
-            onChange={(event) =>
-              onFeedbackDraftChange({
-                dimension: event.target.value as PromptFeedbackDimension
-              })
-            }
-            disabled={votingDisabled || isVoting}
-          >
-            {PROMPT_FEEDBACK_DIMENSIONS.map((dimension) => (
-              <option key={dimension} value={dimension}>
-                {getPromptFeedbackLabel(dimension)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Optional note
-          <textarea
-            value={feedbackDraft.note}
-            maxLength={500}
-            placeholder="Add a quick note for curators (optional)"
-            onChange={(event) =>
-              onFeedbackDraftChange({
-                note: event.target.value
-              })
-            }
-            disabled={votingDisabled || isVoting}
-          />
-        </label>
-      </div>
-      <div className="prep-card__actions">
-        <button disabled={votingDisabled || isVoting} onClick={() => handleVote("AGREE")}>
-          Agree
-        </button>
-        <button disabled={votingDisabled || isVoting} onClick={() => handleVote("DISAGREE")}>
-          Disagree
-        </button>
+        <div className="prep-card__feedback">
+          <label>
+            Focus your feedback
+            <select
+              value={feedbackDraft.dimension}
+              onChange={(event) =>
+                onFeedbackDraftChange({
+                  dimension: event.target.value as PromptFeedbackDimension
+                })
+              }
+              disabled={votingDisabled || isVoting}
+            >
+              {PROMPT_FEEDBACK_DIMENSIONS.map((dimension) => (
+                <option key={dimension} value={dimension}>
+                  {getPromptFeedbackLabel(dimension)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Optional note
+            <textarea
+              value={feedbackDraft.note}
+              maxLength={500}
+              placeholder="Add a quick note for curators (optional)"
+              onChange={(event) =>
+                onFeedbackDraftChange({
+                  note: event.target.value
+                })
+              }
+              disabled={votingDisabled || isVoting}
+            />
+          </label>
+        </div>
+        <div className="prep-card__actions">
+          <button disabled={votingDisabled || isVoting} onClick={() => handleVote("AGREE")}>
+            Agree
+          </button>
+          <button disabled={votingDisabled || isVoting} onClick={() => handleVote("DISAGREE")}>
+            Disagree
+          </button>
+        </div>
       </div>
     </article>
   );
