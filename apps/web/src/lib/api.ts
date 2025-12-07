@@ -336,9 +336,15 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
     }
   }
 
+  const hasBody = options.body !== undefined;
+
   const headers = new Headers({
-    "Content-Type": "application/json"
+    Accept: "application/json"
   });
+
+  if (hasBody) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (options.token) {
     headers.set("Authorization", `Bearer ${options.token}`);
@@ -347,7 +353,7 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
   const response = await fetch(url.toString(), {
     method: options.method ?? "GET",
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: hasBody ? JSON.stringify(options.body) : undefined,
     signal: options.signal
   });
 
