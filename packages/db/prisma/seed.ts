@@ -281,6 +281,115 @@ const KEYWORD_TEMPLATES = {
       `Look at how ${title} defines power limits${note ? ` — ${note}` : ""}.`,
     watchFor: (focus?: string) => `Catalog ingredients, oaths, and the price each casting demands${focus ? ` (${focus})` : ""}.`,
     colorHint: "#ab47bc"
+  },
+  "body-autonomy": {
+    name: "Body Autonomy",
+    description: "Consent, modification, and who controls the body.",
+    heading: "Watch bodily autonomy battles",
+    summary: (title: string, note?: string) =>
+      `Examine how ${title} protects or threatens bodily choice${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) =>
+      `Note medical consent, possession, and control rituals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#d32f2f"
+  },
+  "coming-of-age": {
+    name: "Coming of Age",
+    description: "Threshold moments, mentors, and self-definition.",
+    heading: "Trace the coming-of-age arc",
+    summary: (title: string, note?: string) =>
+      `Follow how ${title} ushers characters into new selves${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Notice mentors, rites, and first failures${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#f06292"
+  },
+  "court-politics": {
+    name: "Court Politics",
+    description: "Etiquette, soft power, and palace intrigue.",
+    heading: "Track court politics",
+    summary: (title: string, note?: string) =>
+      `Observe how ${title} choreographs power at court${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Log audiences, favors owed, and ceremonial loopholes${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#5d4037"
+  },
+  "environmental-justice": {
+    name: "Environmental Justice",
+    description: "Community fights against extraction and pollution.",
+    heading: "Map environmental justice struggles",
+    summary: (title: string, note?: string) =>
+      `Consider how ${title} links ecology to equity${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Track protests, land stewardship, and reparations plans${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#2e7d32"
+  },
+  "family-saga": {
+    name: "Family Saga",
+    description: "Generational drama, inheritance, and legacy.",
+    heading: "Follow the family saga",
+    summary: (title: string, note?: string) =>
+      `See how ${title} charts obligations across generations${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Track wills, heirlooms, and storytelling elders${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#6d4c41"
+  },
+  "humor-satire": {
+    name: "Humor & Satire",
+    description: "Parody, wit, and subversive comedy.",
+    heading: "Spot humor and satire",
+    summary: (title: string, note?: string) =>
+      `Notice where ${title} uses comedy as critique${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Mark running jokes, farce set pieces, and punch-line reveals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ff7043"
+  },
+  "mental-health": {
+    name: "Mental Health",
+    description: "Internal storms, therapy, and coping strategies.",
+    heading: "Observe mental health journeys",
+    summary: (title: string, note?: string) =>
+      `Watch how ${title} treats mind care and stigma${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Track grounding rituals, intrusive thoughts, and support circles${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#26c6da"
+  },
+  "queer-joy": {
+    name: "Queer Joy",
+    description: "Celebrated identities, love, and community.",
+    heading: "Collect sparks of queer joy",
+    summary: (title: string, note?: string) =>
+      `Appreciate how ${title} centers queer flourishing${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Notice affirmation scenes, flamboyant art, and chosen rituals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#8e24aa"
+  },
+  "sibling-bonds": {
+    name: "Sibling Bonds",
+    description: "Rivalry, protection, and shared history.",
+    heading: "Track sibling bonds",
+    summary: (title: string, note?: string) =>
+      `Follow how ${title} lets siblings collide and protect${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Log inside jokes, heir disputes, and loyalty tests${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ffb300"
+  },
+  "survival-strategy": {
+    name: "Survival Strategy",
+    description: "Resourcefulness under siege.",
+    heading: "Study survival strategies",
+    summary: (title: string, note?: string) =>
+      `Examine how ${title} imagines scraping through crisis${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Note improvised shelters, ration plans, and escape maps${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ffa000"
+  },
+  "underworld-crime": {
+    name: "Underworld Crime",
+    description: "Smugglers, fixers, and shadow economies.",
+    heading: "Chart the underworld",
+    summary: (title: string, note?: string) =>
+      `See how ${title} depicts criminal networks${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Follow code names, protection rackets, and midnight exchanges${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#3e2723"
+  },
+  "voyage-discovery": {
+    name: "Voyage & Discovery",
+    description: "Exploration, wonder, and cartography.",
+    heading: "Trace voyage and discovery",
+    summary: (title: string, note?: string) =>
+      `Notice how ${title} treats discovery as risk and reward${note ? ` — ${note}` : ""}.`,
+    watchFor: (focus?: string) => `Map wayfinding tools, shipboard culture, and first-contact rules${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#00796b"
   }
 } satisfies Record<string, KeywordTemplate>;
 
@@ -370,6 +479,66 @@ const GENRE_CATALOG = {
   "young-adult": {
     name: "Young Adult",
     description: "Coming-of-age arcs anchored in teen protagonists."
+  },
+  "alternate-history": {
+    name: "Alternate History",
+    description: "Counterfactual timelines and pivotal what-ifs."
+  },
+  "biographical-fiction": {
+    name: "Biographical Fiction",
+    description: "Novels inspired by real historical figures."
+  },
+  "cozy-mystery": {
+    name: "Cozy Mystery",
+    description: "Intimate investigations with low on-page violence."
+  },
+  "crime-thriller": {
+    name: "Crime Thriller",
+    description: "Heists, detectives, and criminal intrigue."
+  },
+  "fairy-tale": {
+    name: "Fairy Tale",
+    description: "Folkloric motifs, quests, and enchanted bargains."
+  },
+  gothic: {
+    name: "Gothic",
+    description: "Brooding settings, secrets, and creeping dread."
+  },
+  "hard-sf": {
+    name: "Hard Science Fiction",
+    description: "Rigorous science and engineering problem-solving."
+  },
+  "historical-fantasy": {
+    name: "Historical Fantasy",
+    description: "Magic woven into recognizable past eras."
+  },
+  "humor-satire": {
+    name: "Humor & Satire",
+    description: "Parody and wit aimed at cultural critique."
+  },
+  "paranormal-romance": {
+    name: "Paranormal Romance",
+    description: "Love stories intertwined with supernatural beings."
+  },
+  "psychological-thriller": {
+    name: "Psychological Thriller",
+    description: "Claustrophobic suspense and unreliable minds."
+  },
+  "science-fantasy": {
+    name: "Science Fantasy",
+    description: "Bridges speculative tech with mythic wonder."
+  },
+  slipstream: {
+    name: "Slipstream",
+    description: "Dreamlike tales that blur genre boundaries."
+  },
+  solarpunk: {
+    name: "Solarpunk",
+    description: "Optimistic eco-futures and community tech."
+  },
+  "weird-fiction": {
+    name: "Weird Fiction",
+    description: "Surreal horror, cosmic unease, and liminal spaces."
   }
 } as const;
 
@@ -2694,12 +2863,9 @@ async function main() {
   }
 
   const genreRecords = new Map<GenreSlug, string>();
-  const usedGenres = new Set<GenreSlug>(books.flatMap((book) => book.genres));
-  for (const genreSlug of usedGenres) {
-    const definition = GENRE_CATALOG[genreSlug];
-    if (!definition) {
-      throw new Error(`Missing genre definition for ${genreSlug}`);
-    }
+  for (const [genreSlug, definition] of Object.entries(GENRE_CATALOG) as Array<
+    [GenreSlug, (typeof GENRE_CATALOG)[GenreSlug]]
+  >) {
     const genre = await prisma.genre.upsert({
       where: { slug: genreSlug },
       update: {
