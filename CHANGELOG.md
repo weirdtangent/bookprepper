@@ -1,3 +1,20 @@
+# [1.2.0](https://github.com/weirdtangent/bookprepper/compare/v1.1.0...v1.2.0) (2025-12-13)
+
+
+### Bug Fixes
+
+* add types package to deploy script build steps ([1e50520](https://github.com/weirdtangent/bookprepper/commit/1e505205b6dae9e7a7c51e8553b71671b6518794))
+* apply prettier formatting ([b978751](https://github.com/weirdtangent/bookprepper/commit/b978751dbe42ee64fc4983772e412e76480651d0))
+* remove duplicate vite.config.js that was overriding vite.config.ts ([d8287bb](https://github.com/weirdtangent/bookprepper/commit/d8287bbf28e9302d31cef049f155dafd37a52fed))
+* split build:packages for clearer debugging ([403b873](https://github.com/weirdtangent/bookprepper/commit/403b873d4ea1815a63e57b2638035085d5e86b7c))
+* use ESM-compatible __dirname in vite config ([2d1acfb](https://github.com/weirdtangent/bookprepper/commit/2d1acfb7961b0f8b1784ff075e6b87ad5845c60a))
+
+
+### Features
+
+* add My Books page with Reading and Finished tabs ([44dbc78](https://github.com/weirdtangent/bookprepper/commit/44dbc78622a9940a1c330ef735af712158846957))
+* cache failed ISBN lookups to avoid repeated 404 requests ([c816ae1](https://github.com/weirdtangent/bookprepper/commit/c816ae128681e0043f9f18cc564ca127cd64726c))
+
 # [1.1.0](https://github.com/weirdtangent/bookprepper/compare/v1.0.0...v1.1.0) (2025-12-13)
 
 ### Bug Fixes
