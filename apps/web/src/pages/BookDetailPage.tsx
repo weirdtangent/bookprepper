@@ -494,6 +494,8 @@ export default function BookDetailPage() {
             <PrepCard
               key={prep.id}
               prep={prep}
+              bookTitle={book.title}
+              authorName={book.author.name}
               order={index + 1}
               feedbackDraft={getFeedbackDraft(prep.id)}
               onFeedbackDraftChange={(updates) => updateFeedbackDraft(prep.id, updates)}

@@ -1,7 +1,9 @@
-import { useState, type CSSProperties } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import type { Prep, PrepQuote, PromptFeedbackDimension } from "../../lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { api, type Prep, type PrepQuote, type PromptFeedbackDimension, type GoogleBooksSearchResult } from "../../lib/api";
 import { getPromptFeedbackLabel } from "../../lib/promptFeedback";
+import { useDebounce } from "../../hooks/useDebounce";
 
 export type PrepFeedbackDraft = {
   dimension: PromptFeedbackDimension;
@@ -16,6 +18,8 @@ export type QuoteDraft = {
 
 type Props = {
   prep: Prep;
+  bookTitle: string;
+  authorName: string;
   feedbackDraft: PrepFeedbackDraft;
   onFeedbackDraftChange: (updates: Partial<PrepFeedbackDraft>) => void;
   onVote: (payload: {
@@ -40,6 +44,8 @@ type PrepCardStyle = CSSProperties & {
 
 export function PrepCard({
   prep,
+  bookTitle,
+  authorName,
   feedbackDraft,
   onFeedbackDraftChange,
   onVote,
@@ -60,6 +66,52 @@ export function PrepCard({
     pageNumber: "",
     chapter: ""
   });
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Debounce quote text for search
+  const debouncedQuoteText = useDebounce(quoteDraft.text, 500);
+
+  // Check if we should search (at least 15 chars or 3 words)
+  const shouldSearch = (() => {
+    const text = debouncedQuoteText.trim();
+    if (text.length >= 15) return true;
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    return wordCount >= 3;
+  })();
+
+  // Search for matching quotes
+  const quoteSearchQuery = useQuery({
+    queryKey: ["quote-search", debouncedQuoteText, bookTitle, authorName],
+    queryFn: () =>
+      api.searchQuotes({
+        text: debouncedQuoteText.trim(),
+        bookTitle,
+        authorName
+      }),
+    enabled: showQuoteForm && shouldSearch && debouncedQuoteText.length >= 10,
+    staleTime: 60000
+  });
+
+  // Show suggestions when we have results
+  useEffect(() => {
+    if (quoteSearchQuery.data?.found && quoteSearchQuery.data.results.length > 0) {
+      setShowSuggestions(true);
+    }
+  }, [quoteSearchQuery.data]);
+
+  const handleSelectSuggestion = (snippet: string) => {
+    // Clean up HTML entities and tags from the snippet
+    const cleanText = snippet
+      .replace(/<\/?b>/g, "")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">");
+    setQuoteDraft({ ...quoteDraft, text: cleanText });
+    setShowSuggestions(false);
+  };
+
   const accentColor = prep.colorHint ?? "#d1d5db";
   const cardStyle: PrepCardStyle = {
     borderColor: accentColor,
@@ -178,15 +230,60 @@ export function PrepCard({
 
           {(quoteCount === 0 || spoilerRevealed) && showQuoteForm && (
             <form className="quote-form" onSubmit={handleQuoteSubmit}>
-              <textarea
-                placeholder="Enter a quote from the book that relates to this prep..."
-                value={quoteDraft.text}
-                onChange={(e) => setQuoteDraft({ ...quoteDraft, text: e.target.value })}
-                minLength={10}
-                maxLength={2000}
-                required
-                disabled={isAddingQuote}
-              />
+              <div className="quote-form__input-wrapper">
+                <textarea
+                  placeholder="Start typing a quote... we'll search for matches as you type"
+                  value={quoteDraft.text}
+                  onChange={(e) => {
+                    setQuoteDraft({ ...quoteDraft, text: e.target.value });
+                    if (!e.target.value.trim()) setShowSuggestions(false);
+                  }}
+                  onFocus={() => {
+                    if (quoteSearchQuery.data?.found) setShowSuggestions(true);
+                  }}
+                  minLength={10}
+                  maxLength={2000}
+                  required
+                  disabled={isAddingQuote}
+                />
+                {quoteSearchQuery.isFetching && (
+                  <span className="quote-form__searching">Searching...</span>
+                )}
+                {showSuggestions && quoteSearchQuery.data?.results && quoteSearchQuery.data.results.length > 0 && (
+                  <div className="quote-suggestions">
+                    <div className="quote-suggestions__header">
+                      <span>Found in Google Books — click to use:</span>
+                      <button
+                        type="button"
+                        className="quote-suggestions__close"
+                        onClick={() => setShowSuggestions(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ul className="quote-suggestions__list">
+                      {quoteSearchQuery.data.results.map((result, idx) => (
+                        <li key={idx}>
+                          <button
+                            type="button"
+                            className="quote-suggestion"
+                            onClick={() => result.textSnippet && handleSelectSuggestion(result.textSnippet)}
+                            disabled={!result.textSnippet}
+                          >
+                            <span
+                              className="quote-suggestion__text"
+                              dangerouslySetInnerHTML={{ __html: result.textSnippet || "No preview available" }}
+                            />
+                            <span className="quote-suggestion__source">
+                              {result.title} {result.authors?.length ? `by ${result.authors[0]}` : ""}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
               <div className="quote-form__location">
                 <input
                   type="text"
@@ -208,7 +305,10 @@ export function PrepCard({
               <div className="quote-form__actions">
                 <button
                   type="button"
-                  onClick={() => setShowQuoteForm(false)}
+                  onClick={() => {
+                    setShowQuoteForm(false);
+                    setShowSuggestions(false);
+                  }}
                   disabled={isAddingQuote}
                 >
                   Cancel
