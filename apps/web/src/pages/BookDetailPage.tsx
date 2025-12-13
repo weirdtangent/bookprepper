@@ -441,7 +441,7 @@ export default function BookDetailPage() {
               <span className="book-hero__detail-label">Buy this book</span>
               <div className="book-hero__purchase-links">
                 <a
-                  href={`https://bookshop.org/p/books/-/${book.isbn}`}
+                  href={`https://bookshop.org/search?keywords=${book.isbn}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="purchase-link purchase-link--bookshop"
@@ -457,7 +457,7 @@ export default function BookDetailPage() {
                   Barnes &amp; Noble
                 </a>
                 <a
-                  href={`https://www.amazon.com/dp/${book.isbn}`}
+                  href={`https://www.amazon.com/s?k=${book.isbn}&i=stripbooks`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="purchase-link purchase-link--amazon"
