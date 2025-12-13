@@ -1,5 +1,5 @@
 import { config as loadEnv } from "dotenv";
-import { access, mkdir, readdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,10 @@ const publicCoverDir = path.resolve(repoRoot, "apps/web/public/assets/covers");
 const publicManifestPath = path.resolve(publicCoverDir, "manifest.generated.json");
 const apiCoverCacheDir = path.resolve(repoRoot, "apps/api/.cover-cache");
 const apiManifestPath = path.resolve(apiCoverCacheDir, "cover-manifest.generated.json");
+const failedIsbnsPath = path.resolve(apiCoverCacheDir, "failed-isbns.json");
+
+// Only retry failed ISBNs after 24 hours
+const FAILED_RETRY_MS = 24 * 60 * 60 * 1000;
 
 loadEnv({ path: path.resolve(repoRoot, ".env") });
 loadEnv();
@@ -28,15 +32,51 @@ type CoverManifest = {
   files: Record<string, string>;
 };
 
+type FailedIsbnsCache = {
+  // ISBN -> timestamp of when it failed
+  [isbn: string]: number;
+};
+
 let prismaClient: PrismaClient | null = null;
+let failedIsbns: FailedIsbnsCache = {};
+
+async function loadFailedIsbns(): Promise<FailedIsbnsCache> {
+  try {
+    const content = await readFile(failedIsbnsPath, "utf-8");
+    return JSON.parse(content) as FailedIsbnsCache;
+  } catch {
+    return {};
+  }
+}
+
+async function saveFailedIsbns(): Promise<void> {
+  const serialized = `${JSON.stringify(failedIsbns, null, 2)}\n`;
+  await writeFile(failedIsbnsPath, serialized);
+}
+
+function shouldRetryIsbn(isbn: string): boolean {
+  const failedAt = failedIsbns[isbn];
+  if (!failedAt) {
+    return true;
+  }
+  const now = Date.now();
+  return now - failedAt > FAILED_RETRY_MS;
+}
+
+function markIsbnFailed(isbn: string): void {
+  failedIsbns[isbn] = Date.now();
+}
 
 async function main() {
   await ensureDir(publicCoverDir);
   await ensureDir(path.dirname(apiManifestPath));
 
+  failedIsbns = await loadFailedIsbns();
+
   const existingFiles = await scanExistingFiles();
   const manifestFiles = await hydrateCovers(existingFiles);
   await writeManifest(manifestFiles);
+  await saveFailedIsbns();
 }
 
 async function hydrateCovers(
@@ -64,6 +104,8 @@ async function hydrateCovers(
   }
 
   let downloaded = 0;
+  let skippedFailed = 0;
+
   for (const book of books) {
     const normalized = normalizeIsbn(book.isbn);
     if (!normalized) {
@@ -72,43 +114,62 @@ async function hydrateCovers(
     if (knownIsbns.has(normalized)) {
       continue;
     }
+    if (!shouldRetryIsbn(normalized)) {
+      skippedFailed += 1;
+      continue;
+    }
+
     const destination = path.join(publicCoverDir, `${normalized}.jpg`);
-    const success = await downloadCover(normalized, destination);
-    if (success) {
+    const result = await downloadCover(normalized, destination);
+
+    if (result === "success") {
       downloaded += 1;
       knownIsbns.add(normalized);
       existingFiles[normalized] = `${normalized}.jpg`;
+      // Remove from failed cache if it was there
+      delete failedIsbns[normalized];
       await sleep(200);
+    } else if (result === "not-found") {
+      markIsbnFailed(normalized);
+      await sleep(100);
     }
   }
 
+  if (skippedFailed > 0) {
+    console.log(`"Skipped ${skippedFailed} ISBNs that recently returned 404"`);
+  }
   console.log(`"Ensured ${books.length} ISBN entries with ${downloaded} new downloads"`);
 
   return scanFilesForBooks(books);
 }
 
-async function downloadCover(isbn: string, destination: string) {
+type DownloadResult = "success" | "not-found" | "error" | "exists";
+
+async function downloadCover(isbn: string, destination: string): Promise<DownloadResult> {
   const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
   try {
     const response = await fetch(url);
+    if (response.status === 404) {
+      // Don't log 404s since we're caching them
+      return "not-found";
+    }
     if (!response.ok) {
       console.warn(`"Failed to fetch cover for ISBN ${isbn} (status ${response.status})"`);
-      return false;
+      return "error";
     }
     const buffer = Buffer.from(await response.arrayBuffer());
     try {
       await writeFile(destination, buffer, { flag: "wx" });
-      return true;
+      return "success";
     } catch (writeError) {
       if ((writeError as NodeJS.ErrnoException).code === "EEXIST") {
-        console.log(`"Cover for ISBN ${isbn} already exists; skipping overwrite"`);
-        return false;
+        return "exists";
       }
       throw writeError;
     }
   } catch (error) {
     console.warn(`"Error downloading ISBN ${isbn}: ${(error as Error).message}"`);
-    return false;
+    return "error";
   }
 }
 
