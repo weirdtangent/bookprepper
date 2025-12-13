@@ -48,6 +48,7 @@ export function AppLayout() {
         <div className="app-header__content">
           <NavLink to="/" className="logo">
             BookPrepper
+            <span className="app-version">v{__APP_VERSION__}</span>
           </NavLink>
           <nav className="app-nav">
             <NavLink to="/" className={({ isActive }) => (isActive ? "active" : "")}>
