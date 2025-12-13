@@ -6,7 +6,7 @@ import SuggestPage from "./pages/SuggestPage";
 import ConfigPage from "./pages/ConfigPage";
 import AdminPage from "./pages/AdminPage";
 import AboutPage from "./pages/AboutPage";
-import ReadingNowPage from "./pages/ReadingNowPage";
+import MyBooksPage from "./pages/MyBooksPage";
 
 export default function App() {
   return (
@@ -16,7 +16,7 @@ export default function App() {
         <Route path="/books/:slug" element={<BookDetailPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/suggest" element={<SuggestPage />} />
-        <Route path="/reading" element={<ReadingNowPage />} />
+        <Route path="/my-books" element={<MyBooksPage />} />
         <Route path="/config" element={<ConfigPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Route>

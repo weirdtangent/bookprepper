@@ -1004,6 +1004,62 @@ a {
   cursor: not-allowed;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tab--active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tab--active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.tab__count {
+  background: var(--color-tag-bg);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tab--active .tab__count {
+  background: var(--color-accent);
+  color: var(--color-primary-text);
+}
+
 .reading-list {
   list-style: none;
   padding: 0;

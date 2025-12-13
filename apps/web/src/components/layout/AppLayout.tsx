@@ -61,8 +61,8 @@ export function AppLayout() {
               Suggest a Book
             </NavLink>
             {auth.isAuthenticated && (
-              <NavLink to="/reading" className={({ isActive }) => (isActive ? "active" : "")}>
-                Reading Now
+              <NavLink to="/my-books" className={({ isActive }) => (isActive ? "active" : "")}>
+                My Books
               </NavLink>
             )}
             {auth.isAuthenticated && (

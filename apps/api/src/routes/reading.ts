@@ -27,6 +27,28 @@ const readingRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
+  fastify.get("/reading/finished", { onRequest: [fastify.verifyJwt] }, async (request) => {
+    const user = await ensureUserProfile(request);
+
+    const entries = await prisma.readingStatus.findMany({
+      where: { userId: user.id, status: "DONE" },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        book: readingBookArgs,
+      },
+    });
+
+    return {
+      entries: entries.map((entry) => ({
+        id: entry.id,
+        status: entry.status,
+        startedAt: entry.createdAt.toISOString(),
+        finishedAt: entry.updatedAt.toISOString(),
+        book: mapReadingBook(entry.book),
+      })),
+    };
+  });
+
   fastify.post("/books/:slug/reading", { onRequest: [fastify.verifyJwt] }, async (request) => {
     const params = bookSlugParamsSchema.parse(request.params);
     const body = readingStatusBodySchema.parse(request.body ?? {});

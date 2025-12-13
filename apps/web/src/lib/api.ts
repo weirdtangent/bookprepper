@@ -350,6 +350,10 @@ export const api = {
     apiFetch<{ entries: ReadingEntry[] }>("/api/reading", {
       token,
     }),
+  listFinishedBooks: (token: string) =>
+    apiFetch<{ entries: ReadingEntry[] }>("/api/reading/finished", {
+      token,
+    }),
   startReading: (params: { slug: string; token: string; status?: "READING" | "DONE" }) =>
     apiFetch<{ id: string; status: "READING" | "DONE"; updatedAt: string }>(
       `/api/books/${params.slug}/reading`,
