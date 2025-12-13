@@ -1,7 +1,7 @@
 {
   "name": "bookprepper",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
     "build": "pnpm covers:cache && pnpm -r build",
