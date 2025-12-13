@@ -7,7 +7,7 @@ import {
   api,
   type PromptFeedbackDimension,
   type PromptFeedbackInsights,
-  type PromptVoteSummary
+  type PromptVoteSummary,
 } from "../lib/api";
 import { getPromptFeedbackLabel } from "../lib/promptFeedback";
 
@@ -19,7 +19,9 @@ export default function ConfigPage() {
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [shuffleDefault, setShuffleDefault] = useState(auth.preferences.shuffleDefault ?? true);
-  const [shuffleStatus, setShuffleStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [shuffleStatus, setShuffleStatus] = useState<"idle" | "saving" | "success" | "error">(
+    "idle"
+  );
   const [shuffleError, setShuffleError] = useState<string | null>(null);
   const insightsQuery = useQuery({
     queryKey: ["prompt-feedback-insights"],
@@ -29,7 +31,7 @@ export default function ConfigPage() {
         throw new Error("Authentication required");
       }
       return api.getPromptFeedbackInsights(auth.token);
-    }
+    },
   });
 
   debugLog("ConfigPage: render", {
@@ -39,7 +41,7 @@ export default function ConfigPage() {
     status,
     theme,
     shuffleDefault,
-    shuffleStatus
+    shuffleStatus,
   });
 
   useEffect(() => {
@@ -56,11 +58,10 @@ export default function ConfigPage() {
     }
   }, [isLoading, isAuthenticated, requireAuth]);
 
-  const isDisabled = useMemo(() => isLoading || !isAuthenticated || status === "saving", [
-    isLoading,
-    isAuthenticated,
-    status
-  ]);
+  const isDisabled = useMemo(
+    () => isLoading || !isAuthenticated || status === "saving",
+    [isLoading, isAuthenticated, status]
+  );
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -94,7 +95,9 @@ export default function ConfigPage() {
     } catch (err) {
       setShuffleStatus("error");
       const message =
-        err instanceof Error ? err.message : "Failed to update shuffle preference. Please try again.";
+        err instanceof Error
+          ? err.message
+          : "Failed to update shuffle preference. Please try again.";
       setShuffleError(message);
     }
   };
@@ -106,7 +109,7 @@ export default function ConfigPage() {
         isLoading,
         nickname,
         status,
-        theme
+        theme,
       };
       debugLog("ConfigPage: state snapshot", window.bookprepperConfigState);
     } else if (window.bookprepperConfigState) {
@@ -125,15 +128,15 @@ export default function ConfigPage() {
       "BORING",
       "NOT_USEFUL",
       "CONFUSING",
-      "SPARSE"
+      "SPARSE",
     ];
     const sorted = negativeOrder
       .map((dimension) => {
         const entry = votes.dimensions.find((d) => d.dimension === dimension);
         return entry ? { dimension, disagree: entry.disagree } : null;
       })
-      .filter(
-        (entry): entry is { dimension: PromptFeedbackDimension; disagree: number } => Boolean(entry)
+      .filter((entry): entry is { dimension: PromptFeedbackDimension; disagree: number } =>
+        Boolean(entry)
       )
       .sort((a, b) => b.disagree - a.disagree);
     return sorted[0] && sorted[0].disagree > 0 ? sorted[0].dimension : null;
@@ -155,10 +158,7 @@ export default function ConfigPage() {
               <small>
                 {formatVoteSummary(item.votes)}
                 {mostNegativeDimension(item.votes) && (
-                  <>
-                    {" "}
-                    · Most flagged: {getPromptFeedbackLabel(mostNegativeDimension(item.votes)!)}
-                  </>
+                  <> · Most flagged: {getPromptFeedbackLabel(mostNegativeDimension(item.votes)!)}</>
                 )}
               </small>
             </li>
@@ -219,9 +219,7 @@ export default function ConfigPage() {
           This controls whether the Library page starts with randomized book picks or alphabetical
           results after you sign in.
         </p>
-        {shuffleStatus === "success" && (
-          <p className="success-text">Shuffle preference updated.</p>
-        )}
+        {shuffleStatus === "success" && <p className="success-text">Shuffle preference updated.</p>}
         {shuffleStatus === "error" && shuffleError && (
           <p className="error-text" role="alert">
             {shuffleError}
@@ -286,4 +284,3 @@ declare global {
     };
   }
 }
-

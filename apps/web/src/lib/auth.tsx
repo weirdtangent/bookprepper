@@ -8,7 +8,7 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from "react";
 import { amplifyConfig } from "./amplify";
 import { api, type UserPreferences } from "./api";
@@ -49,7 +49,7 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: () => undefined,
   requireAuth: () => false,
   updateNickname: async () => undefined,
-  updatePreferences: async () => undefined
+  updatePreferences: async () => undefined,
 });
 
 type Props = {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: Props) {
       debugLog("AuthProvider: hydrateSession fetched session", {
         hasIdToken: Boolean(session.tokens?.idToken),
         hasAccessToken: Boolean(session.tokens?.accessToken),
-        username: payload["cognito:username"]
+        username: payload["cognito:username"],
       });
       const fallbackName =
         (payload.nickname as string | undefined) ??
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: Props) {
       setUser({
         name: profileName ?? fallbackName,
         email: payload.email as string | undefined,
-        preferences
+        preferences,
       });
       setToken(idToken);
     } catch (error) {
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: Props) {
         current
           ? {
               ...current,
-              name: trimmed
+              name: trimmed,
             }
           : current
       );
@@ -194,8 +194,8 @@ export function AuthProvider({ children }: Props) {
               ...current,
               preferences: {
                 ...current.preferences,
-                ...preferences
-              }
+                ...preferences,
+              },
             }
           : current
       );
@@ -215,12 +215,10 @@ export function AuthProvider({ children }: Props) {
     signOut: () => undefined,
     requireAuth: () => false,
     updateNickname: async () => undefined,
-    updatePreferences: async () => undefined
+    updatePreferences: async () => undefined,
   });
 
-  const isAdmin = Boolean(
-    ADMIN_EMAIL && user?.email && user.email.toLowerCase() === ADMIN_EMAIL
-  );
+  const isAdmin = Boolean(ADMIN_EMAIL && user?.email && user.email.toLowerCase() === ADMIN_EMAIL);
 
   const value = useMemo<AuthContextValue>(() => {
     const nextValue: AuthContextValue = {
@@ -234,7 +232,7 @@ export function AuthProvider({ children }: Props) {
       signOut: handleSignOut,
       requireAuth,
       updateNickname,
-      updatePreferences
+      updatePreferences,
     };
     valueRef.current = nextValue;
     return nextValue;
@@ -247,7 +245,7 @@ export function AuthProvider({ children }: Props) {
     requireAuth,
     updateNickname,
     updatePreferences,
-    isAdmin
+    isAdmin,
   ]);
 
   useEffect(() => {
@@ -255,14 +253,14 @@ export function AuthProvider({ children }: Props) {
       window.bookprepperAuthState = {
         isAuthenticated: Boolean(token),
         isLoading,
-        user
+        user,
       };
       debugLog("AuthProvider: state snapshot", {
         isAuthenticated: Boolean(token),
         isLoading,
         hasUser: Boolean(user),
         userName: user?.name,
-        userEmail: user?.email
+        userEmail: user?.email,
       });
     } else if (window.bookprepperAuthState) {
       delete window.bookprepperAuthState;
@@ -288,4 +286,3 @@ declare global {
     };
   }
 }
-

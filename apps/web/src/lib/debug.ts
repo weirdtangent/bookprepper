@@ -58,7 +58,7 @@ if (typeof window !== "undefined") {
       disableDebug();
       window.location.reload();
     },
-    isEnabled: isDebugEnabled
+    isEnabled: isDebugEnabled,
   };
 }
 
@@ -73,5 +73,3 @@ declare global {
 }
 
 export {};
-
-

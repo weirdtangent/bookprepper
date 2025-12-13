@@ -11,7 +11,7 @@ const DEFAULT_FEEDBACK_DIMENSION: PromptFeedbackDimension = "CORRECT";
 const ensureDraft = (draft?: PrepFeedbackDraft): PrepFeedbackDraft =>
   draft ?? {
     dimension: DEFAULT_FEEDBACK_DIMENSION,
-    note: ""
+    note: "",
   };
 
 export default function BookDetailPage() {
@@ -45,20 +45,20 @@ export default function BookDetailPage() {
       ...current,
       [prepId]: {
         ...ensureDraft(current[prepId]),
-        ...updates
-      }
+        ...updates,
+      },
     }));
   };
 
   const bookQuery = useQuery({
     queryKey: ["book", slug],
     queryFn: ({ signal }) => api.getBook(slug, signal),
-    enabled: Boolean(slug)
+    enabled: Boolean(slug),
   });
 
   const genresQuery = useQuery<{ genres: Genre[] }>({
     queryKey: ["genres"],
-    queryFn: () => api.listGenres()
+    queryFn: () => api.listGenres(),
   });
 
   const availableGenres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
@@ -71,7 +71,7 @@ export default function BookDetailPage() {
         throw new Error("Authentication required");
       }
       return api.listReadingNow(auth.token);
-    }
+    },
   });
 
   const profileQuery = useQuery({
@@ -82,7 +82,7 @@ export default function BookDetailPage() {
         throw new Error("Authentication required");
       }
       return api.getProfile(auth.token);
-    }
+    },
   });
 
   const currentUserId = profileQuery.data?.profile.id;
@@ -92,7 +92,7 @@ export default function BookDetailPage() {
       prepId,
       value,
       dimension,
-      note
+      note,
     }: {
       prepId: string;
       value: "AGREE" | "DISAGREE";
@@ -112,11 +112,11 @@ export default function BookDetailPage() {
           ...current,
           [lastPrepId]: {
             ...ensureDraft(current[lastPrepId]),
-            note: ""
-          }
+            note: "",
+          },
         }));
       }
-    }
+    },
   });
 
   const suggestPrepMutation = useMutation({
@@ -132,14 +132,14 @@ export default function BookDetailPage() {
           .split(",")
           .map((keyword) => keyword.trim())
           .filter(Boolean),
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: () => {
       setPrepTitle("");
       setPrepDescription("");
       setPrepKeywords("");
-    }
+    },
   });
 
   const metadataMutation = useMutation({
@@ -151,14 +151,14 @@ export default function BookDetailPage() {
         slug,
         synopsis: synopsisSuggestion.trim() || undefined,
         genres: genreSuggestions,
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: () => {
       setSynopsisSuggestion("");
       setGenreSuggestions([]);
       setMetadataError(null);
-    }
+    },
   });
 
   const handleVote = (
@@ -178,7 +178,7 @@ export default function BookDetailPage() {
       prepId,
       value: payload.value,
       dimension: payload.dimension,
-      note: payload.note
+      note: payload.note,
     });
   };
 
@@ -194,14 +194,14 @@ export default function BookDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reading-now"] });
-    }
+    },
   });
 
   const quoteVoteMutation = useMutation({
     mutationFn: async ({
       prepId,
       quoteId,
-      value
+      value,
     }: {
       prepId: string;
       quoteId: string;
@@ -214,17 +214,11 @@ export default function BookDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["book", slug] });
-    }
+    },
   });
 
   const addQuoteMutation = useMutation({
-    mutationFn: async ({
-      prepId,
-      quote
-    }: {
-      prepId: string;
-      quote: QuoteDraft;
-    }) => {
+    mutationFn: async ({ prepId, quote }: { prepId: string; quote: QuoteDraft }) => {
       if (!auth.token) {
         throw new Error("Authentication required");
       }
@@ -234,12 +228,12 @@ export default function BookDetailPage() {
         text: quote.text,
         pageNumber: quote.pageNumber || undefined,
         chapter: quote.chapter || undefined,
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["book", slug] });
-    }
+    },
   });
 
   const deleteQuoteMutation = useMutation({
@@ -251,7 +245,7 @@ export default function BookDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["book", slug] });
-    }
+    },
   });
 
   const handleQuoteVote = (prepId: string, quoteId: string, value: "AGREE" | "DISAGREE") => {
@@ -400,9 +394,7 @@ export default function BookDetailPage() {
       <div className="book-hero">
         <div className="book-hero__media" aria-hidden={!book.coverImageUrl}>
           {!book.coverImageUrl || coverError ? (
-            <div className="book-hero__media-placeholder">
-              {book.title.charAt(0).toUpperCase()}
-            </div>
+            <div className="book-hero__media-placeholder">{book.title.charAt(0).toUpperCase()}</div>
           ) : (
             <img
               src={book.coverImageUrl}
@@ -607,4 +599,3 @@ export default function BookDetailPage() {
     </section>
   );
 }
-

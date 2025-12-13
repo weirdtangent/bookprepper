@@ -5,14 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: "0.0.0.0"
+    host: "0.0.0.0",
   },
   preview: {
     port: 4173,
-    host: "0.0.0.0"
+    host: "0.0.0.0",
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"]
-  }
+    extensions: [".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
+  },
 });
-

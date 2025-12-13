@@ -17,7 +17,7 @@ export async function ensureUserProfile(request: FastifyRequest) {
     (authUser.email ? authUser.email.split("@")[0] : `Reader-${authUser.sub.slice(0, 6)}`);
 
   const existing = await prisma.userProfile.findUnique({
-    where: { cognitoSub: authUser.sub }
+    where: { cognitoSub: authUser.sub },
   });
 
   if (existing) {
@@ -34,7 +34,7 @@ export async function ensureUserProfile(request: FastifyRequest) {
     if (Object.keys(updates).length > 0) {
       return prisma.userProfile.update({
         where: { id: existing.id },
-        data: updates
+        data: updates,
       });
     }
 
@@ -45,8 +45,7 @@ export async function ensureUserProfile(request: FastifyRequest) {
     data: {
       cognitoSub: authUser.sub,
       email,
-      displayName: fallbackDisplayName
-    }
+      displayName: fallbackDisplayName,
+    },
   });
 }
-

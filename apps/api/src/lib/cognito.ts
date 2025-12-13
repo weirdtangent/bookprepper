@@ -1,11 +1,11 @@
 import {
   AdminUpdateUserAttributesCommand,
-  CognitoIdentityProviderClient
+  CognitoIdentityProviderClient,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { env } from "config";
 
 const client = new CognitoIdentityProviderClient({
-  region: env.COGNITO_REGION
+  region: env.COGNITO_REGION,
 });
 
 export async function updateCognitoDisplayName(params: {
@@ -24,16 +24,14 @@ export async function updateCognitoDisplayName(params: {
     UserAttributes: [
       {
         Name: "nickname",
-        Value: trimmed
+        Value: trimmed,
       },
       {
         Name: "preferred_username",
-        Value: trimmed
-      }
-    ]
+        Value: trimmed,
+      },
+    ],
   });
 
   await client.send(command);
 }
-
-

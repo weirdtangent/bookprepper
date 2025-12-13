@@ -4,12 +4,12 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("db", () => ({
   prisma: {
     promptFeedback: {
-      groupBy: vi.fn()
+      groupBy: vi.fn(),
     },
     promptScore: {
-      upsert: vi.fn()
-    }
-  }
+      upsert: vi.fn(),
+    },
+  },
 }));
 
 // Now import the module under test
@@ -19,7 +19,7 @@ import {
   summarizeAggregates,
   summaryFromScoreRecord,
   toVotesPayload,
-  PROMPT_FEEDBACK_DIMENSIONS
+  PROMPT_FEEDBACK_DIMENSIONS,
 } from "./promptScores.js";
 
 describe("calculatePromptScore", () => {
@@ -100,7 +100,7 @@ describe("summarizeAggregates", () => {
   it("sums up agree votes correctly", () => {
     const rows = [
       { dimension: "CORRECT" as const, value: "AGREE" as const, _count: { _all: 5 } },
-      { dimension: "FUN" as const, value: "AGREE" as const, _count: { _all: 3 } }
+      { dimension: "FUN" as const, value: "AGREE" as const, _count: { _all: 3 } },
     ];
     const summary = summarizeAggregates(rows);
     expect(summary.agree).toBe(8);
@@ -111,7 +111,7 @@ describe("summarizeAggregates", () => {
   it("sums up disagree votes correctly", () => {
     const rows = [
       { dimension: "BORING" as const, value: "DISAGREE" as const, _count: { _all: 2 } },
-      { dimension: "CONFUSING" as const, value: "DISAGREE" as const, _count: { _all: 4 } }
+      { dimension: "CONFUSING" as const, value: "DISAGREE" as const, _count: { _all: 4 } },
     ];
     const summary = summarizeAggregates(rows);
     expect(summary.agree).toBe(0);
@@ -122,7 +122,7 @@ describe("summarizeAggregates", () => {
   it("correctly calculates dimension breakdown", () => {
     const rows = [
       { dimension: "CORRECT" as const, value: "AGREE" as const, _count: { _all: 10 } },
-      { dimension: "CORRECT" as const, value: "DISAGREE" as const, _count: { _all: 3 } }
+      { dimension: "CORRECT" as const, value: "DISAGREE" as const, _count: { _all: 3 } },
     ];
     const summary = summarizeAggregates(rows);
     expect(summary.dimensions.CORRECT.agree).toBe(10);
@@ -133,7 +133,7 @@ describe("summarizeAggregates", () => {
   it("calculates score from aggregates", () => {
     const rows = [
       { dimension: "USEFUL" as const, value: "AGREE" as const, _count: { _all: 8 } },
-      { dimension: "USEFUL" as const, value: "DISAGREE" as const, _count: { _all: 2 } }
+      { dimension: "USEFUL" as const, value: "DISAGREE" as const, _count: { _all: 2 } },
     ];
     const summary = summarizeAggregates(rows);
     expect(summary.score).toBeGreaterThan(0);
@@ -160,7 +160,7 @@ describe("summaryFromScoreRecord", () => {
       dimensionTallies: null,
       lastFeedbackAt: null,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     } as Parameters<typeof summaryFromScoreRecord>[0];
 
     const summary = summaryFromScoreRecord(record);
@@ -180,11 +180,11 @@ describe("summaryFromScoreRecord", () => {
       score: 0.5,
       dimensionTallies: {
         CORRECT: { agree: 5, disagree: 2, total: 7 },
-        FUN: { agree: 3, disagree: 1, total: 4 }
+        FUN: { agree: 3, disagree: 1, total: 4 },
       },
       lastFeedbackAt: null,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     } as Parameters<typeof summaryFromScoreRecord>[0];
 
     const summary = summaryFromScoreRecord(record);
@@ -202,7 +202,7 @@ describe("toVotesPayload", () => {
       disagree: 5,
       total: 15,
       score: 0.5,
-      dimensions: createEmptyDimensionBreakdown()
+      dimensions: createEmptyDimensionBreakdown(),
     };
     summary.dimensions.CORRECT = { agree: 7, disagree: 2, total: 9 };
 
@@ -220,7 +220,7 @@ describe("toVotesPayload", () => {
       disagree: 0,
       total: 0,
       score: 0,
-      dimensions: createEmptyDimensionBreakdown()
+      dimensions: createEmptyDimensionBreakdown(),
     };
     const payload = toVotesPayload(summary);
     const dimensionNames = payload.dimensions.map((d) => d.dimension);

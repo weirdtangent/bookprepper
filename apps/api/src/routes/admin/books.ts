@@ -8,7 +8,7 @@ import {
   adminBookCreateSchema,
   adminBookUpdateSchema,
   adminListBooksQuerySchema,
-  bookSlugParamsSchema
+  bookSlugParamsSchema,
 } from "../../schemas.js";
 import { normalizeIsbn } from "../../utils/isbn.js";
 import { truncateSynopsis } from "../../utils/strings.js";
@@ -19,7 +19,7 @@ import {
   mapAdminBook,
   resolveAuthorId,
   syncBookGenres,
-  validateGenreIds
+  validateGenreIds,
 } from "./helpers.js";
 
 const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
@@ -39,10 +39,10 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
         include: {
           author: true,
           _count: {
-            select: { preps: true }
-          }
-        }
-      })
+            select: { preps: true },
+          },
+        },
+      }),
     ]);
 
     return {
@@ -50,7 +50,7 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
         total,
         page: query.page,
         pageSize: query.pageSize,
-        totalPages: Math.ceil(total / query.pageSize)
+        totalPages: Math.ceil(total / query.pageSize),
       },
       results: books.map((book) => ({
         id: book.id,
@@ -58,13 +58,13 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
         title: book.title,
         author: {
           id: book.author.id,
-          name: book.author.name
+          name: book.author.name,
         },
         synopsis: book.synopsis,
         isbn: book.isbn,
         prepCount: book._count.preps,
-        updatedAt: book.updatedAt
-      }))
+        updatedAt: book.updatedAt,
+      })),
     };
   });
 
@@ -73,7 +73,7 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
 
     const book = await prisma.book.findUnique({
       where: { slug: params.slug },
-      ...adminBookDetailInclude
+      ...adminBookDetailInclude,
     });
 
     if (!book) {
@@ -81,7 +81,7 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     return {
-      book: mapAdminBook(book)
+      book: mapAdminBook(book),
     };
   });
 
@@ -100,8 +100,8 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
         coverImageUrl: body.coverImageUrl ?? null,
         publishedYear: body.publishedYear ?? null,
         isbn,
-        authorId
-      }
+        authorId,
+      },
     });
 
     if (body.genreIds?.length) {
@@ -111,11 +111,11 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
 
     const fullBook = await prisma.book.findUnique({
       where: { id: createdBook.id },
-      ...adminBookDetailInclude
+      ...adminBookDetailInclude,
     });
 
     return {
-      book: mapAdminBook(fullBook!)
+      book: mapAdminBook(fullBook!),
     };
   });
 
@@ -125,7 +125,7 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
 
     const book = await prisma.book.findUnique({
       where: { slug: params.slug },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!book) {
@@ -156,7 +156,7 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
     if (Object.keys(updates).length > 0) {
       await prisma.book.update({
         where: { id: book.id },
-        data: updates
+        data: updates,
       });
     }
 
@@ -167,11 +167,11 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
 
     const fullBook = await prisma.book.findUnique({
       where: { id: book.id },
-      ...adminBookDetailInclude
+      ...adminBookDetailInclude,
     });
 
     return {
-      book: mapAdminBook(fullBook!)
+      book: mapAdminBook(fullBook!),
     };
   });
 };

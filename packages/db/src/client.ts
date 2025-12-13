@@ -19,7 +19,7 @@ export const prisma: PrismaClient =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.PRISMA_LOG_LEVEL === "silent" ? [] : ["warn", "error"],
-    adapter
+    adapter,
   });
 
 if (process.env.NODE_ENV !== "production") {
@@ -27,4 +27,3 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default prisma;
-

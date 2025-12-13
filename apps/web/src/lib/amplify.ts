@@ -5,8 +5,7 @@ const redirectSignIn = import.meta.env.VITE_COGNITO_REDIRECT_SIGNIN as string;
 const redirectSignOut = import.meta.env.VITE_COGNITO_REDIRECT_SIGNOUT as string;
 const rawDomain = (import.meta.env.VITE_COGNITO_DOMAIN as string) ?? "";
 
-const normalizeDomain = (domain: string) =>
-  domain.replace(/^https?:\/\//, "").replace(/\/$/, "");
+const normalizeDomain = (domain: string) => domain.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 export const amplifyConfig = {
   Auth: {
@@ -20,10 +19,9 @@ export const amplifyConfig = {
           scopes: ["email", "openid", "profile"],
           redirectSignIn: [redirectSignIn],
           redirectSignOut: [redirectSignOut],
-          responseType: "code" as const
-        }
-      }
-    }
-  }
+          responseType: "code" as const,
+        },
+      },
+    },
+  },
 };
-

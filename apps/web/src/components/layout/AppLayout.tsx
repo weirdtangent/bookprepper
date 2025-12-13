@@ -16,7 +16,7 @@ export function AppLayout() {
     isAuthenticated: auth.isAuthenticated,
     isLoading: auth.isLoading,
     userName: auth.user?.name,
-    userEmail: auth.user?.email
+    userEmail: auth.user?.email,
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function AppLayout() {
         isAuthenticated: auth.isAuthenticated,
         isLoading: auth.isLoading,
         userName: auth.user?.name,
-        userEmail: auth.user?.email
+        userEmail: auth.user?.email,
       };
       debugLog("AppLayout: state snapshot", window.bookprepperLayoutState);
     } else if (window.bookprepperLayoutState) {
@@ -36,7 +36,7 @@ export function AppLayout() {
   const statsQuery = useQuery({
     queryKey: ["catalog-stats"],
     queryFn: () => api.catalogStats(),
-    staleTime: 1000 * 60 * 10
+    staleTime: 1000 * 60 * 10,
   });
 
   const stats = statsQuery.data;
@@ -102,15 +102,21 @@ export function AppLayout() {
             {stats && !statsQuery.isError && (
               <ul className="library-stats" aria-label="Library statistics">
                 <li>
-                  <span className="library-stats__value">{numberFormatter.format(stats.books)}</span>
+                  <span className="library-stats__value">
+                    {numberFormatter.format(stats.books)}
+                  </span>
                   <span className="library-stats__label">books</span>
                 </li>
                 <li>
-                  <span className="library-stats__value">{numberFormatter.format(stats.authors)}</span>
+                  <span className="library-stats__value">
+                    {numberFormatter.format(stats.authors)}
+                  </span>
                   <span className="library-stats__label">authors</span>
                 </li>
                 <li>
-                  <span className="library-stats__value">{numberFormatter.format(stats.preps)}</span>
+                  <span className="library-stats__value">
+                    {numberFormatter.format(stats.preps)}
+                  </span>
                   <span className="library-stats__label">preps logged</span>
                 </li>
                 {yearRangeLabel && (
@@ -171,4 +177,3 @@ function formatYearRange(years: CatalogStats["years"]) {
 
   return null;
 }
-

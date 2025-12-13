@@ -10,7 +10,7 @@ import {
   bookSuggestionBodySchema,
   adminBookCreateSchema,
   adminBookUpdateSchema,
-  profileUpdateBodySchema
+  profileUpdateBodySchema,
 } from "./schemas.js";
 
 describe("paginationSchema", () => {
@@ -85,16 +85,14 @@ describe("prepParamsSchema", () => {
   it("accepts valid params", () => {
     const result = prepParamsSchema.parse({
       slug: "book-slug",
-      prepId: "clxxxxxxxxxxxxxxxxxxxxxxxxx"
+      prepId: "clxxxxxxxxxxxxxxxxxxxxxxxxx",
     });
     expect(result.slug).toBe("book-slug");
     expect(result.prepId).toMatch(/^cl/);
   });
 
   it("rejects invalid cuid format for prepId", () => {
-    expect(() =>
-      prepParamsSchema.parse({ slug: "book", prepId: "invalid" })
-    ).toThrow();
+    expect(() => prepParamsSchema.parse({ slug: "book", prepId: "invalid" })).toThrow();
   });
 });
 
@@ -102,7 +100,7 @@ describe("prepFeedbackBodySchema", () => {
   it("accepts valid feedback", () => {
     const result = prepFeedbackBodySchema.parse({
       value: "AGREE",
-      dimension: "CORRECT"
+      dimension: "CORRECT",
     });
     expect(result.value).toBe("AGREE");
     expect(result.dimension).toBe("CORRECT");
@@ -116,22 +114,18 @@ describe("prepFeedbackBodySchema", () => {
   it("accepts optional note", () => {
     const result = prepFeedbackBodySchema.parse({
       value: "AGREE",
-      note: "Great insight!"
+      note: "Great insight!",
     });
     expect(result.note).toBe("Great insight!");
   });
 
   it("trims and limits note length", () => {
     const longNote = "a".repeat(600);
-    expect(() =>
-      prepFeedbackBodySchema.parse({ value: "AGREE", note: longNote })
-    ).toThrow();
+    expect(() => prepFeedbackBodySchema.parse({ value: "AGREE", note: longNote })).toThrow();
   });
 
   it("rejects invalid dimension", () => {
-    expect(() =>
-      prepFeedbackBodySchema.parse({ value: "AGREE", dimension: "INVALID" })
-    ).toThrow();
+    expect(() => prepFeedbackBodySchema.parse({ value: "AGREE", dimension: "INVALID" })).toThrow();
   });
 });
 
@@ -159,14 +153,14 @@ describe("readingStatusBodySchema", () => {
 describe("metadataSuggestionBodySchema", () => {
   it("accepts synopsis only", () => {
     const result = metadataSuggestionBodySchema.parse({
-      synopsis: "A tale of adventure and discovery spanning multiple continents."
+      synopsis: "A tale of adventure and discovery spanning multiple continents.",
     });
     expect(result.synopsis).toBeDefined();
   });
 
   it("accepts genres only", () => {
     const result = metadataSuggestionBodySchema.parse({
-      genres: ["fiction", "adventure"]
+      genres: ["fiction", "adventure"],
     });
     expect(result.genres).toEqual(["fiction", "adventure"]);
   });
@@ -177,9 +171,7 @@ describe("metadataSuggestionBodySchema", () => {
   });
 
   it("rejects synopsis under 40 chars", () => {
-    expect(() =>
-      metadataSuggestionBodySchema.parse({ synopsis: "Too short" })
-    ).toThrow();
+    expect(() => metadataSuggestionBodySchema.parse({ synopsis: "Too short" })).toThrow();
   });
 });
 
@@ -187,7 +179,7 @@ describe("bookSuggestionBodySchema", () => {
   it("accepts valid book suggestion", () => {
     const result = bookSuggestionBodySchema.parse({
       title: "The Great Novel",
-      authorName: "John Doe"
+      authorName: "John Doe",
     });
     expect(result.title).toBe("The Great Novel");
     expect(result.authorName).toBe("John Doe");
@@ -199,7 +191,7 @@ describe("bookSuggestionBodySchema", () => {
       authorName: "John Doe",
       notes: "A classic work",
       genreIdeas: ["fiction"],
-      prepIdeas: ["trace themes"]
+      prepIdeas: ["trace themes"],
     });
     expect(result.notes).toBe("A classic work");
     expect(result.genreIdeas).toEqual(["fiction"]);
@@ -207,23 +199,19 @@ describe("bookSuggestionBodySchema", () => {
   });
 
   it("rejects title too short", () => {
-    expect(() =>
-      bookSuggestionBodySchema.parse({ title: "Ab", authorName: "Author" })
-    ).toThrow();
+    expect(() => bookSuggestionBodySchema.parse({ title: "Ab", authorName: "Author" })).toThrow();
   });
 });
 
 describe("adminBookCreateSchema", () => {
   it("requires authorId or authorName", () => {
-    expect(() =>
-      adminBookCreateSchema.parse({ title: "Test Book" })
-    ).toThrow();
+    expect(() => adminBookCreateSchema.parse({ title: "Test Book" })).toThrow();
   });
 
   it("accepts authorName without authorId", () => {
     const result = adminBookCreateSchema.parse({
       title: "Test Book",
-      authorName: "Test Author"
+      authorName: "Test Author",
     });
     expect(result.authorName).toBe("Test Author");
   });
@@ -232,7 +220,7 @@ describe("adminBookCreateSchema", () => {
     const result = adminBookCreateSchema.parse({
       title: "Test Book",
       authorName: "Author",
-      slug: "valid-slug-123"
+      slug: "valid-slug-123",
     });
     expect(result.slug).toBe("valid-slug-123");
 
@@ -240,7 +228,7 @@ describe("adminBookCreateSchema", () => {
       adminBookCreateSchema.parse({
         title: "Test",
         authorName: "Author",
-        slug: "Invalid Slug!"
+        slug: "Invalid Slug!",
       })
     ).toThrow();
   });
@@ -249,7 +237,7 @@ describe("adminBookCreateSchema", () => {
     const result = adminBookCreateSchema.parse({
       title: "Test Book",
       authorName: "Author",
-      isbn: "978-0-306-40615-7"
+      isbn: "978-0-306-40615-7",
     });
     expect(result.isbn).toBeDefined();
 
@@ -257,7 +245,7 @@ describe("adminBookCreateSchema", () => {
       adminBookCreateSchema.parse({
         title: "Test",
         authorName: "Author",
-        isbn: "invalid!"
+        isbn: "invalid!",
       })
     ).toThrow();
   });
@@ -273,7 +261,7 @@ describe("adminBookUpdateSchema", () => {
     const result = adminBookUpdateSchema.parse({
       synopsis: "",
       coverImageUrl: "",
-      isbn: ""
+      isbn: "",
     });
     expect(result.synopsis).toBeNull();
     expect(result.coverImageUrl).toBeNull();
@@ -283,7 +271,7 @@ describe("adminBookUpdateSchema", () => {
   it("preserves valid values", () => {
     const result = adminBookUpdateSchema.parse({
       title: "Updated Title",
-      synopsis: "Updated synopsis content"
+      synopsis: "Updated synopsis content",
     });
     expect(result.title).toBe("Updated Title");
     expect(result.synopsis).toBe("Updated synopsis content");
@@ -298,7 +286,7 @@ describe("profileUpdateBodySchema", () => {
 
   it("accepts preferences update", () => {
     const result = profileUpdateBodySchema.parse({
-      preferences: { shuffleDefault: true }
+      preferences: { shuffleDefault: true },
     });
     expect(result.preferences?.shuffleDefault).toBe(true);
   });
@@ -310,7 +298,7 @@ describe("profileUpdateBodySchema", () => {
 
   it("trims displayName", () => {
     const result = profileUpdateBodySchema.parse({
-      displayName: "  Trimmed Name  "
+      displayName: "  Trimmed Name  ",
     });
     expect(result.displayName).toBe("Trimmed Name");
   });

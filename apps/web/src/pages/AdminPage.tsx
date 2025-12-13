@@ -7,7 +7,7 @@ import {
   type AdminCreateBookInput,
   type AdminPrepDetail,
   type AdminPrepInput,
-  type AdminUpdateBookInput
+  type AdminUpdateBookInput,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { useDebounce } from "../hooks/useDebounce";
@@ -25,7 +25,7 @@ const emptyPrepDraft: PrepDraft = {
   summary: "",
   watchFor: "",
   colorHint: "",
-  keywords: ""
+  keywords: "",
 };
 
 const emptyBookForm = {
@@ -35,7 +35,7 @@ const emptyBookForm = {
   synopsis: "",
   coverImageUrl: "",
   isbn: "",
-  publishedYear: ""
+  publishedYear: "",
 };
 
 const SYNOPSIS_LIMIT = 10000;
@@ -91,10 +91,10 @@ export default function AdminPage() {
         search: filters.search || undefined,
         page,
         pageSize,
-        token: auth.token
+        token: auth.token,
       });
     },
-    enabled: isAuthorized
+    enabled: isAuthorized,
   });
 
   const typeaheadQuery = useQuery({
@@ -107,10 +107,10 @@ export default function AdminPage() {
         search: debouncedSearch.trim() || undefined,
         page: 1,
         pageSize: 6,
-        token: auth.token
+        token: auth.token,
       });
     },
-    enabled: isAuthorized && debouncedSearch.trim().length >= 2
+    enabled: isAuthorized && debouncedSearch.trim().length >= 2,
   });
 
   const bookDetailQuery = useQuery({
@@ -121,12 +121,12 @@ export default function AdminPage() {
       }
       return api.adminGetBook(selectedSlug, auth.token);
     },
-    enabled: isAuthorized && Boolean(selectedSlug)
+    enabled: isAuthorized && Boolean(selectedSlug),
   });
 
   const genresQuery = useQuery({
     queryKey: ["genres"],
-    queryFn: () => api.listGenres()
+    queryFn: () => api.listGenres(),
   });
 
   const metadataSuggestionsQuery = useQuery({
@@ -137,7 +137,7 @@ export default function AdminPage() {
       }
       return api.adminListMetadataSuggestions(auth.token);
     },
-    enabled: isAuthorized
+    enabled: isAuthorized,
   });
 
   const prepSuggestionsQuery = useQuery({
@@ -148,7 +148,7 @@ export default function AdminPage() {
       }
       return api.adminListPrepSuggestions(auth.token);
     },
-    enabled: isAuthorized
+    enabled: isAuthorized,
   });
 
   const bookSuggestionsQuery = useQuery({
@@ -159,7 +159,7 @@ export default function AdminPage() {
       }
       return api.adminListBookSuggestions(auth.token);
     },
-    enabled: isAuthorized
+    enabled: isAuthorized,
   });
 
   useEffect(() => {
@@ -197,7 +197,7 @@ export default function AdminPage() {
           summary: prep.summary,
           watchFor: prep.watchFor ?? "",
           colorHint: prep.colorHint ?? "",
-          keywords: prep.keywords.map((keyword) => keyword.name).join(", ")
+          keywords: prep.keywords.map((keyword) => keyword.name).join(", "),
         };
         return acc;
       }, {})
@@ -214,7 +214,7 @@ export default function AdminPage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-book", variables.slug] });
       queryClient.invalidateQueries({ queryKey: ["admin-books"] });
-    }
+    },
   });
 
   const createBookMutation = useMutation({
@@ -231,7 +231,7 @@ export default function AdminPage() {
       if (response.book.slug) {
         selectBook(response.book.slug);
       }
-    }
+    },
   });
 
   const createPrepMutation = useMutation({
@@ -242,13 +242,13 @@ export default function AdminPage() {
       return api.adminCreatePrep({
         slug: variables.slug,
         body: variables.body,
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-book", variables.slug] });
       setNewPrepDraft(emptyPrepDraft);
-    }
+    },
   });
 
   const updatePrepMutation = useMutation({
@@ -260,12 +260,12 @@ export default function AdminPage() {
         slug: variables.slug,
         prepId: variables.prepId,
         body: variables.body,
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-book", variables.slug] });
-    }
+    },
   });
 
   const deletePrepMutation = useMutation({
@@ -276,12 +276,12 @@ export default function AdminPage() {
       return api.adminDeletePrep({
         slug: variables.slug,
         prepId: variables.prepId,
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-book", variables.slug] });
-    }
+    },
   });
 
   const metadataApproveMutation = useMutation({
@@ -294,7 +294,7 @@ export default function AdminPage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-suggestions", "metadata"] });
       queryClient.invalidateQueries({ queryKey: ["admin-book", variables.bookSlug] });
-    }
+    },
   });
 
   const metadataRejectMutation = useMutation({
@@ -306,7 +306,7 @@ export default function AdminPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-suggestions", "metadata"] });
-    }
+    },
   });
 
   const prepApproveMutation = useMutation({
@@ -319,7 +319,7 @@ export default function AdminPage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-suggestions", "preps"] });
       queryClient.invalidateQueries({ queryKey: ["admin-book", variables.bookSlug] });
-    }
+    },
   });
 
   const prepRejectMutation = useMutation({
@@ -331,7 +331,7 @@ export default function AdminPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-suggestions", "preps"] });
-    }
+    },
   });
 
   const bookApproveMutation = useMutation({
@@ -347,7 +347,7 @@ export default function AdminPage() {
       if (response.book.slug) {
         selectBook(response.book.slug);
       }
-    }
+    },
   });
 
   const bookRejectMutation = useMutation({
@@ -359,7 +359,7 @@ export default function AdminPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-suggestions", "books"] });
-    }
+    },
   });
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -406,8 +406,8 @@ export default function AdminPage() {
         coverImageUrl: coverDraft.trim() || null,
         isbn: isbnDraft.trim() || null,
         publishedYear: parseYear(publishedYearDraft),
-        genreIds: genreSelection
-      }
+        genreIds: genreSelection,
+      },
     });
   };
 
@@ -416,8 +416,8 @@ export default function AdminPage() {
       ...current,
       [prepId]: {
         ...(current[prepId] ?? emptyPrepDraft),
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -439,8 +439,8 @@ export default function AdminPage() {
         summary: draft.summary,
         watchFor: draft.watchFor.trim() || null,
         colorHint: draft.colorHint.trim() || null,
-        keywords: splitKeywords(draft.keywords)
-      }
+        keywords: splitKeywords(draft.keywords),
+      },
     });
   };
 
@@ -453,7 +453,7 @@ export default function AdminPage() {
     }
     deletePrepMutation.mutate({
       slug: selectedSlug,
-      prepId: prep.id
+      prepId: prep.id,
     });
   };
 
@@ -469,8 +469,8 @@ export default function AdminPage() {
         summary: newPrepDraft.summary,
         watchFor: newPrepDraft.watchFor.trim() || null,
         colorHint: newPrepDraft.colorHint.trim() || null,
-        keywords: splitKeywords(newPrepDraft.keywords)
-      }
+        keywords: splitKeywords(newPrepDraft.keywords),
+      },
     });
   };
 
@@ -484,7 +484,7 @@ export default function AdminPage() {
       coverImageUrl: bookFormState.coverImageUrl || undefined,
       isbn: bookFormState.isbn?.trim() ? bookFormState.isbn.trim() : undefined,
       publishedYear: parseYear(bookFormState.publishedYear) ?? undefined,
-      genreIds: bookFormGenres.length > 0 ? bookFormGenres : undefined
+      genreIds: bookFormGenres.length > 0 ? bookFormGenres : undefined,
     };
     createBookMutation.mutate(payload);
   };
@@ -560,7 +560,8 @@ export default function AdminPage() {
                         >
                           <span className="typeahead-item__title">{book.title}</span>
                           <span className="typeahead-item__meta">
-                            {book.author.name} · {book.prepCount} prep{book.prepCount === 1 ? "" : "s"}
+                            {book.author.name} · {book.prepCount} prep
+                            {book.prepCount === 1 ? "" : "s"}
                           </span>
                         </button>
                       </li>
@@ -721,7 +722,11 @@ export default function AdminPage() {
                 })}
               </div>
             </div>
-            <button type="submit" className="primary-button" disabled={createBookMutation.isPending}>
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={createBookMutation.isPending}
+            >
               {createBookMutation.isPending ? "Adding…" : "Add book"}
             </button>
           </form>
@@ -735,7 +740,9 @@ export default function AdminPage() {
                 <Link to={`/books/${bookDetail.slug}`} className="admin-panel__book-title">
                   {bookDetail.title}
                 </Link>
-                <small>{bookDetail.updatedAt ? new Date(bookDetail.updatedAt).toLocaleString() : ""}</small>
+                <small>
+                  {bookDetail.updatedAt ? new Date(bookDetail.updatedAt).toLocaleString() : ""}
+                </small>
               </div>
             )}
           </div>
@@ -748,12 +755,12 @@ export default function AdminPage() {
                   <textarea
                     value={synopsisDraft}
                     onChange={(event) => setSynopsisDraft(event.target.value)}
-                  maxLength={SYNOPSIS_LIMIT}
+                    maxLength={SYNOPSIS_LIMIT}
                     placeholder="Add a spoiler-free synopsis"
                   />
-                <div className="char-counter" aria-live="polite">
-                  {synopsisDraft.length}/{SYNOPSIS_LIMIT}
-                </div>
+                  <div className="char-counter" aria-live="polite">
+                    {synopsisDraft.length}/{SYNOPSIS_LIMIT}
+                  </div>
                 </label>
                 <label>
                   Cover image URL
@@ -799,7 +806,11 @@ export default function AdminPage() {
                     })}
                   </div>
                 </div>
-                <button type="submit" className="primary-button" disabled={updateBookMutation.isPending}>
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={updateBookMutation.isPending}
+                >
                   {updateBookMutation.isPending ? "Saving…" : "Save metadata"}
                 </button>
               </form>
@@ -816,7 +827,7 @@ export default function AdminPage() {
                       summary: prep.summary,
                       watchFor: prep.watchFor ?? "",
                       colorHint: prep.colorHint ?? "",
-                      keywords: prep.keywords.map((keyword) => keyword.name).join(", ")
+                      keywords: prep.keywords.map((keyword) => keyword.name).join(", "),
                     };
                     return (
                       <form
@@ -828,39 +839,53 @@ export default function AdminPage() {
                           Heading
                           <input
                             value={draft.heading}
-                            onChange={(event) => handlePrepDraftChange(prep.id, "heading", event.target.value)}
+                            onChange={(event) =>
+                              handlePrepDraftChange(prep.id, "heading", event.target.value)
+                            }
                           />
                         </label>
                         <label>
                           Summary
                           <textarea
                             value={draft.summary}
-                            onChange={(event) => handlePrepDraftChange(prep.id, "summary", event.target.value)}
+                            onChange={(event) =>
+                              handlePrepDraftChange(prep.id, "summary", event.target.value)
+                            }
                           />
                         </label>
                         <label>
                           Watch for
                           <textarea
                             value={draft.watchFor}
-                            onChange={(event) => handlePrepDraftChange(prep.id, "watchFor", event.target.value)}
+                            onChange={(event) =>
+                              handlePrepDraftChange(prep.id, "watchFor", event.target.value)
+                            }
                           />
                         </label>
                         <label>
                           Color hint
                           <input
                             value={draft.colorHint}
-                            onChange={(event) => handlePrepDraftChange(prep.id, "colorHint", event.target.value)}
+                            onChange={(event) =>
+                              handlePrepDraftChange(prep.id, "colorHint", event.target.value)
+                            }
                           />
                         </label>
                         <label>
                           Keywords <small>(comma separated)</small>
                           <input
                             value={draft.keywords}
-                            onChange={(event) => handlePrepDraftChange(prep.id, "keywords", event.target.value)}
+                            onChange={(event) =>
+                              handlePrepDraftChange(prep.id, "keywords", event.target.value)
+                            }
                           />
                         </label>
                         <div className="admin-form__row">
-                          <button type="submit" className="primary-button" disabled={updatePrepMutation.isPending}>
+                          <button
+                            type="submit"
+                            className="primary-button"
+                            disabled={updatePrepMutation.isPending}
+                          >
                             {updatePrepMutation.isPending ? "Saving…" : "Save"}
                           </button>
                           <button
@@ -886,7 +911,9 @@ export default function AdminPage() {
                   <input
                     required
                     value={newPrepDraft.heading}
-                    onChange={(event) => setNewPrepDraft((draft) => ({ ...draft, heading: event.target.value }))}
+                    onChange={(event) =>
+                      setNewPrepDraft((draft) => ({ ...draft, heading: event.target.value }))
+                    }
                   />
                 </label>
                 <label>
@@ -894,31 +921,43 @@ export default function AdminPage() {
                   <textarea
                     required
                     value={newPrepDraft.summary}
-                    onChange={(event) => setNewPrepDraft((draft) => ({ ...draft, summary: event.target.value }))}
+                    onChange={(event) =>
+                      setNewPrepDraft((draft) => ({ ...draft, summary: event.target.value }))
+                    }
                   />
                 </label>
                 <label>
                   Watch for
                   <textarea
                     value={newPrepDraft.watchFor}
-                    onChange={(event) => setNewPrepDraft((draft) => ({ ...draft, watchFor: event.target.value }))}
+                    onChange={(event) =>
+                      setNewPrepDraft((draft) => ({ ...draft, watchFor: event.target.value }))
+                    }
                   />
                 </label>
                 <label>
                   Color hint
                   <input
                     value={newPrepDraft.colorHint}
-                    onChange={(event) => setNewPrepDraft((draft) => ({ ...draft, colorHint: event.target.value }))}
+                    onChange={(event) =>
+                      setNewPrepDraft((draft) => ({ ...draft, colorHint: event.target.value }))
+                    }
                   />
                 </label>
                 <label>
                   Keywords <small>(comma separated)</small>
                   <input
                     value={newPrepDraft.keywords}
-                    onChange={(event) => setNewPrepDraft((draft) => ({ ...draft, keywords: event.target.value }))}
+                    onChange={(event) =>
+                      setNewPrepDraft((draft) => ({ ...draft, keywords: event.target.value }))
+                    }
                   />
                 </label>
-                <button type="submit" className="primary-button" disabled={createPrepMutation.isPending}>
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={createPrepMutation.isPending}
+                >
                   {createPrepMutation.isPending ? "Adding…" : "Add prep"}
                 </button>
               </form>
@@ -960,7 +999,10 @@ export default function AdminPage() {
                     className="primary-button"
                     disabled={metadataApproveMutation.isPending}
                     onClick={() =>
-                      metadataApproveMutation.mutate({ id: suggestion.id, bookSlug: suggestion.book.slug })
+                      metadataApproveMutation.mutate({
+                        id: suggestion.id,
+                        bookSlug: suggestion.book.slug,
+                      })
                     }
                   >
                     Approve
@@ -1005,7 +1047,10 @@ export default function AdminPage() {
                     className="primary-button"
                     disabled={prepApproveMutation.isPending}
                     onClick={() =>
-                      prepApproveMutation.mutate({ id: suggestion.id, bookSlug: suggestion.book.slug })
+                      prepApproveMutation.mutate({
+                        id: suggestion.id,
+                        bookSlug: suggestion.book.slug,
+                      })
                     }
                   >
                     Approve
@@ -1110,7 +1155,9 @@ function SuggestionColumn({ title, isLoading, emptyLabel, children }: Suggestion
 }
 
 function toggleSelection(value: string, setter: React.Dispatch<React.SetStateAction<string[]>>) {
-  setter((current) => (current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value]));
+  setter((current) =>
+    current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value]
+  );
 }
 
 function splitKeywords(value: string) {
@@ -1127,4 +1174,3 @@ function parseYear(value: string) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
-

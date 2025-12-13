@@ -3,10 +3,7 @@
  */
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "db";
-import {
-  adminModerationNoteSchema,
-  suggestionIdParamsSchema
-} from "../../schemas.js";
+import { adminModerationNoteSchema, suggestionIdParamsSchema } from "../../schemas.js";
 import { truncateSynopsis, extractStringArray } from "../../utils/strings.js";
 import {
   adminPrepInclude,
@@ -15,7 +12,7 @@ import {
   mapAdminPrep,
   resolveAuthorId,
   syncBookGenres,
-  upsertKeywords
+  upsertKeywords,
 } from "./helpers.js";
 
 const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
@@ -30,13 +27,13 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
       where: { status: "PENDING" },
       include: {
         book: {
-          select: { id: true, slug: true, title: true }
+          select: { id: true, slug: true, title: true },
         },
         submittedBy: {
-          select: { id: true, displayName: true }
-        }
+          select: { id: true, displayName: true },
+        },
       },
-      orderBy: { createdAt: "asc" }
+      orderBy: { createdAt: "asc" },
     });
 
     return {
@@ -47,118 +44,110 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
         synopsis: suggestion.suggestedSynopsis,
         genres: extractStringArray(suggestion.suggestedGenres),
         status: suggestion.status,
-        createdAt: suggestion.createdAt
-      }))
+        createdAt: suggestion.createdAt,
+      })),
     };
   });
 
-  fastify.post(
-    "/admin/suggestions/metadata/:id/approve",
-    guardHooks,
-    async (request) => {
-      const params = suggestionIdParamsSchema.parse(request.params);
-      const body = adminModerationNoteSchema.parse(request.body ?? {});
+  fastify.post("/admin/suggestions/metadata/:id/approve", guardHooks, async (request) => {
+    const params = suggestionIdParamsSchema.parse(request.params);
+    const body = adminModerationNoteSchema.parse(request.body ?? {});
 
-      const suggestion = await prisma.bookMetadataSuggestion.findUnique({
-        where: { id: params.id }
-      });
+    const suggestion = await prisma.bookMetadataSuggestion.findUnique({
+      where: { id: params.id },
+    });
 
-      if (!suggestion) {
-        throw fastify.httpErrors.notFound("Suggestion not found.");
-      }
-
-      if (suggestion.status !== "PENDING") {
-        throw fastify.httpErrors.badRequest("Suggestion already processed.");
-      }
-
-      const genreSlugs = extractStringArray(suggestion.suggestedGenres);
-
-      await prisma.$transaction(async (tx) => {
-        if (suggestion.suggestedSynopsis) {
-          const truncatedSynopsis = truncateSynopsis(suggestion.suggestedSynopsis);
-          await tx.book.update({
-            where: { id: suggestion.bookId },
-            data: {
-              synopsis: truncatedSynopsis
-            }
-          });
-        }
-
-        if (genreSlugs.length > 0) {
-          const genres = await tx.genre.findMany({
-            where: {
-              slug: {
-                in: genreSlugs
-              }
-            },
-            select: { id: true }
-          });
-
-          await tx.bookGenre.deleteMany({
-            where: { bookId: suggestion.bookId }
-          });
-
-          if (genres.length > 0) {
-            await tx.bookGenre.createMany({
-              data: genres.map((genre) => ({
-                bookId: suggestion.bookId,
-                genreId: genre.id
-              }))
-            });
-          }
-        }
-
-        await tx.bookMetadataSuggestion.update({
-          where: { id: suggestion.id },
-          data: {
-            status: "APPROVED",
-            moderatorNote: body.note ?? null,
-            reviewedAt: new Date()
-          }
-        });
-      });
-
-      return {
-        suggestionId: suggestion.id,
-        status: "APPROVED"
-      };
+    if (!suggestion) {
+      throw fastify.httpErrors.notFound("Suggestion not found.");
     }
-  );
 
-  fastify.post(
-    "/admin/suggestions/metadata/:id/reject",
-    guardHooks,
-    async (request) => {
-      const params = suggestionIdParamsSchema.parse(request.params);
-      const body = adminModerationNoteSchema.parse(request.body ?? {});
+    if (suggestion.status !== "PENDING") {
+      throw fastify.httpErrors.badRequest("Suggestion already processed.");
+    }
 
-      const suggestion = await prisma.bookMetadataSuggestion.findUnique({
-        where: { id: params.id }
-      });
+    const genreSlugs = extractStringArray(suggestion.suggestedGenres);
 
-      if (!suggestion) {
-        throw fastify.httpErrors.notFound("Suggestion not found.");
+    await prisma.$transaction(async (tx) => {
+      if (suggestion.suggestedSynopsis) {
+        const truncatedSynopsis = truncateSynopsis(suggestion.suggestedSynopsis);
+        await tx.book.update({
+          where: { id: suggestion.bookId },
+          data: {
+            synopsis: truncatedSynopsis,
+          },
+        });
       }
 
-      if (suggestion.status !== "PENDING") {
-        throw fastify.httpErrors.badRequest("Suggestion already processed.");
+      if (genreSlugs.length > 0) {
+        const genres = await tx.genre.findMany({
+          where: {
+            slug: {
+              in: genreSlugs,
+            },
+          },
+          select: { id: true },
+        });
+
+        await tx.bookGenre.deleteMany({
+          where: { bookId: suggestion.bookId },
+        });
+
+        if (genres.length > 0) {
+          await tx.bookGenre.createMany({
+            data: genres.map((genre) => ({
+              bookId: suggestion.bookId,
+              genreId: genre.id,
+            })),
+          });
+        }
       }
 
-      await prisma.bookMetadataSuggestion.update({
+      await tx.bookMetadataSuggestion.update({
         where: { id: suggestion.id },
         data: {
-          status: "REJECTED",
+          status: "APPROVED",
           moderatorNote: body.note ?? null,
-          reviewedAt: new Date()
-        }
+          reviewedAt: new Date(),
+        },
       });
+    });
 
-      return {
-        suggestionId: suggestion.id,
-        status: "REJECTED"
-      };
+    return {
+      suggestionId: suggestion.id,
+      status: "APPROVED",
+    };
+  });
+
+  fastify.post("/admin/suggestions/metadata/:id/reject", guardHooks, async (request) => {
+    const params = suggestionIdParamsSchema.parse(request.params);
+    const body = adminModerationNoteSchema.parse(request.body ?? {});
+
+    const suggestion = await prisma.bookMetadataSuggestion.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!suggestion) {
+      throw fastify.httpErrors.notFound("Suggestion not found.");
     }
-  );
+
+    if (suggestion.status !== "PENDING") {
+      throw fastify.httpErrors.badRequest("Suggestion already processed.");
+    }
+
+    await prisma.bookMetadataSuggestion.update({
+      where: { id: suggestion.id },
+      data: {
+        status: "REJECTED",
+        moderatorNote: body.note ?? null,
+        reviewedAt: new Date(),
+      },
+    });
+
+    return {
+      suggestionId: suggestion.id,
+      status: "REJECTED",
+    };
+  });
 
   // ─────────────────────────────────────────────────────────────────────────
   // Prep Suggestions
@@ -169,13 +158,13 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
       where: { status: "PENDING" },
       include: {
         book: {
-          select: { id: true, slug: true, title: true }
+          select: { id: true, slug: true, title: true },
         },
         submittedBy: {
-          select: { id: true, displayName: true }
-        }
+          select: { id: true, displayName: true },
+        },
       },
-      orderBy: { createdAt: "asc" }
+      orderBy: { createdAt: "asc" },
     });
 
     return {
@@ -187,8 +176,8 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
         description: suggestion.description,
         keywordHints: extractStringArray(suggestion.keywordHints),
         status: suggestion.status,
-        createdAt: suggestion.createdAt
-      }))
+        createdAt: suggestion.createdAt,
+      })),
     };
   });
 
@@ -197,7 +186,7 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     const body = adminModerationNoteSchema.parse(request.body ?? {});
 
     const suggestion = await prisma.prepSuggestion.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
     });
 
     if (!suggestion) {
@@ -217,11 +206,11 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
         summary: suggestion.description,
         keywords: {
           create: keywords.map((keyword) => ({
-            keywordId: keyword.id
-          }))
-        }
+            keywordId: keyword.id,
+          })),
+        },
       },
-      ...adminPrepInclude
+      ...adminPrepInclude,
     });
 
     await prisma.prepSuggestion.update({
@@ -229,12 +218,12 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
       data: {
         status: "APPROVED",
         moderatorNote: body.note ?? null,
-        reviewedAt: new Date()
-      }
+        reviewedAt: new Date(),
+      },
     });
 
     return {
-      prep: mapAdminPrep(prep)
+      prep: mapAdminPrep(prep),
     };
   });
 
@@ -243,7 +232,7 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     const body = adminModerationNoteSchema.parse(request.body ?? {});
 
     const suggestion = await prisma.prepSuggestion.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
     });
 
     if (!suggestion) {
@@ -259,13 +248,13 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
       data: {
         status: "REJECTED",
         moderatorNote: body.note ?? null,
-        reviewedAt: new Date()
-      }
+        reviewedAt: new Date(),
+      },
     });
 
     return {
       suggestionId: suggestion.id,
-      status: "REJECTED"
+      status: "REJECTED",
     };
   });
 
@@ -278,10 +267,10 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
       where: { status: "PENDING" },
       include: {
         submittedBy: {
-          select: { id: true, displayName: true }
-        }
+          select: { id: true, displayName: true },
+        },
       },
-      orderBy: { createdAt: "asc" }
+      orderBy: { createdAt: "asc" },
     });
 
     return {
@@ -294,8 +283,8 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
         prepIdeas: extractStringArray(suggestion.prepIdeas),
         submittedBy: suggestion.submittedBy,
         status: suggestion.status,
-        createdAt: suggestion.createdAt
-      }))
+        createdAt: suggestion.createdAt,
+      })),
     };
   });
 
@@ -304,7 +293,7 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     adminModerationNoteSchema.parse(request.body ?? {});
 
     const suggestion = await prisma.bookSuggestion.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
     });
 
     if (!suggestion) {
@@ -323,30 +312,33 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
         title: suggestion.title,
         slug,
         synopsis: truncateSynopsis(suggestion.notes),
-        authorId
-      }
+        authorId,
+      },
     });
 
     const genreIdeas = extractStringArray(suggestion.genreIdeas);
     if (genreIdeas.length > 0) {
       const genreRecords = await ensureGenresFromNames(genreIdeas);
-      await syncBookGenres(newBook.id, genreRecords.map((genre) => genre.id));
+      await syncBookGenres(
+        newBook.id,
+        genreRecords.map((genre) => genre.id)
+      );
     }
 
     await prisma.bookSuggestion.update({
       where: { id: suggestion.id },
       data: {
         status: "APPROVED",
-        reviewedAt: new Date()
-      }
+        reviewedAt: new Date(),
+      },
     });
 
     return {
       book: {
         id: newBook.id,
         slug: newBook.slug,
-        title: newBook.title
-      }
+        title: newBook.title,
+      },
     };
   });
 
@@ -355,7 +347,7 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     adminModerationNoteSchema.parse(request.body ?? {});
 
     const suggestion = await prisma.bookSuggestion.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
     });
 
     if (!suggestion) {
@@ -370,13 +362,13 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
       where: { id: suggestion.id },
       data: {
         status: "REJECTED",
-        reviewedAt: new Date()
-      }
+        reviewedAt: new Date(),
+      },
     });
 
     return {
       suggestionId: suggestion.id,
-      status: "REJECTED"
+      status: "REJECTED",
     };
   });
 };

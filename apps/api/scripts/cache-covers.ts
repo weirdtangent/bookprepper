@@ -39,11 +39,13 @@ async function main() {
   await writeManifest(manifestFiles);
 }
 
-async function hydrateCovers(existingFiles: Record<string, string>): Promise<Record<string, string>> {
+async function hydrateCovers(
+  existingFiles: Record<string, string>
+): Promise<Record<string, string>> {
   const knownIsbns = new Set(Object.keys(existingFiles));
 
   if (!process.env.DATABASE_URL) {
-    console.warn("\"DATABASE_URL is not set; using existing cached covers\"");
+    console.warn('"DATABASE_URL is not set; using existing cached covers"');
     return existingFiles;
   }
 
@@ -53,11 +55,11 @@ async function hydrateCovers(existingFiles: Record<string, string>): Promise<Rec
   const books = await prismaClient.book.findMany({
     where: { isbn: { not: null } },
     select: { id: true, title: true, isbn: true },
-    orderBy: { title: "asc" }
+    orderBy: { title: "asc" },
   });
 
   if (books.length === 0) {
-    console.warn("\"No ISBN data found; skipping cover download\"");
+    console.warn('"No ISBN data found; skipping cover download"');
     return existingFiles;
   }
 
@@ -113,7 +115,7 @@ async function downloadCover(isbn: string, destination: string) {
 async function writeManifest(files: Record<string, string>) {
   const manifest: CoverManifest = {
     generatedAt: new Date().toISOString(),
-    files
+    files,
   };
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
   await writeFile(publicManifestPath, serialized);

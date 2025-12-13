@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(50).default(20)
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
 export const listBooksQuerySchema = paginationSchema.extend({
@@ -10,16 +10,16 @@ export const listBooksQuerySchema = paginationSchema.extend({
   author: z.string().trim().min(1).optional(),
   genres: z.string().trim().optional(),
   prep: z.string().trim().optional(),
-  shuffle: z.coerce.boolean().optional().default(false)
+  shuffle: z.coerce.boolean().optional().default(false),
 });
 
 export const bookSlugParamsSchema = z.object({
-  slug: z.string().min(1)
+  slug: z.string().min(1),
 });
 
 export const prepParamsSchema = z.object({
   slug: z.string().min(1),
-  prepId: z.string().cuid()
+  prepId: z.string().cuid(),
 });
 
 export const promptFeedbackDimensionSchema = z.enum([
@@ -32,24 +32,24 @@ export const promptFeedbackDimensionSchema = z.enum([
   "NOT_USEFUL",
   "CONFUSING",
   "COMMON",
-  "SPARSE"
+  "SPARSE",
 ]);
 
 export const prepFeedbackBodySchema = z.object({
   value: z.enum(["AGREE", "DISAGREE"]),
   dimension: promptFeedbackDimensionSchema.default("CORRECT"),
-  note: z.string().trim().max(500).optional()
+  note: z.string().trim().max(500).optional(),
 });
 
 export const prepSuggestionBodySchema = z.object({
   title: z.string().min(3).max(120),
   description: z.string().min(10).max(2000),
   keywordHints: z.array(z.string().min(2).max(60)).max(10).optional(),
-  colorHint: z.string().max(12).optional()
+  colorHint: z.string().max(12).optional(),
 });
 
 export const readingStatusBodySchema = z.object({
-  status: z.enum(["READING", "DONE"]).optional()
+  status: z.enum(["READING", "DONE"]).optional(),
 });
 
 export const metadataSuggestionBodySchema = z
@@ -60,7 +60,7 @@ export const metadataSuggestionBodySchema = z
       .min(40, "Synopsis should be at least 40 characters.")
       .max(10000, "Synopsis too long (max 10k characters).")
       .optional(),
-    genres: z.array(z.string().min(2).max(60)).max(10).optional()
+    genres: z.array(z.string().min(2).max(60)).max(10).optional(),
   })
   .refine(
     (value) => Boolean(value.synopsis) || Boolean(value.genres && value.genres.length > 0),
@@ -72,11 +72,11 @@ export const bookSuggestionBodySchema = z.object({
   authorName: z.string().min(3).max(120),
   notes: z.string().max(2000).optional(),
   genreIdeas: z.array(z.string().min(2).max(60)).max(12).optional(),
-  prepIdeas: z.array(z.string().min(2).max(120)).max(12).optional()
+  prepIdeas: z.array(z.string().min(2).max(120)).max(12).optional(),
 });
 
 export const adminListBooksQuerySchema = paginationSchema.extend({
-  search: z.string().trim().min(1).optional()
+  search: z.string().trim().min(1).optional(),
 });
 
 export const adminBookCreateSchema = z
@@ -101,7 +101,7 @@ export const adminBookCreateSchema = z
       .optional(),
     authorId: z.string().cuid().optional(),
     authorName: z.string().min(2).max(180).optional(),
-    genreIds: z.array(z.string().cuid()).optional()
+    genreIds: z.array(z.string().cuid()).optional(),
   })
   .refine(
     (value) => Boolean(value.authorId) || Boolean(value.authorName),
@@ -113,11 +113,11 @@ export const adminBookUpdateSchema = z.object({
   subtitle: z.string().max(240).optional(),
   synopsis: z
     .union([z.string().max(10000), z.literal(""), z.null()])
-    .transform((value) => (value === "" ? null : value ?? undefined))
+    .transform((value) => (value === "" ? null : (value ?? undefined)))
     .optional(),
   coverImageUrl: z
     .union([z.string().url(), z.literal(""), z.null()])
-    .transform((value) => (value === "" ? null : value ?? undefined))
+    .transform((value) => (value === "" ? null : (value ?? undefined)))
     .optional(),
   isbn: z
     .union([
@@ -128,7 +128,7 @@ export const adminBookUpdateSchema = z.object({
         .max(20)
         .regex(/^[0-9Xx -]+$/, "ISBN can include digits, X, spaces, or hyphens."),
       z.literal(""),
-      z.null()
+      z.null(),
     ])
     .transform((value) => {
       if (value === "" || value === null) {
@@ -146,7 +146,7 @@ export const adminBookUpdateSchema = z.object({
       return value;
     })
     .optional(),
-  genreIds: z.array(z.string().cuid()).optional()
+  genreIds: z.array(z.string().cuid()).optional(),
 });
 
 export const adminPrepUpsertSchema = z.object({
@@ -154,47 +154,47 @@ export const adminPrepUpsertSchema = z.object({
   summary: z.string().min(10).max(2000),
   watchFor: z.string().max(2000).optional(),
   colorHint: z.string().max(32).optional(),
-  keywords: z.array(z.string().min(2).max(60)).max(12).optional()
+  keywords: z.array(z.string().min(2).max(60)).max(12).optional(),
 });
 
 export const suggestionIdParamsSchema = z.object({
-  id: z.string().cuid()
+  id: z.string().cuid(),
 });
 
 export const adminModerationNoteSchema = z.object({
-  note: z.string().max(500).optional()
+  note: z.string().max(500).optional(),
 });
 
 export const quoteParamsSchema = z.object({
   slug: z.string().min(1),
   prepId: z.string().cuid(),
-  quoteId: z.string().cuid()
+  quoteId: z.string().cuid(),
 });
 
 export const quoteCreateBodySchema = z.object({
   text: z.string().trim().min(10, "Quote must be at least 10 characters.").max(2000),
   pageNumber: z.string().trim().max(20).optional(),
-  chapter: z.string().trim().max(100).optional()
+  chapter: z.string().trim().max(100).optional(),
 });
 
 export const quoteVoteBodySchema = z.object({
-  value: z.enum(["AGREE", "DISAGREE"])
+  value: z.enum(["AGREE", "DISAGREE"]),
 });
 
 export const quoteSearchQuerySchema = z.object({
   text: z.string().trim().min(5).max(500),
   bookTitle: z.string().trim().optional(),
-  authorName: z.string().trim().optional()
+  authorName: z.string().trim().optional(),
 });
 
 const userPreferencesSchema = z.object({
-  shuffleDefault: z.boolean().optional()
+  shuffleDefault: z.boolean().optional(),
 });
 
 export const profileUpdateBodySchema = z
   .object({
     displayName: z.string().trim().min(2).max(120).optional(),
-    preferences: userPreferencesSchema.optional()
+    preferences: userPreferencesSchema.optional(),
   })
   .refine((value) => {
     if (value.displayName) {
@@ -226,4 +226,3 @@ export type QuoteParams = z.infer<typeof quoteParamsSchema>;
 export type QuoteCreateBody = z.infer<typeof quoteCreateBodySchema>;
 export type QuoteVoteBody = z.infer<typeof quoteVoteBodySchema>;
 export type QuoteSearchQuery = z.infer<typeof quoteSearchQuerySchema>;
-

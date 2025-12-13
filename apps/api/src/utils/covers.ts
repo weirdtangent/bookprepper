@@ -31,7 +31,7 @@ export function buildOpenLibraryCoverUrl(
 }
 
 export function resolveCoverImageUrl<
-  T extends { coverImageUrl: string | null; isbn?: string | null }
+  T extends { coverImageUrl: string | null; isbn?: string | null },
 >(book: T, size: "S" | "M" | "L" = "M") {
   if (book.coverImageUrl) {
     return book.coverImageUrl;

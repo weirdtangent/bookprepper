@@ -4,7 +4,7 @@ import { prisma } from "db";
 import {
   profileUpdateBodySchema,
   type ProfileUpdateBody,
-  type UserPreferences
+  type UserPreferences,
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
 import { updateCognitoDisplayName } from "../lib/cognito.js";
@@ -26,13 +26,13 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
     if (Object.keys(updates).length === 0) {
       return {
         profile: mapProfile(authProfile),
-        cognitoSynced: false
+        cognitoSynced: false,
       };
     }
 
     const updated = await prisma.userProfile.update({
       where: { id: authProfile.id },
-      data: updates
+      data: updates,
     });
 
     let cognitoSynced = false;
@@ -40,13 +40,13 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         await updateCognitoDisplayName({
           cognitoSub: authProfile.cognitoSub,
-          displayName: body.displayName
+          displayName: body.displayName,
         });
         cognitoSynced = true;
       } catch (error) {
         fastify.log.error(
           {
-            cognitoSub: authProfile.cognitoSub
+            cognitoSub: authProfile.cognitoSub,
           },
           `"Failed to update Cognito nickname: ${(error as Error).message}"`
         );
@@ -55,7 +55,7 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
 
     return {
       profile: mapProfile(updated),
-      cognitoSynced
+      cognitoSynced,
     };
   });
 };
@@ -74,11 +74,14 @@ function mapProfile(profile: {
     displayName: profile.displayName,
     email: profile.email,
     role: profile.role,
-    preferences: normalizePreferences(profile.preferences)
+    preferences: normalizePreferences(profile.preferences),
   };
 }
 
-function buildProfileUpdates(body: ProfileUpdateBody, profile: { preferences: Prisma.JsonValue | null }) {
+function buildProfileUpdates(
+  body: ProfileUpdateBody,
+  profile: { preferences: Prisma.JsonValue | null }
+) {
   const updates: Prisma.UserProfileUpdateInput = {};
 
   if (body.displayName) {
@@ -111,4 +114,3 @@ function normalizePreferences(preferences: Prisma.JsonValue | null): UserPrefere
 
   return normalized;
 }
-

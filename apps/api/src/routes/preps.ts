@@ -9,14 +9,14 @@ import {
   quoteParamsSchema,
   quoteCreateBodySchema,
   quoteVoteBodySchema,
-  quoteSearchQuerySchema
+  quoteSearchQuerySchema,
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
 import {
   createEmptyDimensionBreakdown,
   summaryFromScoreRecord,
   syncPromptScore,
-  toVotesPayload
+  toVotesPayload,
 } from "../utils/promptScores.js";
 
 const GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes";
@@ -63,20 +63,20 @@ function formatQuoteWithVotes(quote: {
     createdAt: quote.createdAt.toISOString(),
     user: {
       id: quote.user.id,
-      displayName: quote.user.displayName
+      displayName: quote.user.displayName,
     },
     votes: {
       agree: agreeCount,
       disagree: disagreeCount,
-      total: agreeCount + disagreeCount
-    }
+      total: agreeCount + disagreeCount,
+    },
   };
 }
 
 const prepsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/preps/keywords", async () => {
     const keywords = await prisma.prepKeyword.findMany({
-      orderBy: { name: "asc" }
+      orderBy: { name: "asc" },
     });
 
     return {
@@ -84,8 +84,8 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
         id: keyword.id,
         name: keyword.name,
         slug: keyword.slug,
-        description: keyword.description
-      }))
+        description: keyword.description,
+      })),
     };
   });
 
@@ -98,7 +98,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!book) {
@@ -107,7 +107,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const prep = await prisma.bookPrep.findFirst({
         where: { id: params.prepId, bookId: book.id },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!prep) {
@@ -121,36 +121,36 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
           where: {
             prepId_userId: {
               prepId: prep.id,
-              userId: user.id
-            }
+              userId: user.id,
+            },
           },
           update: { value: body.value },
           create: {
             prepId: prep.id,
             userId: user.id,
-            value: body.value
-          }
+            value: body.value,
+          },
         }),
         prisma.promptFeedback.upsert({
           where: {
             prepId_userId_dimension: {
               prepId: prep.id,
               userId: user.id,
-              dimension: body.dimension
-            }
+              dimension: body.dimension,
+            },
           },
           update: {
             value: body.value,
-            note: body.note ?? null
+            note: body.note ?? null,
           },
           create: {
             prepId: prep.id,
             userId: user.id,
             value: body.value,
             dimension: body.dimension,
-            note: body.note ?? null
-          }
-        })
+            note: body.note ?? null,
+          },
+        }),
       ]);
 
       const summary = await syncPromptScore(prep.id);
@@ -161,7 +161,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       return {
         prepId: prep.id,
-        votes: toVotesPayload(summary)
+        votes: toVotesPayload(summary),
       };
     }
   );
@@ -175,7 +175,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
-        select: { id: true, title: true }
+        select: { id: true, title: true },
       });
 
       if (!book) {
@@ -191,8 +191,8 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
           title: body.title,
           description: body.description,
           keywordHints: body.keywordHints ?? [],
-          status: "PENDING"
-        }
+          status: "PENDING",
+        },
       });
 
       fastify.log.info(`"Received prep suggestion ${suggestion.id} for book ${book.id}"`);
@@ -200,103 +200,91 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
       return {
         message: "Prep suggestion submitted",
         suggestionId: suggestion.id,
-        status: suggestion.status
+        status: suggestion.status,
       };
     }
   );
 
-  fastify.get(
-    "/preps/feedback/insights",
-    { onRequest: [fastify.verifyJwt] },
-    async (request) => {
-      const user = await ensureUserProfile(request);
-      if (user.role === "MEMBER") {
-        throw fastify.httpErrors.forbidden("Administrator access required");
-      }
+  fastify.get("/preps/feedback/insights", { onRequest: [fastify.verifyJwt] }, async (request) => {
+    const user = await ensureUserProfile(request);
+    if (user.role === "MEMBER") {
+      throw fastify.httpErrors.forbidden("Administrator access required");
+    }
 
-      const selectPrep = {
-        select: {
-          id: true,
-          heading: true,
-          summary: true,
-          book: {
+    const selectPrep = {
+      select: {
+        id: true,
+        heading: true,
+        summary: true,
+        book: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        },
+      },
+    } as const;
+
+    const [topScores, lowestScores, recentFeedback] = await Promise.all([
+      prisma.promptScore.findMany({
+        where: { totalCount: { gt: 0 } },
+        take: 6,
+        orderBy: [{ score: "desc" }, { totalCount: "desc" }, { prepId: "asc" }],
+        include: {
+          prep: selectPrep,
+        },
+      }),
+      prisma.promptScore.findMany({
+        where: { totalCount: { gt: 0 } },
+        take: 6,
+        orderBy: [{ score: "asc" }, { totalCount: "desc" }, { prepId: "asc" }],
+        include: {
+          prep: selectPrep,
+        },
+      }),
+      prisma.promptFeedback.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        include: {
+          prep: {
             select: {
               id: true,
-              title: true,
-              slug: true
-            }
-          }
-        }
-      } as const;
-
-      const [topScores, lowestScores, recentFeedback] = await Promise.all([
-        prisma.promptScore.findMany({
-          where: { totalCount: { gt: 0 } },
-          take: 6,
-          orderBy: [
-            { score: "desc" },
-            { totalCount: "desc" },
-            { prepId: "asc" }
-          ],
-          include: {
-            prep: selectPrep
-          }
-        }),
-        prisma.promptScore.findMany({
-          where: { totalCount: { gt: 0 } },
-          take: 6,
-          orderBy: [
-            { score: "asc" },
-            { totalCount: "desc" },
-            { prepId: "asc" }
-          ],
-          include: {
-            prep: selectPrep
-          }
-        }),
-        prisma.promptFeedback.findMany({
-          orderBy: { createdAt: "desc" },
-          take: 10,
-          include: {
-            prep: {
-              select: {
-                id: true,
-                heading: true,
-                book: {
-                  select: {
-                    id: true,
-                    title: true,
-                    slug: true
-                  }
-                }
-              }
-            }
-          }
-        })
-      ]);
-
-      return {
-        topPrompts: topScores.map(mapScoreEntry),
-        needsAttention: lowestScores.map(mapScoreEntry),
-        recentFeedback: recentFeedback.map((entry) => ({
-          id: entry.id,
-          dimension: entry.dimension,
-          value: entry.value,
-          note: entry.note,
-          createdAt: entry.createdAt.toISOString(),
-          prep: {
-            id: entry.prep.id,
-            heading: entry.prep.heading
+              heading: true,
+              book: {
+                select: {
+                  id: true,
+                  title: true,
+                  slug: true,
+                },
+              },
+            },
           },
-          book: {
-            id: entry.prep.book.id,
-            title: entry.prep.book.title,
-            slug: entry.prep.book.slug
-          }
-        }))
-      };
-    }
-  );
+        },
+      }),
+    ]);
+
+    return {
+      topPrompts: topScores.map(mapScoreEntry),
+      needsAttention: lowestScores.map(mapScoreEntry),
+      recentFeedback: recentFeedback.map((entry) => ({
+        id: entry.id,
+        dimension: entry.dimension,
+        value: entry.value,
+        note: entry.note,
+        createdAt: entry.createdAt.toISOString(),
+        prep: {
+          id: entry.prep.id,
+          heading: entry.prep.heading,
+        },
+        book: {
+          id: entry.prep.book.id,
+          title: entry.prep.book.title,
+          slug: entry.prep.book.slug,
+        },
+      })),
+    };
+  });
 
   // Quote routes
   fastify.get("/books/:slug/preps/:prepId/quotes", async (request) => {
@@ -304,7 +292,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const book = await prisma.book.findUnique({
       where: { slug: params.slug },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!book) {
@@ -313,7 +301,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const prep = await prisma.bookPrep.findFirst({
       where: { id: params.prepId, bookId: book.id },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!prep) {
@@ -327,17 +315,17 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
         user: {
           select: {
             id: true,
-            displayName: true
-          }
+            displayName: true,
+          },
         },
         votes: {
-          select: { value: true }
-        }
-      }
+          select: { value: true },
+        },
+      },
     });
 
     return {
-      quotes: quotes.map(formatQuoteWithVotes)
+      quotes: quotes.map(formatQuoteWithVotes),
     };
   });
 
@@ -350,7 +338,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
-        select: { id: true, title: true, author: { select: { name: true } } }
+        select: { id: true, title: true, author: { select: { name: true } } },
       });
 
       if (!book) {
@@ -359,7 +347,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const prep = await prisma.bookPrep.findFirst({
         where: { id: params.prepId, bookId: book.id },
-        select: { id: true, heading: true }
+        select: { id: true, heading: true },
       });
 
       if (!prep) {
@@ -409,19 +397,19 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
           pageNumber: body.pageNumber ?? null,
           chapter: body.chapter ?? null,
           verified,
-          verifiedSource
+          verifiedSource,
         },
         include: {
           user: {
             select: {
               id: true,
-              displayName: true
-            }
+              displayName: true,
+            },
           },
           votes: {
-            select: { value: true }
-          }
-        }
+            select: { value: true },
+          },
+        },
       });
 
       fastify.log.info(
@@ -429,7 +417,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
       );
 
       return {
-        quote: formatQuoteWithVotes(quote)
+        quote: formatQuoteWithVotes(quote),
       };
     }
   );
@@ -444,7 +432,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!book) {
@@ -453,7 +441,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const prep = await prisma.bookPrep.findFirst({
         where: { id: params.prepId, bookId: book.id },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!prep) {
@@ -462,7 +450,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const quote = await prisma.prepQuote.findFirst({
         where: { id: params.quoteId, prepId: prep.id },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!quote) {
@@ -475,20 +463,20 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
         where: {
           quoteId_userId: {
             quoteId: quote.id,
-            userId: user.id
-          }
+            userId: user.id,
+          },
         },
         update: { value: body.value },
         create: {
           quoteId: quote.id,
           userId: user.id,
-          value: body.value
-        }
+          value: body.value,
+        },
       });
 
       const votes = await prisma.quoteVote.findMany({
         where: { quoteId: quote.id },
-        select: { value: true }
+        select: { value: true },
       });
 
       const agreeCount = votes.filter((v) => v.value === "AGREE").length;
@@ -503,8 +491,8 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
         votes: {
           agree: agreeCount,
           disagree: disagreeCount,
-          total: agreeCount + disagreeCount
-        }
+          total: agreeCount + disagreeCount,
+        },
       };
     }
   );
@@ -541,8 +529,8 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
           publishedDate: item.volumeInfo.publishedDate,
           previewLink: item.volumeInfo.previewLink,
           infoLink: item.volumeInfo.infoLink,
-          textSnippet: item.searchInfo?.textSnippet
-        }))
+          textSnippet: item.searchInfo?.textSnippet,
+        })),
       };
     } catch (error) {
       fastify.log.error(`"Google Books search failed: ${String(error)}"`);
@@ -558,7 +546,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!book) {
@@ -567,7 +555,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const prep = await prisma.bookPrep.findFirst({
         where: { id: params.prepId, bookId: book.id },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!prep) {
@@ -576,7 +564,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const quote = await prisma.prepQuote.findFirst({
         where: { id: params.quoteId, prepId: prep.id },
-        select: { id: true, userId: true }
+        select: { id: true, userId: true },
       });
 
       if (!quote) {
@@ -592,7 +580,7 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       await prisma.prepQuote.delete({
-        where: { id: quote.id }
+        where: { id: quote.id },
       });
 
       fastify.log.info(`"Deleted quote ${quote.id} by user '${user.displayName}'"`);
@@ -629,7 +617,7 @@ function mapScoreEntry(entry: PromptScoreWithPrep) {
     disagree: entry.disagreeCount,
     total: entry.totalCount,
     score: Number(entry.score ?? 0),
-    dimensions: createEmptyDimensionBreakdown()
+    dimensions: createEmptyDimensionBreakdown(),
   };
 
   return {
@@ -639,9 +627,8 @@ function mapScoreEntry(entry: PromptScoreWithPrep) {
     book: {
       id: entry.prep.book.id,
       title: entry.prep.book.title,
-      slug: entry.prep.book.slug
+      slug: entry.prep.book.slug,
     },
-    votes: toVotesPayload(summary)
+    votes: toVotesPayload(summary),
   };
 }
-

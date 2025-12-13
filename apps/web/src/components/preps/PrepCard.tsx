@@ -1,7 +1,7 @@
 import { useState, useEffect, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { api, type Prep, type PrepQuote, type PromptFeedbackDimension, type GoogleBooksSearchResult } from "../../lib/api";
+import { api, type Prep, type PrepQuote, type PromptFeedbackDimension } from "../../lib/api";
 import { getPromptFeedbackLabel } from "../../lib/promptFeedback";
 import { useDebounce } from "../../hooks/useDebounce";
 
@@ -57,14 +57,14 @@ export function PrepCard({
   isQuoteVoting,
   isAddingQuote,
   currentUserId,
-  order
+  order,
 }: Props) {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState<QuoteDraft>({
     text: "",
     pageNumber: "",
-    chapter: ""
+    chapter: "",
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [quoteVerified, setQuoteVerified] = useState(false);
@@ -87,10 +87,10 @@ export function PrepCard({
       api.searchQuotes({
         text: debouncedQuoteText.trim(),
         bookTitle,
-        authorName
+        authorName,
       }),
     enabled: showQuoteForm && shouldSearch && debouncedQuoteText.length >= 10,
-    staleTime: 60000
+    staleTime: 60000,
   });
 
   // Show suggestions when we have results
@@ -112,47 +112,47 @@ export function PrepCard({
     // Extract just the bold (matched) portions and nearby text
     // The <b> tags mark what Google found matching
     const boldMatches = snippet.match(/<b>([^<]+)<\/b>/g);
-    
+
     if (boldMatches && boldMatches.length > 0) {
       // Find where the first bold match starts in the clean text
       const firstBold = boldMatches[0].replace(/<\/?b>/g, "");
       const lastBold = boldMatches[boldMatches.length - 1].replace(/<\/?b>/g, "");
-      
+
       // Remove all HTML tags for position finding
       const textOnly = cleanSnippet.replace(/<\/?b>/g, "");
-      
+
       // Find the positions
       const startIdx = textOnly.toLowerCase().indexOf(firstBold.toLowerCase());
       const lastIdx = textOnly.toLowerCase().lastIndexOf(lastBold.toLowerCase());
-      
+
       if (startIdx !== -1 && lastIdx !== -1) {
         // Extract from first match to end of last match, plus try to get complete sentence
         let extractStart = startIdx;
         let extractEnd = lastIdx + lastBold.length;
-        
+
         // Try to extend to sentence boundaries (period, exclamation, question mark)
         // Look backwards for sentence start (capital letter after punctuation or start)
         for (let i = extractStart - 1; i >= Math.max(0, extractStart - 50); i--) {
-          if (textOnly[i] === '.' || textOnly[i] === '!' || textOnly[i] === '?') {
+          if (textOnly[i] === "." || textOnly[i] === "!" || textOnly[i] === "?") {
             extractStart = i + 1;
             break;
           }
         }
-        
+
         // Look forwards for sentence end
         for (let i = extractEnd; i < Math.min(textOnly.length, extractEnd + 100); i++) {
-          if (textOnly[i] === '.' || textOnly[i] === '!' || textOnly[i] === '?') {
+          if (textOnly[i] === "." || textOnly[i] === "!" || textOnly[i] === "?") {
             extractEnd = i + 1;
             break;
           }
         }
-        
+
         // Extract and clean up
         let extracted = textOnly.slice(extractStart, extractEnd).trim();
-        
+
         // Remove leading ellipsis or trailing ellipsis
         extracted = extracted.replace(/^\.{2,}\s*/, "").replace(/\s*\.{2,}$/, "");
-        
+
         // If we got something reasonable, use it
         if (extracted.length >= 10) {
           setQuoteDraft({ ...quoteDraft, text: extracted });
@@ -162,7 +162,7 @@ export function PrepCard({
         }
       }
     }
-    
+
     // Fallback: keep user's text but mark as verified since we found a match
     setQuoteVerified(true);
     setShowSuggestions(false);
@@ -171,7 +171,7 @@ export function PrepCard({
   const accentColor = prep.colorHint ?? "#d1d5db";
   const cardStyle: PrepCardStyle = {
     borderColor: accentColor,
-    "--prep-accent-color": accentColor
+    "--prep-accent-color": accentColor,
   };
 
   const scorePercent = Math.round(((prep.votes.score + 1) / 2) * 100);
@@ -183,7 +183,7 @@ export function PrepCard({
     onVote({
       value,
       dimension: feedbackDraft.dimension,
-      note: feedbackDraft.note.trim() || undefined
+      note: feedbackDraft.note.trim() || undefined,
     });
   };
 
@@ -226,7 +226,11 @@ export function PrepCard({
         </div>
         <div className="prep-card__keywords">
           {prep.keywords.map((keyword) => (
-            <Link key={keyword.slug} className="prep-card__keyword-link" to={`/?prep=${keyword.slug}`}>
+            <Link
+              key={keyword.slug}
+              className="prep-card__keyword-link"
+              to={`/?prep=${keyword.slug}`}
+            >
               {keyword.name}
             </Link>
           ))}
@@ -311,40 +315,47 @@ export function PrepCard({
                 {!quoteVerified && quoteSearchQuery.isFetching && (
                   <span className="quote-form__searching">Searching...</span>
                 )}
-                {showSuggestions && quoteSearchQuery.data?.results && quoteSearchQuery.data.results.length > 0 && (
-                  <div className="quote-suggestions">
-                    <div className="quote-suggestions__header">
-                      <span>Found in Google Books — click to use:</span>
-                      <button
-                        type="button"
-                        className="quote-suggestions__close"
-                        onClick={() => setShowSuggestions(false)}
-                      >
-                        ✕
-                      </button>
+                {showSuggestions &&
+                  quoteSearchQuery.data?.results &&
+                  quoteSearchQuery.data.results.length > 0 && (
+                    <div className="quote-suggestions">
+                      <div className="quote-suggestions__header">
+                        <span>Found in Google Books — click to use:</span>
+                        <button
+                          type="button"
+                          className="quote-suggestions__close"
+                          onClick={() => setShowSuggestions(false)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <ul className="quote-suggestions__list">
+                        {quoteSearchQuery.data.results.map((result, idx) => (
+                          <li key={idx}>
+                            <button
+                              type="button"
+                              className="quote-suggestion"
+                              onClick={() =>
+                                result.textSnippet && handleSelectSuggestion(result.textSnippet)
+                              }
+                              disabled={!result.textSnippet}
+                            >
+                              <span
+                                className="quote-suggestion__text"
+                                dangerouslySetInnerHTML={{
+                                  __html: result.textSnippet || "No preview available",
+                                }}
+                              />
+                              <span className="quote-suggestion__source">
+                                {result.title}{" "}
+                                {result.authors?.length ? `by ${result.authors[0]}` : ""}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <ul className="quote-suggestions__list">
-                      {quoteSearchQuery.data.results.map((result, idx) => (
-                        <li key={idx}>
-                          <button
-                            type="button"
-                            className="quote-suggestion"
-                            onClick={() => result.textSnippet && handleSelectSuggestion(result.textSnippet)}
-                            disabled={!result.textSnippet}
-                          >
-                            <span
-                              className="quote-suggestion__text"
-                              dangerouslySetInnerHTML={{ __html: result.textSnippet || "No preview available" }}
-                            />
-                            <span className="quote-suggestion__source">
-                              {result.title} {result.authors?.length ? `by ${result.authors[0]}` : ""}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  )}
               </div>
               <div className="quote-form__location">
                 <input
@@ -406,7 +417,7 @@ export function PrepCard({
               value={feedbackDraft.dimension}
               onChange={(event) =>
                 onFeedbackDraftChange({
-                  dimension: event.target.value as PromptFeedbackDimension
+                  dimension: event.target.value as PromptFeedbackDimension,
                 })
               }
               disabled={votingDisabled || isVoting}
@@ -438,7 +449,7 @@ export function PrepCard({
               placeholder="Add a quick note for curators (optional)"
               onChange={(event) =>
                 onFeedbackDraftChange({
-                  note: event.target.value
+                  note: event.target.value,
                 })
               }
               disabled={votingDisabled || isVoting}
@@ -469,7 +480,7 @@ type QuoteItemProps = {
 function QuoteItem({ quote, onVote, onDelete, votingDisabled, canDelete }: QuoteItemProps) {
   const location = [
     quote.chapter && `Ch. ${quote.chapter}`,
-    quote.pageNumber && `p. ${quote.pageNumber}`
+    quote.pageNumber && `p. ${quote.pageNumber}`,
   ]
     .filter(Boolean)
     .join(", ");
@@ -482,7 +493,10 @@ function QuoteItem({ quote, onVote, onDelete, votingDisabled, canDelete }: Quote
           <span className="quote-item__user">— {quote.user.displayName}</span>
           {location && <span className="quote-item__location">{location}</span>}
           {quote.verified && (
-            <span className="quote-item__verified" title={quote.verifiedSource ?? "Verified via Google Books"}>
+            <span
+              className="quote-item__verified"
+              title={quote.verifiedSource ?? "Verified via Google Books"}
+            >
               ✓ Verified
             </span>
           )}
@@ -528,4 +542,3 @@ function QuoteItem({ quote, onVote, onDelete, votingDisabled, canDelete }: Quote
     </li>
   );
 }
-

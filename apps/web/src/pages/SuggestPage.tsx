@@ -22,7 +22,7 @@ export default function SuggestPage() {
         notes: notes || undefined,
         genreIdeas: parseList(genreIdeas),
         prepIdeas: parseList(prepIdeas),
-        token: auth.token
+        token: auth.token,
       });
     },
     onSuccess: () => {
@@ -31,7 +31,7 @@ export default function SuggestPage() {
       setNotes("");
       setGenreIdeas("");
       setPrepIdeas("");
-    }
+    },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -125,4 +125,3 @@ function parseList(value: string) {
     .map((entry) => entry.trim())
     .filter(Boolean);
 }
-

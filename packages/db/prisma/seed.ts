@@ -14,7 +14,7 @@ const adapter = new PrismaMariaDb(databaseUrl);
 
 const prisma = new PrismaClient({
   adapter,
-  log: process.env.PRISMA_LOG_LEVEL === "silent" ? [] : ["warn", "error"]
+  log: process.env.PRISMA_LOG_LEVEL === "silent" ? [] : ["warn", "error"],
 });
 
 type KeywordTemplate = {
@@ -35,7 +35,7 @@ const KEYWORD_TEMPLATES = {
       `Watch how ${title} maps empire versus periphery${note ? ` — ${note}` : ""}.`,
     watchFor: (focus?: string) =>
       `Notice diplomacy, tribute, and coded resistance${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#c47f17"
+    colorHint: "#c47f17",
   },
   identity: {
     name: "Layered Identity",
@@ -43,8 +43,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Follow layered identities",
     summary: (title: string, note?: string) =>
       `Consider how ${title} asks characters to negotiate who they are${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track aliases, code-switching, and chosen names${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#9c27b0"
+    watchFor: (focus?: string) =>
+      `Track aliases, code-switching, and chosen names${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#9c27b0",
   },
   memory: {
     name: "Memory & Inheritance",
@@ -52,8 +53,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Chart how memory is stored",
     summary: (title: string, note?: string) =>
       `Observe how ${title} treats memory as power${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Log objects, songs, or rituals that hold the past${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#5d4037"
+    watchFor: (focus?: string) =>
+      `Log objects, songs, or rituals that hold the past${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#5d4037",
   },
   "political-intrigue": {
     name: "Political Intrigue",
@@ -61,8 +63,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Track the schemers",
     summary: (title: string, note?: string) =>
       `Map the alliances and betrayals that drive ${title}${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Flag council scenes, coded poetry, or informal deals${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#37474f"
+    watchFor: (focus?: string) =>
+      `Flag council scenes, coded poetry, or informal deals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#37474f",
   },
   language: {
     name: "Language & Translation",
@@ -70,8 +73,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Trace the language games",
     summary: (title: string, note?: string) =>
       `Examine how ${title} uses language as leverage${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Note idioms, borrowed scripts, and translation mishaps${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#0c7cd5"
+    watchFor: (focus?: string) =>
+      `Note idioms, borrowed scripts, and translation mishaps${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#0c7cd5",
   },
   ecology: {
     name: "Ecological Systems",
@@ -79,8 +83,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Follow the living systems",
     summary: (title: string, note?: string) =>
       `Watch how ${title} ties character choices to ecosystems${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Mark recurring weather, flora, and resource metaphors${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#2e7d32"
+    watchFor: (focus?: string) =>
+      `Mark recurring weather, flora, and resource metaphors${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#2e7d32",
   },
   climate: {
     name: "Climate Pressure",
@@ -88,8 +93,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Track climate pressure",
     summary: (title: string, note?: string) =>
       `Consider how ${title} imagines communities responding to climate strain${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Pay attention to migration choices, rationing, and shared shelters${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#0277bd"
+    watchFor: (focus?: string) =>
+      `Pay attention to migration choices, rationing, and shared shelters${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#0277bd",
   },
   technology: {
     name: "Disruptive Technology",
@@ -97,8 +103,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Log disruptive tech",
     summary: (title: string, note?: string) =>
       `Notice how ${title} frames invention as both promise and threat${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Trace labs, prototypes, and the ethics they spark${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#424242"
+    watchFor: (focus?: string) =>
+      `Trace labs, prototypes, and the ethics they spark${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#424242",
   },
   "ai-ethics": {
     name: "Synthetic Agency",
@@ -108,7 +115,7 @@ const KEYWORD_TEMPLATES = {
       `Interrogate how ${title} distributes agency between humans and machines${note ? ` — ${note}` : ""}.`,
     watchFor: (focus?: string) =>
       `Spot consent checks, override clauses, and the emotional labor handed to AI${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#546e7a"
+    colorHint: "#546e7a",
   },
   rebellion: {
     name: "Rebellion & Solidarity",
@@ -116,8 +123,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Track the rebellion",
     summary: (title: string, note?: string) =>
       `Follow how ${title} depicts coalition building${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Flag secret meetings, coded art, and shifts in morale${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#bf360c"
+    watchFor: (focus?: string) =>
+      `Flag secret meetings, coded art, and shifts in morale${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#bf360c",
   },
   authoritarianism: {
     name: "Authoritarian Creep",
@@ -125,8 +133,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Watch authoritarian creep",
     summary: (title: string, note?: string) =>
       `Examine how ${title} shows power consolidating${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track curfews, censorship, and loyalty rituals${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#880e4f"
+    watchFor: (focus?: string) =>
+      `Track curfews, censorship, and loyalty rituals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#880e4f",
   },
   prophecy: {
     name: "Prophecy & Fate",
@@ -134,8 +143,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Trace prophecy ripples",
     summary: (title: string, note?: string) =>
       `Consider how ${title} balances destiny with agency${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Watch for dreams, auguries, and who chooses to believe${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#6a1b9a"
+    watchFor: (focus?: string) =>
+      `Watch for dreams, auguries, and who chooses to believe${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#6a1b9a",
   },
   religion: {
     name: "Faith & Ritual",
@@ -144,7 +154,7 @@ const KEYWORD_TEMPLATES = {
     summary: (title: string, note?: string) =>
       `Observe how ${title} stages worship, doubt, and community${note ? ` — ${note}` : ""}.`,
     watchFor: (focus?: string) => `Track temples, songs, and taboos${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#f57f17"
+    colorHint: "#f57f17",
   },
   myth: {
     name: "Myth & Retelling",
@@ -152,8 +162,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Follow mythic echoes",
     summary: (title: string, note?: string) =>
       `See how ${title} converses with older stories${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Log invocations, heroic epithets, and subverted archetypes${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ff7043"
+    watchFor: (focus?: string) =>
+      `Log invocations, heroic epithets, and subverted archetypes${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ff7043",
   },
   trauma: {
     name: "Trauma & Aftercare",
@@ -161,8 +172,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Observe trauma responses",
     summary: (title: string, note?: string) =>
       `Notice how ${title} acknowledges harm and recovery${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Trace grounding rituals, flashbacks, and trusted confidants${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ad1457"
+    watchFor: (focus?: string) =>
+      `Trace grounding rituals, flashbacks, and trusted confidants${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ad1457",
   },
   healing: {
     name: "Healing & Restoration",
@@ -170,8 +182,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Note the work of repair",
     summary: (title: string, note?: string) =>
       `Watch how ${title} invests in healing practices${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Mark shared meals, creative play, and intergenerational teaching${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#66bb6a"
+    watchFor: (focus?: string) =>
+      `Mark shared meals, creative play, and intergenerational teaching${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#66bb6a",
   },
   "found-family": {
     name: "Found Family",
@@ -179,8 +192,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Watch the found family take shape",
     summary: (title: string, note?: string) =>
       `Follow how ${title} builds trust between unlikely allies${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track acts of service, inside jokes, and defense of group boundaries${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#1e88e5"
+    watchFor: (focus?: string) =>
+      `Track acts of service, inside jokes, and defense of group boundaries${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#1e88e5",
   },
   class: {
     name: "Class & Labor",
@@ -190,7 +204,7 @@ const KEYWORD_TEMPLATES = {
       `Consider how ${title} surfaces labor politics${note ? ` — ${note}` : ""}.`,
     watchFor: (focus?: string) =>
       `Note uniforms, tipping rituals, and whose work is considered noble${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#795548"
+    colorHint: "#795548",
   },
   surveillance: {
     name: "Surveillance",
@@ -198,8 +212,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Follow the watchers",
     summary: (title: string, note?: string) =>
       `Examine how ${title} imagines being seen or recorded${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Highlight security feeds, notebooks, or prophetic visions used as intel${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#263238"
+    watchFor: (focus?: string) =>
+      `Highlight security feeds, notebooks, or prophetic visions used as intel${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#263238",
   },
   gender: {
     name: "Gender & Expression",
@@ -207,8 +222,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Observe gender performance",
     summary: (title: string, note?: string) =>
       `Track how ${title} plays with gendered expectations${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Notice clothing, pronoun shifts, and bodily autonomy debates${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ec407a"
+    watchFor: (focus?: string) =>
+      `Notice clothing, pronoun shifts, and bodily autonomy debates${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ec407a",
   },
   migration: {
     name: "Migration & Diaspora",
@@ -216,8 +232,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Trace migrations",
     summary: (title: string, note?: string) =>
       `Consider how ${title} frames movement and belonging${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Mark border crossings, letters home, and remittance negotiations${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#00897b"
+    watchFor: (focus?: string) =>
+      `Mark border crossings, letters home, and remittance negotiations${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#00897b",
   },
   resilience: {
     name: "Resilience & Hope",
@@ -225,8 +242,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Collect hopeful sparks",
     summary: (title: string, note?: string) =>
       `Notice where ${title} makes space for hope${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track moments of laughter, art, and shared vision boards${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ffca28"
+    watchFor: (focus?: string) =>
+      `Track moments of laughter, art, and shared vision boards${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ffca28",
   },
   time: {
     name: "Time & Structure",
@@ -234,8 +252,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Interrogate time",
     summary: (title: string, note?: string) =>
       `Watch how ${title} bends timelines${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Map flashbacks, nested tales, and foreshadowing experiments${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#3f51b5"
+    watchFor: (focus?: string) =>
+      `Map flashbacks, nested tales, and foreshadowing experiments${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#3f51b5",
   },
   storytelling: {
     name: "Stories about Stories",
@@ -243,8 +262,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Track storytellers",
     summary: (title: string, note?: string) =>
       `Consider who narrates ${title} and why${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Note frame narratives, unreliable guides, and contested sources${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#a1887f"
+    watchFor: (focus?: string) =>
+      `Note frame narratives, unreliable guides, and contested sources${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#a1887f",
   },
   "war-ethics": {
     name: "War & Ethics",
@@ -252,8 +272,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Question war ethics",
     summary: (title: string, note?: string) =>
       `Analyze how ${title} justifies violence${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Flag command briefings, oaths, and dissenting officers${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#b71c1c"
+    watchFor: (focus?: string) =>
+      `Flag command briefings, oaths, and dissenting officers${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#b71c1c",
   },
   hope: {
     name: "Hopepunk Threads",
@@ -261,8 +282,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Gather hopepunk signals",
     summary: (title: string, note?: string) =>
       `Pay attention to how ${title} insists on care${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Mark resource sharing, public art, and stubborn joy${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ff8f00"
+    watchFor: (focus?: string) =>
+      `Mark resource sharing, public art, and stubborn joy${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ff8f00",
   },
   grief: {
     name: "Grief & Remembrance",
@@ -270,8 +292,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Sit with grief",
     summary: (title: string, note?: string) =>
       `Notice how ${title} honors the dead${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track wakes, memorial art, and conflicting stories about loss${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#455a64"
+    watchFor: (focus?: string) =>
+      `Track wakes, memorial art, and conflicting stories about loss${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#455a64",
   },
   "magic-systems": {
     name: "Magic Systems",
@@ -279,8 +302,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Study the magic system",
     summary: (title: string, note?: string) =>
       `Look at how ${title} defines power limits${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Catalog ingredients, oaths, and the price each casting demands${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ab47bc"
+    watchFor: (focus?: string) =>
+      `Catalog ingredients, oaths, and the price each casting demands${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ab47bc",
   },
   "body-autonomy": {
     name: "Body Autonomy",
@@ -290,7 +314,7 @@ const KEYWORD_TEMPLATES = {
       `Examine how ${title} protects or threatens bodily choice${note ? ` — ${note}` : ""}.`,
     watchFor: (focus?: string) =>
       `Note medical consent, possession, and control rituals${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#d32f2f"
+    colorHint: "#d32f2f",
   },
   "coming-of-age": {
     name: "Coming of Age",
@@ -298,8 +322,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Trace the coming-of-age arc",
     summary: (title: string, note?: string) =>
       `Follow how ${title} ushers characters into new selves${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Notice mentors, rites, and first failures${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#f06292"
+    watchFor: (focus?: string) =>
+      `Notice mentors, rites, and first failures${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#f06292",
   },
   "court-politics": {
     name: "Court Politics",
@@ -307,8 +332,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Track court politics",
     summary: (title: string, note?: string) =>
       `Observe how ${title} choreographs power at court${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Log audiences, favors owed, and ceremonial loopholes${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#5d4037"
+    watchFor: (focus?: string) =>
+      `Log audiences, favors owed, and ceremonial loopholes${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#5d4037",
   },
   "environmental-justice": {
     name: "Environmental Justice",
@@ -316,8 +342,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Map environmental justice struggles",
     summary: (title: string, note?: string) =>
       `Consider how ${title} links ecology to equity${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track protests, land stewardship, and reparations plans${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#2e7d32"
+    watchFor: (focus?: string) =>
+      `Track protests, land stewardship, and reparations plans${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#2e7d32",
   },
   "family-saga": {
     name: "Family Saga",
@@ -325,8 +352,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Follow the family saga",
     summary: (title: string, note?: string) =>
       `See how ${title} charts obligations across generations${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track wills, heirlooms, and storytelling elders${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#6d4c41"
+    watchFor: (focus?: string) =>
+      `Track wills, heirlooms, and storytelling elders${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#6d4c41",
   },
   "humor-satire": {
     name: "Humor & Satire",
@@ -334,8 +362,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Spot humor and satire",
     summary: (title: string, note?: string) =>
       `Notice where ${title} uses comedy as critique${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Mark running jokes, farce set pieces, and punch-line reveals${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ff7043"
+    watchFor: (focus?: string) =>
+      `Mark running jokes, farce set pieces, and punch-line reveals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ff7043",
   },
   "mental-health": {
     name: "Mental Health",
@@ -343,8 +372,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Observe mental health journeys",
     summary: (title: string, note?: string) =>
       `Watch how ${title} treats mind care and stigma${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Track grounding rituals, intrusive thoughts, and support circles${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#26c6da"
+    watchFor: (focus?: string) =>
+      `Track grounding rituals, intrusive thoughts, and support circles${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#26c6da",
   },
   "queer-joy": {
     name: "Queer Joy",
@@ -352,8 +382,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Collect sparks of queer joy",
     summary: (title: string, note?: string) =>
       `Appreciate how ${title} centers queer flourishing${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Notice affirmation scenes, flamboyant art, and chosen rituals${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#8e24aa"
+    watchFor: (focus?: string) =>
+      `Notice affirmation scenes, flamboyant art, and chosen rituals${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#8e24aa",
   },
   "sibling-bonds": {
     name: "Sibling Bonds",
@@ -361,8 +392,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Track sibling bonds",
     summary: (title: string, note?: string) =>
       `Follow how ${title} lets siblings collide and protect${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Log inside jokes, heir disputes, and loyalty tests${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ffb300"
+    watchFor: (focus?: string) =>
+      `Log inside jokes, heir disputes, and loyalty tests${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ffb300",
   },
   "survival-strategy": {
     name: "Survival Strategy",
@@ -370,8 +402,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Study survival strategies",
     summary: (title: string, note?: string) =>
       `Examine how ${title} imagines scraping through crisis${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Note improvised shelters, ration plans, and escape maps${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#ffa000"
+    watchFor: (focus?: string) =>
+      `Note improvised shelters, ration plans, and escape maps${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#ffa000",
   },
   "underworld-crime": {
     name: "Underworld Crime",
@@ -379,8 +412,9 @@ const KEYWORD_TEMPLATES = {
     heading: "Chart the underworld",
     summary: (title: string, note?: string) =>
       `See how ${title} depicts criminal networks${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Follow code names, protection rackets, and midnight exchanges${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#3e2723"
+    watchFor: (focus?: string) =>
+      `Follow code names, protection rackets, and midnight exchanges${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#3e2723",
   },
   "voyage-discovery": {
     name: "Voyage & Discovery",
@@ -388,9 +422,10 @@ const KEYWORD_TEMPLATES = {
     heading: "Trace voyage and discovery",
     summary: (title: string, note?: string) =>
       `Notice how ${title} treats discovery as risk and reward${note ? ` — ${note}` : ""}.`,
-    watchFor: (focus?: string) => `Map wayfinding tools, shipboard culture, and first-contact rules${focus ? ` (${focus})` : ""}.`,
-    colorHint: "#00796b"
-  }
+    watchFor: (focus?: string) =>
+      `Map wayfinding tools, shipboard culture, and first-contact rules${focus ? ` (${focus})` : ""}.`,
+    colorHint: "#00796b",
+  },
 } satisfies Record<string, KeywordTemplate>;
 
 type KeywordSlug = keyof typeof KEYWORD_TEMPLATES;
@@ -398,148 +433,148 @@ type KeywordSlug = keyof typeof KEYWORD_TEMPLATES;
 const GENRE_CATALOG = {
   "science-fiction": {
     name: "Science Fiction",
-    description: "Speculative science, futures, and alternate technologies."
+    description: "Speculative science, futures, and alternate technologies.",
   },
   "space-opera": {
     name: "Space Opera",
-    description: "Expansive interstellar adventures and empires."
+    description: "Expansive interstellar adventures and empires.",
   },
   fantasy: {
     name: "Fantasy",
-    description: "Magic, myth, and alternate realities."
+    description: "Magic, myth, and alternate realities.",
   },
   "epic-fantasy": {
     name: "Epic Fantasy",
-    description: "Multibook sagas with sweeping stakes."
+    description: "Multibook sagas with sweeping stakes.",
   },
   "political-thriller": {
     name: "Political Thriller",
-    description: "Coup attempts, diplomacy, and backroom deals."
+    description: "Coup attempts, diplomacy, and backroom deals.",
   },
   "literary-fiction": {
     name: "Literary Fiction",
-    description: "Character-driven narratives and stylistic innovation."
+    description: "Character-driven narratives and stylistic innovation.",
   },
   "historical-fiction": {
     name: "Historical Fiction",
-    description: "Stories grounded in specific past eras."
+    description: "Stories grounded in specific past eras.",
   },
   "myth-retelling": {
     name: "Myth Retelling",
-    description: "Reimagined epics, legends, and folktales."
+    description: "Reimagined epics, legends, and folktales.",
   },
   "post-apocalyptic": {
     name: "Post-Apocalyptic",
-    description: "Aftermath of collapse and survival tales."
+    description: "Aftermath of collapse and survival tales.",
   },
   dystopian: {
     name: "Dystopian",
-    description: "Authoritarian or controlled societies."
+    description: "Authoritarian or controlled societies.",
   },
-  "afrofuturism": {
+  afrofuturism: {
     name: "Afrofuturism",
-    description: "Black speculative futures and mythmaking."
+    description: "Black speculative futures and mythmaking.",
   },
   "urban-fantasy": {
     name: "Urban Fantasy",
-    description: "Magic layered onto contemporary cities."
+    description: "Magic layered onto contemporary cities.",
   },
   horror: {
     name: "Horror",
-    description: "Fear, dread, and uncanny transformations."
+    description: "Fear, dread, and uncanny transformations.",
   },
   "cli-fi": {
     name: "Climate Fiction",
-    description: "Stories centered on climate disruption."
+    description: "Stories centered on climate disruption.",
   },
   "magical-realism": {
     name: "Magical Realism",
-    description: "Mythic elements threaded through realist settings."
+    description: "Mythic elements threaded through realist settings.",
   },
   "speculative-nonfiction": {
     name: "Speculative Nonfiction",
-    description: "Science-rooted meditations on possibility."
+    description: "Science-rooted meditations on possibility.",
   },
   cyberpunk: {
     name: "Cyberpunk",
-    description: "High tech, low life, and networked rebellions."
+    description: "High tech, low life, and networked rebellions.",
   },
   "military-sf": {
     name: "Military SF",
-    description: "Tactics, command, and combat consequences."
+    description: "Tactics, command, and combat consequences.",
   },
   "philosophical-sf": {
     name: "Philosophical SF",
-    description: "Existential questions framed through speculative tech."
+    description: "Existential questions framed through speculative tech.",
   },
   romance: {
     name: "Romance",
-    description: "Central love arcs and emotional payoffs."
+    description: "Central love arcs and emotional payoffs.",
   },
   "young-adult": {
     name: "Young Adult",
-    description: "Coming-of-age arcs anchored in teen protagonists."
+    description: "Coming-of-age arcs anchored in teen protagonists.",
   },
   "alternate-history": {
     name: "Alternate History",
-    description: "Counterfactual timelines and pivotal what-ifs."
+    description: "Counterfactual timelines and pivotal what-ifs.",
   },
   "biographical-fiction": {
     name: "Biographical Fiction",
-    description: "Novels inspired by real historical figures."
+    description: "Novels inspired by real historical figures.",
   },
   "cozy-mystery": {
     name: "Cozy Mystery",
-    description: "Intimate investigations with low on-page violence."
+    description: "Intimate investigations with low on-page violence.",
   },
   "crime-thriller": {
     name: "Crime Thriller",
-    description: "Heists, detectives, and criminal intrigue."
+    description: "Heists, detectives, and criminal intrigue.",
   },
   "fairy-tale": {
     name: "Fairy Tale",
-    description: "Folkloric motifs, quests, and enchanted bargains."
+    description: "Folkloric motifs, quests, and enchanted bargains.",
   },
   gothic: {
     name: "Gothic",
-    description: "Brooding settings, secrets, and creeping dread."
+    description: "Brooding settings, secrets, and creeping dread.",
   },
   "hard-sf": {
     name: "Hard Science Fiction",
-    description: "Rigorous science and engineering problem-solving."
+    description: "Rigorous science and engineering problem-solving.",
   },
   "historical-fantasy": {
     name: "Historical Fantasy",
-    description: "Magic woven into recognizable past eras."
+    description: "Magic woven into recognizable past eras.",
   },
   "humor-satire": {
     name: "Humor & Satire",
-    description: "Parody and wit aimed at cultural critique."
+    description: "Parody and wit aimed at cultural critique.",
   },
   "paranormal-romance": {
     name: "Paranormal Romance",
-    description: "Love stories intertwined with supernatural beings."
+    description: "Love stories intertwined with supernatural beings.",
   },
   "psychological-thriller": {
     name: "Psychological Thriller",
-    description: "Claustrophobic suspense and unreliable minds."
+    description: "Claustrophobic suspense and unreliable minds.",
   },
   "science-fantasy": {
     name: "Science Fantasy",
-    description: "Bridges speculative tech with mythic wonder."
+    description: "Bridges speculative tech with mythic wonder.",
   },
   slipstream: {
     name: "Slipstream",
-    description: "Dreamlike tales that blur genre boundaries."
+    description: "Dreamlike tales that blur genre boundaries.",
   },
   solarpunk: {
     name: "Solarpunk",
-    description: "Optimistic eco-futures and community tech."
+    description: "Optimistic eco-futures and community tech.",
   },
   "weird-fiction": {
     name: "Weird Fiction",
-    description: "Surreal horror, cosmic unease, and liminal spaces."
-  }
+    description: "Surreal horror, cosmic unease, and liminal spaces.",
+  },
 } as const;
 
 type GenreSlug = keyof typeof GENRE_CATALOG;
@@ -584,19 +619,19 @@ const SERIES: SeriesSeed[] = [
             keyword: "colonialism",
             note: "Mahit's borrowed identity collides with Teixcalaan ceremony.",
             focus: "Moments where etiquette manuals and actual practice diverge.",
-            extraKeywords: ["identity"]
+            extraKeywords: ["identity"],
           },
           {
             keyword: "memory",
             note: "Imago backups blur personhood with recorded advice.",
-            focus: "Transitions where Mahit defers to Yskandr's whisper."
+            focus: "Transitions where Mahit defers to Yskandr's whisper.",
           },
           {
             keyword: "political-intrigue",
             note: "Succession fractures the capital long before open conflict.",
-            focus: "Every poem as policy memo."
-          }
-        ]
+            focus: "Every poem as policy memo.",
+          },
+        ],
       },
       {
         title: "A Desolation Called Peace",
@@ -608,22 +643,22 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "language",
             note: "Communication with the enemy hinges on metaphors of hunger.",
-            focus: "Scene work inside the warship linguistics lab."
+            focus: "Scene work inside the warship linguistics lab.",
           },
           {
             keyword: "ai-ethics",
             note: "Fleet minds and imago lineages clash over who commands a body.",
             focus: "Debates about consent when memories persist past death.",
-            extraKeywords: ["memory"]
+            extraKeywords: ["memory"],
           },
           {
             keyword: "war-ethics",
             note: "Peace terms hinge on whether annihilation is imaginable.",
-            focus: "Admiralty briefings and the poetry they circulate."
-          }
-        ]
-      }
-    ]
+            focus: "Admiralty briefings and the poetry they circulate.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "N.K. Jemisin",
@@ -638,21 +673,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "climate",
             note: "Every Season is a study in systemic neglect.",
-            focus: "Fulcrum handbooks vs. lived experience of comms."
+            focus: "Fulcrum handbooks vs. lived experience of comms.",
           },
           {
             keyword: "trauma",
             note: "Essun carries compounded grief across timelines.",
             focus: "Scenes where a new identity is adopted in anger.",
-            extraKeywords: ["grief"]
+            extraKeywords: ["grief"],
           },
           {
             keyword: "authoritarianism",
             note: "Fulcrum 'education' weaponizes math and stillness.",
             focus: "Classes on node maintainers and personal cost.",
-            extraKeywords: ["class"]
-          }
-        ]
+            extraKeywords: ["class"],
+          },
+        ],
       },
       {
         title: "The Obelisk Gate",
@@ -664,19 +699,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "magic-systems",
             note: "Obelisks complicate what it means to feel the earth.",
-            focus: "Training montages that treat stone like memory."
+            focus: "Training montages that treat stone like memory.",
           },
           {
             keyword: "found-family",
             note: "Castrima negotiates how to protect its own while letting strangers in.",
-            focus: "Town meetings and kitchen duty assignments."
+            focus: "Town meetings and kitchen duty assignments.",
           },
           {
             keyword: "grief",
             note: "Nassun rewrites her relationship to justice after Schaffa's revelations.",
-            focus: "Moments where she names her anger."
-          }
-        ]
+            focus: "Moments where she names her anger.",
+          },
+        ],
       },
       {
         title: "The Stone Sky",
@@ -688,19 +723,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "memory",
             note: "Hoa's chapters reframe the entire trilogy.",
-            focus: "Hearing stone eaters narrate the before times."
+            focus: "Hearing stone eaters narrate the before times.",
           },
           {
             keyword: "rebellion",
             note: "A Syl Anagist heist explains why the earth screams.",
-            focus: "Scenes planning the engine sabotage."
+            focus: "Scenes planning the engine sabotage.",
           },
           {
             keyword: "healing",
             note: "Essun and Nassun must decide if love can be rebuilt mid-cataclysm.",
-            focus: "Negotiations over the moon's return."
-          }
-        ]
+            focus: "Negotiations over the moon's return.",
+          },
+        ],
       },
       {
         title: "The City We Became",
@@ -712,21 +747,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "colonialism",
             note: "The Enemy's tendrils mimic gentrification and philanthropy.",
-            focus: "Moments featuring white tentacles disguised as modern art."
+            focus: "Moments featuring white tentacles disguised as modern art.",
           },
           {
             keyword: "found-family",
             note: "The avatars must accept each other before the city can breathe.",
-            focus: "Anytime Aislyn is missing from the group chat."
+            focus: "Anytime Aislyn is missing from the group chat.",
           },
           {
             keyword: "resilience",
             note: "Street art, ballroom, and math duels become defense mechanisms.",
-            focus: "Impromptu concerts used as counter-summons."
-          }
-        ]
-      }
-    ]
+            focus: "Impromptu concerts used as counter-summons.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Ursula K. Le Guin",
@@ -741,19 +776,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "gender",
             note: "Gethenians refuse fixed categories.",
-            focus: "Moments in karhider courts where pronouns slip."
+            focus: "Moments in karhider courts where pronouns slip.",
           },
           {
             keyword: "political-intrigue",
             note: "Orgoreyn files everything; Karhide sings its secrets.",
-            focus: "Bureaucratic memos vs. Estraven's oblique advice."
+            focus: "Bureaucratic memos vs. Estraven's oblique advice.",
           },
           {
             keyword: "found-family",
             note: "The ice crossing redefines friendship.",
-            focus: "Rituals invented on the glacier."
-          }
-        ]
+            focus: "Rituals invented on the glacier.",
+          },
+        ],
       },
       {
         title: "The Dispossessed",
@@ -765,21 +800,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "class",
             note: "Compare dorm syndicates with Urrasti salons.",
-            focus: "Scenes where Odo's writings are quoted."
+            focus: "Scenes where Odo's writings are quoted.",
           },
           {
             keyword: "time",
             note: "Simultaneity theory mirrors circular narrative structure.",
-            focus: "Look for alternating chapter timelines."
+            focus: "Look for alternating chapter timelines.",
           },
           {
             keyword: "rebellion",
             note: "Anarresti protests reveal stagnation even within utopia.",
-            focus: "Public posting boards and who tears down which flyer."
-          }
-        ]
-      }
-    ]
+            focus: "Public posting boards and who tears down which flyer.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Frank Herbert",
@@ -794,19 +829,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "ecology",
             note: "Fremen water discipline is world-building as resistance.",
-            focus: "Watch Liet-Kynes briefings and sietch rituals."
+            focus: "Watch Liet-Kynes briefings and sietch rituals.",
           },
           {
             keyword: "prophecy",
             note: "Missionaria Protectiva seeded Paul's legend.",
-            focus: "Reverend Mother whispers vs. Fremen oral history."
+            focus: "Reverend Mother whispers vs. Fremen oral history.",
           },
           {
             keyword: "war-ethics",
             note: "Paul grapples with jihad visions.",
-            focus: "Scenes describing fanatical armies in prescient dreams."
-          }
-        ]
+            focus: "Scenes describing fanatical armies in prescient dreams.",
+          },
+        ],
       },
       {
         title: "Dune Messiah",
@@ -818,19 +853,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "authoritarianism",
             note: "All policies orbit Paul's prescience.",
-            focus: "Public works vs. the terror in Paul's visions."
+            focus: "Public works vs. the terror in Paul's visions.",
           },
           {
             keyword: "identity",
             note: "Hayt's ghola memories complicate loyalty.",
-            focus: "Moments where Duncan's body language betrays echoes."
+            focus: "Moments where Duncan's body language betrays echoes.",
           },
           {
             keyword: "grief",
             note: "Chani and Irulan's choices are rooted in loss.",
-            focus: "Fremen laments woven into politics."
-          }
-        ]
+            focus: "Fremen laments woven into politics.",
+          },
+        ],
       },
       {
         title: "Children of Dune",
@@ -842,21 +877,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "memory",
             note: "Atreides twins manage ancestral voices.",
-            focus: "The Abomination warnings from Bene Gesserit training."
+            focus: "The Abomination warnings from Bene Gesserit training.",
           },
           {
             keyword: "ecology",
             note: "Terraforming carries unintended consequences.",
-            focus: "Thufir's weather reports vs. desert nostalgia."
+            focus: "Thufir's weather reports vs. desert nostalgia.",
           },
           {
             keyword: "prophecy",
             note: "The Golden Path demands sacrifice.",
-            focus: "Maps of possible timelines pinned to Leto's mind."
-          }
-        ]
-      }
-    ]
+            focus: "Maps of possible timelines pinned to Leto's mind.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Octavia Butler",
@@ -871,19 +906,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "time",
             note: "Each jump tests causal responsibility.",
-            focus: "Pay attention to injuries traveling across centuries."
+            focus: "Pay attention to injuries traveling across centuries.",
           },
           {
             keyword: "trauma",
             note: "Dana keeps tally of compromises.",
-            focus: "Scenes where she journals to stay grounded."
+            focus: "Scenes where she journals to stay grounded.",
           },
           {
             keyword: "class",
             note: "Labor and literacy determine survival options.",
-            focus: "Notice who is taught to read and why."
-          }
-        ]
+            focus: "Notice who is taught to read and why.",
+          },
+        ],
       },
       {
         title: "Parable of the Sower",
@@ -895,19 +930,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "climate",
             note: "Heat and scarcity shape every decision.",
-            focus: "Ledger entries tracking water and seeds."
+            focus: "Ledger entries tracking water and seeds.",
           },
           {
             keyword: "religion",
             note: "Earthseed versus inherited Christian liturgy.",
-            focus: "Verses inserted between journal entries."
+            focus: "Verses inserted between journal entries.",
           },
           {
             keyword: "found-family",
             note: "Acorn is built one trust exercise at a time.",
-            focus: "Moments where hyperempathy alters conflict."
-          }
-        ]
+            focus: "Moments where hyperempathy alters conflict.",
+          },
+        ],
       },
       {
         title: "Parable of the Talents",
@@ -919,21 +954,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "authoritarianism",
             note: "The Crusaders weaponize patriotism.",
-            focus: "Sermons from President Jarret and their echoes."
+            focus: "Sermons from President Jarret and their echoes.",
           },
           {
             keyword: "grief",
             note: "Lauren narrates loss while her daughter critiques her.",
-            focus: "Layered journal commentary between generations."
+            focus: "Layered journal commentary between generations.",
           },
           {
             keyword: "resilience",
             note: "Earthseed chapters end on action items.",
-            focus: "Community bylaws drafted after every crisis."
-          }
-        ]
-      }
-    ]
+            focus: "Community bylaws drafted after every crisis.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Ann Leckie",
@@ -949,69 +984,67 @@ const SERIES: SeriesSeed[] = [
             keyword: "identity",
             note: "One consciousness spread across thousands of bodies.",
             focus: "Pay attention to grammatical shifts when Breq recalls the past.",
-            extraKeywords: ["ai-ethics"]
+            extraKeywords: ["ai-ethics"],
           },
           {
             keyword: "colonialism",
             note: "Annexations hide behind tea ceremonies.",
-            focus: "Contrasts between conquered etiquette and Radchaai norms."
+            focus: "Contrasts between conquered etiquette and Radchaai norms.",
           },
           {
             keyword: "political-intrigue",
             note: "Anaander Mianaai is her own worst rival.",
-            focus: "Memorize which clone controls each palace wing."
-          }
-        ]
+            focus: "Memorize which clone controls each palace wing.",
+          },
+        ],
       },
       {
         title: "Ancillary Sword",
-        synopsis:
-          "Breq takes command of Mercy of Kalr and uncovers unrest on an outlying station.",
+        synopsis: "Breq takes command of Mercy of Kalr and uncovers unrest on an outlying station.",
         publishedYear: 2014,
         genres: ["science-fiction", "space-opera"],
         preps: [
           {
             keyword: "class",
             note: "Station labor disputes reveal Radchaai hypocrisy.",
-            focus: "Household shrines cataloging ancestors."
+            focus: "Household shrines cataloging ancestors.",
           },
           {
             keyword: "found-family",
             note: "Mercy of Kalr's crew calibrates trust via rituals.",
-            focus: "Instruction cards pinned to every ready-room bulkhead."
+            focus: "Instruction cards pinned to every ready-room bulkhead.",
           },
           {
             keyword: "war-ethics",
             note: "Presger treaties limit every tactical choice.",
-            focus: "Negotiations with Translator Zeiat."
-          }
-        ]
+            focus: "Negotiations with Translator Zeiat.",
+          },
+        ],
       },
       {
         title: "Ancillary Mercy",
-        synopsis:
-          "Civil war reaches Athoek as Presger observers arrive to judge the Radch.",
+        synopsis: "Civil war reaches Athoek as Presger observers arrive to judge the Radch.",
         publishedYear: 2015,
         genres: ["science-fiction", "space-opera"],
         preps: [
           {
             keyword: "ai-ethics",
             note: "Station Twelve asserts personhood.",
-            focus: "Scenes where facilities refuse harmful orders."
+            focus: "Scenes where facilities refuse harmful orders.",
           },
           {
             keyword: "rebellion",
             note: "Small acts of refusal cascade across the system.",
-            focus: "Radio broadcasts disguised as song dedications."
+            focus: "Radio broadcasts disguised as song dedications.",
           },
           {
             keyword: "resilience",
             note: "Tea service doubles as collective grounding.",
-            focus: "Mercy of Kalr's inventory lists as emotional check-ins."
-          }
-        ]
-      }
-    ]
+            focus: "Mercy of Kalr's inventory lists as emotional check-ins.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "James S. A. Corey",
@@ -1026,19 +1059,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "technology",
             note: "Alien biotech rewrites every rule of physics.",
-            focus: "Track Julie Mao's crash couch footage."
+            focus: "Track Julie Mao's crash couch footage.",
           },
           {
             keyword: "found-family",
             note: "The Rocinante crew builds trust under fire.",
-            focus: "Galley conversations after each system-wide broadcast."
+            focus: "Galley conversations after each system-wide broadcast.",
           },
           {
             keyword: "political-intrigue",
             note: "The Belt, Mars, and Earth weaponize every rumor.",
-            focus: "Press conferences intercut with private calls."
-          }
-        ]
+            focus: "Press conferences intercut with private calls.",
+          },
+        ],
       },
       {
         title: "Caliban's War",
@@ -1050,45 +1083,44 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "war-ethics",
             note: "MCRN and UN brass disagree on acceptable losses.",
-            focus: "Bobbie's testimony transcripts."
+            focus: "Bobbie's testimony transcripts.",
           },
           {
             keyword: "trauma",
             note: "Prax processes parenthood mid-collapse.",
-            focus: "Hydroponic metaphors in his internal monologue."
+            focus: "Hydroponic metaphors in his internal monologue.",
           },
           {
             keyword: "rebellion",
             note: "Avasarala weaponizes bureaucracy for justice.",
-            focus: "The edits she makes in pen on classified briefs."
-          }
-        ]
+            focus: "The edits she makes in pen on classified briefs.",
+          },
+        ],
       },
       {
         title: "Abaddon's Gate",
-        synopsis:
-          "Humanity enters the Ring, facing zealotry, coups, and protomolecule judgment.",
+        synopsis: "Humanity enters the Ring, facing zealotry, coups, and protomolecule judgment.",
         publishedYear: 2013,
         genres: ["science-fiction", "space-opera", "philosophical-sf"],
         preps: [
           {
             keyword: "religion",
             note: "Pastor Anna frames the unknown as revelation.",
-            focus: "Sermons delivered over shipwide comms."
+            focus: "Sermons delivered over shipwide comms.",
           },
           {
             keyword: "authoritarianism",
             note: "Ashford's control contrasts Bull's pragmatism.",
-            focus: "Command chair debates recorded by the Behemoth."
+            focus: "Command chair debates recorded by the Behemoth.",
           },
           {
             keyword: "hope",
             note: "Naomi insists on a third option between defeat and surrender.",
-            focus: "Engineering sketches taped inside the drum."
-          }
-        ]
-      }
-    ]
+            focus: "Engineering sketches taped inside the drum.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Susanna Clarke",
@@ -1103,45 +1135,44 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "magic-systems",
             note: "Footnotes build the rulebook.",
-            focus: "Who owns each grimorie cited."
+            focus: "Who owns each grimorie cited.",
           },
           {
             keyword: "myth",
             note: "Raven King legends haunt every ballroom.",
-            focus: "Faerie bargains sealed with dance."
+            focus: "Faerie bargains sealed with dance.",
           },
           {
             keyword: "storytelling",
             note: "Historians argue about credit mid-chapter.",
-            focus: "Annotator squabbles in the margins."
-          }
-        ]
+            focus: "Annotator squabbles in the margins.",
+          },
+        ],
       },
       {
         title: "Piranesi",
-        synopsis:
-          "A solitary man maps a labyrinthine House of statues and tides.",
+        synopsis: "A solitary man maps a labyrinthine House of statues and tides.",
         publishedYear: 2020,
         genres: ["fantasy", "literary-fiction", "philosophical-sf"],
         preps: [
           {
             keyword: "memory",
             note: "Journals keep reality coherent.",
-            focus: "Changes in tone around entry numbering."
+            focus: "Changes in tone around entry numbering.",
           },
           {
             keyword: "healing",
             note: "Rituals of gratitude stave off despair.",
-            focus: "Shared meals with birds and statues."
+            focus: "Shared meals with birds and statues.",
           },
           {
             keyword: "storytelling",
             note: "The narrative itself becomes an offering.",
-            focus: "Moments where the House responds."
-          }
-        ]
-      }
-    ]
+            focus: "Moments where the House responds.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Erin Morgenstern",
@@ -1156,21 +1187,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "magic-systems",
             note: "Every tent encodes the duel's rules.",
-            focus: "Pay attention to mirrored tricks."
+            focus: "Pay attention to mirrored tricks.",
           },
           {
             keyword: "found-family",
             note: "Rêveurs sustain the circus between cities.",
-            focus: "Red scarf rituals and midnight dinners."
+            focus: "Red scarf rituals and midnight dinners.",
           },
           {
             keyword: "resilience",
             note: "Art becomes a survival plan.",
-            focus: "Snippets of the Widget and Poppet storytelling show."
-          }
-        ]
-      }
-    ]
+            focus: "Snippets of the Widget and Poppet storytelling show.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Emily St. John Mandel",
@@ -1185,19 +1216,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "storytelling",
             note: "The Dr. Eleven comic mirrors the road.",
-            focus: "Museum of Civilization placards."
+            focus: "Museum of Civilization placards.",
           },
           {
             keyword: "climate",
             note: "Weather dictates rehearsal choices.",
-            focus: "Route maps pinned to caravan wagons."
+            focus: "Route maps pinned to caravan wagons.",
           },
           {
             keyword: "hope",
             note: "Performances insist survival is insufficient.",
-            focus: "Moments when the audience hums along."
-          }
-        ]
+            focus: "Moments when the audience hums along.",
+          },
+        ],
       },
       {
         title: "Sea of Tranquility",
@@ -1209,21 +1240,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "time",
             note: "Nested narratives fold into one another.",
-            focus: "Each violin loop sighting."
+            focus: "Each violin loop sighting.",
           },
           {
             keyword: "migration",
             note: "Characters leave Earth for domed moons.",
-            focus: "Customs checkpoints described in travel logs."
+            focus: "Customs checkpoints described in travel logs.",
           },
           {
             keyword: "grief",
             note: "Pandemics echo across diaries.",
-            focus: "Letters appended to archival transcripts."
-          }
-        ]
-      }
-    ]
+            focus: "Letters appended to archival transcripts.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Liu Cixin",
@@ -1238,19 +1269,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "authoritarianism",
             note: "Political campaigns ripple through academia.",
-            focus: "Red Coast Base protocols."
+            focus: "Red Coast Base protocols.",
           },
           {
             keyword: "technology",
             note: "The three-body VR game encodes alien history.",
-            focus: "Puzzle scenes with the countdown in the sky."
+            focus: "Puzzle scenes with the countdown in the sky.",
           },
           {
             keyword: "war-ethics",
             note: "E.T. contact debates are life-or-death.",
-            focus: "Letters Ye Wenjie sends into space."
-          }
-        ]
+            focus: "Letters Ye Wenjie sends into space.",
+          },
+        ],
       },
       {
         title: "The Dark Forest",
@@ -1262,19 +1293,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "surveillance",
             note: "Sophons watch every laboratory.",
-            focus: "Scenes where physicists perform for invisible audiences."
+            focus: "Scenes where physicists perform for invisible audiences.",
           },
           {
             keyword: "political-intrigue",
             note: "Wallfacers weaponize secrecy.",
-            focus: "Council debates about Luo Ji's plan."
+            focus: "Council debates about Luo Ji's plan.",
           },
           {
             keyword: "hope",
             note: "Dark Forest theory both terrifies and motivates.",
-            focus: "Moments when Luo Ji sketches the cosmic map."
-          }
-        ]
+            focus: "Moments when Luo Ji sketches the cosmic map.",
+          },
+        ],
       },
       {
         title: "Death's End",
@@ -1286,21 +1317,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "war-ethics",
             note: "Swordholder duty defines survival.",
-            focus: "Che Chengxin's internal debates."
+            focus: "Che Chengxin's internal debates.",
           },
           {
             keyword: "time",
             note: "Centuries pass via hibernation.",
-            focus: "Snapshots of future eras inserted mid-chapter."
+            focus: "Snapshots of future eras inserted mid-chapter.",
           },
           {
             keyword: "grief",
             note: "Entire civilizations vanish in an instant.",
-            focus: "Memorials described after each dimensional strike."
-          }
-        ]
-      }
-    ]
+            focus: "Memorials described after each dimensional strike.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Patrick Rothfuss",
@@ -1315,19 +1346,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "storytelling",
             note: "The framing device reframes truth.",
-            focus: "Chronicler's interjections."
+            focus: "Chronicler's interjections.",
           },
           {
             keyword: "magic-systems",
             note: "Sympathy balances cost and precision.",
-            focus: "Tuition payments tied to arcanist privileges."
+            focus: "Tuition payments tied to arcanist privileges.",
           },
           {
             keyword: "trauma",
             note: "Edema Ruh losses haunt every decision.",
-            focus: "Songs rewoven into laments."
-          }
-        ]
+            focus: "Songs rewoven into laments.",
+          },
+        ],
       },
       {
         title: "The Wise Man's Fear",
@@ -1339,21 +1370,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "identity",
             note: "Different cultures rename Kvothe.",
-            focus: "Etiquette differences between Severen and Haert."
+            focus: "Etiquette differences between Severen and Haert.",
           },
           {
             keyword: "found-family",
             note: "Wilem, Simmon, and Devi hold him accountable.",
-            focus: "Scenes in the Archives stacks."
+            focus: "Scenes in the Archives stacks.",
           },
           {
             keyword: "magic-systems",
             note: "Naming magic contradicts sympathy lessons.",
-            focus: "Felurian's teachings vs. Arwyl's lectures."
-          }
-        ]
-      }
-    ]
+            focus: "Felurian's teachings vs. Arwyl's lectures.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Brandon Sanderson",
@@ -1368,67 +1399,65 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "magic-systems",
             note: "Stormlight economics govern every battle.",
-            focus: "Schedules for highstorm chasms."
+            focus: "Schedules for highstorm chasms.",
           },
           {
             keyword: "class",
             note: "Alethi lighteyes and darkeyes divide labor.",
-            focus: "Bridge run rosters and pay ledgers."
+            focus: "Bridge run rosters and pay ledgers.",
           },
           {
             keyword: "found-family",
             note: "Bridge Four invents care rituals.",
-            focus: "Glyphs painted on shields."
-          }
-        ]
+            focus: "Glyphs painted on shields.",
+          },
+        ],
       },
       {
         title: "Words of Radiance",
-        synopsis:
-          "Oaths deepen as Parshendi singers and Radiants choose their futures.",
+        synopsis: "Oaths deepen as Parshendi singers and Radiants choose their futures.",
         publishedYear: 2014,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "identity",
             note: "Shallan keeps masks within masks.",
-            focus: "Sketchbook spreads."
+            focus: "Sketchbook spreads.",
           },
           {
             keyword: "war-ethics",
             note: "Dalinar questions the cost of vengeance.",
-            focus: "Conversations with the Stormfather."
+            focus: "Conversations with the Stormfather.",
           },
           {
             keyword: "hope",
             note: "Bridge Four extends care beyond the chasms.",
-            focus: "Tattoo ceremonies."
-          }
-        ]
+            focus: "Tattoo ceremonies.",
+          },
+        ],
       },
       {
         title: "Oathbringer",
-        synopsis:
-          "Coalitions form in Urithiru while secrets about the Recreance surface.",
+        synopsis: "Coalitions form in Urithiru while secrets about the Recreance surface.",
         publishedYear: 2017,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "trauma",
             note: "Dalinar confronts the Blackthorn's past.",
-            focus: "Feast flashbacks."
+            focus: "Feast flashbacks.",
           },
           {
             keyword: "prophecy",
             note: "Visions reinterpret historical oaths.",
-            focus: "Stormfather transcripts."
+            focus: "Stormfather transcripts.",
           },
           {
             keyword: "resilience",
             note: "Urithiru residents craft new commons.",
-            focus: "Community cooking rotations."
-          }
-        ]
+            focus: "Community cooking rotations.",
+          },
+        ],
       },
       {
         title: "Rhythm of War",
@@ -1440,24 +1469,23 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "technology",
             note: "Fabrial science becomes a frontline.",
-            focus: "Navani's lab journal headings."
+            focus: "Navani's lab journal headings.",
           },
           {
             keyword: "healing",
             note: "Mental health conversations take center stage.",
-            focus: "Kaladin's sessions with the ardents."
+            focus: "Kaladin's sessions with the ardents.",
           },
           {
             keyword: "rebellion",
             note: "Singer coalitions debate autonomy.",
-            focus: "Listener songs translated mid-battle."
-          }
-        ]
+            focus: "Listener songs translated mid-battle.",
+          },
+        ],
       },
       {
         title: "Mistborn: The Final Empire",
-        synopsis:
-          "Vin joins a thieving crew to overthrow the immortal Lord Ruler with allomancy.",
+        synopsis: "Vin joins a thieving crew to overthrow the immortal Lord Ruler with allomancy.",
         publishedYear: 2006,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
@@ -1465,144 +1493,139 @@ const SERIES: SeriesSeed[] = [
             keyword: "class",
             note: "Skaa rebellions hinge on resource sharing.",
             focus: "Keep inventories.",
-            extraKeywords: ["rebellion"]
+            extraKeywords: ["rebellion"],
           },
           {
             keyword: "magic-systems",
             note: "Allomantic metals have specific costs.",
-            focus: "Vin's training montages."
+            focus: "Vin's training montages.",
           },
           {
             keyword: "identity",
             note: "Vin balances street instincts with noble masquerades.",
-            focus: "Scenes with the cameo earrings."
-          }
-        ]
+            focus: "Scenes with the cameo earrings.",
+          },
+        ],
       },
       {
         title: "The Well of Ascension",
-        synopsis:
-          "Elend struggles to rule while assassins and armies close in on Luthadel.",
+        synopsis: "Elend struggles to rule while assassins and armies close in on Luthadel.",
         publishedYear: 2007,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "political-intrigue",
             note: "Parliament debates rewrite alliances.",
-            focus: "Demarals exchanging votes."
+            focus: "Demarals exchanging votes.",
           },
           {
             keyword: "hope",
             note: "Sazed keeps cataloging religions even as belief falters.",
-            focus: "Metalogical appendices."
+            focus: "Metalogical appendices.",
           },
           {
             keyword: "war-ethics",
             note: "Vin asks what collateral damage is acceptable.",
-            focus: "Mistborn aerial assaults described in detail."
-          }
-        ]
+            focus: "Mistborn aerial assaults described in detail.",
+          },
+        ],
       },
       {
         title: "The Hero of Ages",
-        synopsis:
-          "Ruin and Preservation fight through Vin and Elend's final stand.",
+        synopsis: "Ruin and Preservation fight through Vin and Elend's final stand.",
         publishedYear: 2008,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "prophecy",
             note: "Coppermind prophecies hide redactions.",
-            focus: "Epigraph commentary."
+            focus: "Epigraph commentary.",
           },
           {
             keyword: "grief",
             note: "Sazed narrates loss while seeking balance.",
-            focus: "Kandra contracts torn apart."
+            focus: "Kandra contracts torn apart.",
           },
           {
             keyword: "hope",
             note: "The ending reframes sacrifice.",
-            focus: "Ashfalls described near the end."
-          }
-        ]
-      }
-    ]
+            focus: "Ashfalls described near the end.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "J.R.R. Tolkien",
     books: [
       {
         title: "The Hobbit",
-        synopsis:
-          "Bilbo Baggins leaves the Shire with thirteen dwarves to reclaim Erebor.",
+        synopsis: "Bilbo Baggins leaves the Shire with thirteen dwarves to reclaim Erebor.",
         publishedYear: 1937,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "myth",
             note: "Fairy-tale structure hides deep lore.",
-            focus: "Songs around campfires."
+            focus: "Songs around campfires.",
           },
           {
             keyword: "found-family",
             note: "Trust builds through shared peril.",
-            focus: "Gift exchanges after each milestone."
+            focus: "Gift exchanges after each milestone.",
           },
           {
             keyword: "hope",
             note: "Hospitality keeps the quest possible.",
-            focus: "Beorn and Rivendell interludes."
-          }
-        ]
+            focus: "Beorn and Rivendell interludes.",
+          },
+        ],
       },
       {
         title: "The Fellowship of the Ring",
-        synopsis:
-          "Nine walkers carry the One Ring south while the shadow deepens.",
+        synopsis: "Nine walkers carry the One Ring south while the shadow deepens.",
         publishedYear: 1954,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "found-family",
             note: "The Fellowship negotiates purpose.",
-            focus: "Council of Elrond speeches."
+            focus: "Council of Elrond speeches.",
           },
           {
             keyword: "war-ethics",
             note: "Mercy vs. expedience is debated often.",
-            focus: "Frodo sparing Gollum retold by many voices."
+            focus: "Frodo sparing Gollum retold by many voices.",
           },
           {
             keyword: "prophecy",
             note: "Old songs foreshadow modern choices.",
-            focus: "Lothlórien laments."
-          }
-        ]
+            focus: "Lothlórien laments.",
+          },
+        ],
       },
       {
         title: "The Two Towers",
-        synopsis:
-          "The broken Fellowship confronts Saruman, Rohan, and creeping despair.",
+        synopsis: "The broken Fellowship confronts Saruman, Rohan, and creeping despair.",
         publishedYear: 1954,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "war-ethics",
             note: "Helm's Deep sets the stakes for total war.",
-            focus: "Captain speeches atop the wall."
+            focus: "Captain speeches atop the wall.",
           },
           {
             keyword: "hope",
             note: "Small lights pierce the darkness.",
-            focus: "Sam describing the star over Mordor."
+            focus: "Sam describing the star over Mordor.",
           },
           {
             keyword: "found-family",
             note: "Merry and Pippin root with the Ents.",
-            focus: "Shared jokes in Fangorn."
-          }
-        ]
+            focus: "Shared jokes in Fangorn.",
+          },
+        ],
       },
       {
         title: "The Return of the King",
@@ -1614,108 +1637,105 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "prophecy",
             note: "Aragorn fulfills ancient oaths.",
-            focus: "Paths of the Dead scenes."
+            focus: "Paths of the Dead scenes.",
           },
           {
             keyword: "grief",
             note: "The Scouring of the Shire reframes victory.",
-            focus: "Return journey chapters."
+            focus: "Return journey chapters.",
           },
           {
             keyword: "hope",
             note: "Even endings make space for future gardens.",
-            focus: "Sam's final sentences."
-          }
-        ]
-      }
-    ]
+            focus: "Sam's final sentences.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Jane Austen",
     books: [
       {
         title: "Pride and Prejudice",
-        synopsis:
-          "Elizabeth Bennet navigates class, reputation, and unexpected affection.",
+        synopsis: "Elizabeth Bennet navigates class, reputation, and unexpected affection.",
         publishedYear: 1813,
         genres: ["literary-fiction", "historical-fiction", "romance"],
         preps: [
           {
             keyword: "class",
             note: "Every dance is a negotiation.",
-            focus: "Netherfield vs. Meryton etiquette."
+            focus: "Netherfield vs. Meryton etiquette.",
           },
           {
             keyword: "identity",
             note: "Self-perception shifts with each letter.",
-            focus: "Darcy's first proposal and rewrite."
+            focus: "Darcy's first proposal and rewrite.",
           },
           {
             keyword: "resilience",
             note: "Sisters support one another even when they disagree.",
-            focus: "Conversations between Lizzy and Jane."
-          }
-        ]
-      }
-    ]
+            focus: "Conversations between Lizzy and Jane.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Charlotte Brontë",
     books: [
       {
         title: "Jane Eyre",
-        synopsis:
-          "An orphaned governess seeks dignity, love, and autonomy.",
+        synopsis: "An orphaned governess seeks dignity, love, and autonomy.",
         publishedYear: 1847,
         genres: ["literary-fiction", "historical-fiction", "romance"],
         preps: [
           {
             keyword: "identity",
             note: "Jane asserts worth despite poverty.",
-            focus: "Her responses during Lowood punishments."
+            focus: "Her responses during Lowood punishments.",
           },
           {
             keyword: "gender",
             note: "Marriage proposals double as power contracts.",
-            focus: "Conversations with Rochester and St. John."
+            focus: "Conversations with Rochester and St. John.",
           },
           {
             keyword: "healing",
             note: "Jane rebuilds her boundaries repeatedly.",
-            focus: "Return to the Moor House sisters."
-          }
-        ]
-      }
-    ]
+            focus: "Return to the Moor House sisters.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Emily Brontë",
     books: [
       {
         title: "Wuthering Heights",
-        synopsis:
-          "Generational obsession consumes the Earnshaw and Linton families.",
+        synopsis: "Generational obsession consumes the Earnshaw and Linton families.",
         publishedYear: 1847,
         genres: ["literary-fiction", "historical-fiction"],
         preps: [
           {
             keyword: "grief",
             note: "Loss is romanticized until it destroys everyone.",
-            focus: "Heathcliff's monologues to ghosts."
+            focus: "Heathcliff's monologues to ghosts.",
           },
           {
             keyword: "trauma",
             note: "Abuse cycles across generations.",
-            focus: "Scenes narrated by Nelly that feel unreliable."
+            focus: "Scenes narrated by Nelly that feel unreliable.",
           },
           {
             keyword: "storytelling",
             note: "Narrators contest truth.",
-            focus: "Lockwood's frame narrative."
-          }
-        ]
-      }
-    ]
+            focus: "Lockwood's frame narrative.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Charles Dickens",
@@ -1730,108 +1750,105 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "class",
             note: "Money warps gratitude.",
-            focus: "Miss Havisham's performance lessons."
+            focus: "Miss Havisham's performance lessons.",
           },
           {
             keyword: "identity",
             note: "Pip reinvents himself repeatedly.",
-            focus: "Letters between Pip and Joe."
+            focus: "Letters between Pip and Joe.",
           },
           {
             keyword: "storytelling",
             note: "Older Pip narrates younger Pip with regret.",
-            focus: "Moments that mention alternative endings."
-          }
-        ]
-      }
-    ]
+            focus: "Moments that mention alternative endings.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "George Orwell",
     books: [
       {
         title: "1984",
-        synopsis:
-          "Winston Smith rebels against the surveillance state of Oceania.",
+        synopsis: "Winston Smith rebels against the surveillance state of Oceania.",
         publishedYear: 1949,
         genres: ["science-fiction", "dystopian"],
         preps: [
           {
             keyword: "authoritarianism",
             note: "Language and truth are weaponized.",
-            focus: "Two Minutes Hate rituals."
+            focus: "Two Minutes Hate rituals.",
           },
           {
             keyword: "surveillance",
             note: "Tele-screens never sleep.",
-            focus: "Diary passages about blind spots."
+            focus: "Diary passages about blind spots.",
           },
           {
             keyword: "rebellion",
             note: "Small acts of care become resistance.",
-            focus: "Charrington shop visits."
-          }
-        ]
-      }
-    ]
+            focus: "Charrington shop visits.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Aldous Huxley",
     books: [
       {
         title: "Brave New World",
-        synopsis:
-          "Engineered citizens of the World State confront individuality.",
+        synopsis: "Engineered citizens of the World State confront individuality.",
         publishedYear: 1932,
         genres: ["science-fiction", "dystopian"],
         preps: [
           {
             keyword: "authoritarianism",
             note: "Pleasure keeps factory schedules tight.",
-            focus: "Hypnopaedia slogans."
+            focus: "Hypnopaedia slogans.",
           },
           {
             keyword: "technology",
             note: "Reproductive control underwrites the caste system.",
-            focus: "Bokanovsky process tours."
+            focus: "Bokanovsky process tours.",
           },
           {
             keyword: "identity",
             note: "Bernard and John wrestle with belonging.",
-            focus: "Conversations in the Savage Reservation."
-          }
-        ]
-      }
-    ]
+            focus: "Conversations in the Savage Reservation.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Ray Bradbury",
     books: [
       {
         title: "Fahrenheit 451",
-        synopsis:
-          "Fireman Guy Montag burns books until curiosity ignites dissent.",
+        synopsis: "Fireman Guy Montag burns books until curiosity ignites dissent.",
         publishedYear: 1953,
         genres: ["science-fiction", "dystopian"],
         preps: [
           {
             keyword: "authoritarianism",
             note: "State media dictates emotional range.",
-            focus: "Wall-sized TV parlors."
+            focus: "Wall-sized TV parlors.",
           },
           {
             keyword: "storytelling",
             note: "Memorizing texts keeps knowledge alive.",
-            focus: "Conversations with Faber."
+            focus: "Conversations with Faber.",
           },
           {
             keyword: "rebellion",
             note: "Montag rewires his definition of neighbor.",
-            focus: "River escape sequence."
-          }
-        ]
-      }
-    ]
+            focus: "River escape sequence.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Margaret Atwood",
@@ -1846,21 +1863,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "gender",
             note: "Rituals script bodily autonomy.",
-            focus: "Ceremony descriptions."
+            focus: "Ceremony descriptions.",
           },
           {
             keyword: "authoritarianism",
             note: "Faith-based propaganda controls speech.",
-            focus: "Aunt Lydia's lectures."
+            focus: "Aunt Lydia's lectures.",
           },
           {
             keyword: "rebellion",
             note: "Small gestures signal solidarity.",
-            focus: "Butter notes, Mayday whispers."
-          }
-        ]
-      }
-    ]
+            focus: "Butter notes, Mayday whispers.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Toni Morrison",
@@ -1875,79 +1892,77 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "memory",
             note: "Remembrance is both salve and wound.",
-            focus: "Shifts between 124, Sweet Home, and the Clearing."
+            focus: "Shifts between 124, Sweet Home, and the Clearing.",
           },
           {
             keyword: "trauma",
             note: "Characters name unspeakable violence.",
-            focus: "Rememory conversations."
+            focus: "Rememory conversations.",
           },
           {
             keyword: "healing",
             note: "Sisterhood creates room for restoration.",
-            focus: "Communal exorcism scenes."
-          }
-        ]
-      }
-    ]
+            focus: "Communal exorcism scenes.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Ralph Ellison",
     books: [
       {
         title: "Invisible Man",
-        synopsis:
-          "A Black narrator traverses institutions that refuse to see him.",
+        synopsis: "A Black narrator traverses institutions that refuse to see him.",
         publishedYear: 1952,
         genres: ["literary-fiction"],
         preps: [
           {
             keyword: "identity",
             note: "Masks pile up chapter by chapter.",
-            focus: "Brotherhood speeches."
+            focus: "Brotherhood speeches.",
           },
           {
             keyword: "class",
             note: "Labor disputes shape solidarity.",
-            focus: "Paint factory sequences."
+            focus: "Paint factory sequences.",
           },
           {
             keyword: "storytelling",
             note: "Framing in the underground underscores agency.",
-            focus: "Prologue vs. epilogue voice."
-          }
-        ]
-      }
-    ]
+            focus: "Prologue vs. epilogue voice.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Zora Neale Hurston",
     books: [
       {
         title: "Their Eyes Were Watching God",
-        synopsis:
-          "Janie Crawford recounts three marriages while seeking her own voice.",
+        synopsis: "Janie Crawford recounts three marriages while seeking her own voice.",
         publishedYear: 1937,
         genres: ["literary-fiction", "historical-fiction"],
         preps: [
           {
             keyword: "identity",
             note: "Dialect and narration trace agency.",
-            focus: "Conversations on the porch in Eatonville."
+            focus: "Conversations on the porch in Eatonville.",
           },
           {
             keyword: "resilience",
             note: "Storms and gossip test Janie's resolve.",
-            focus: "Scenes after the hurricane."
+            focus: "Scenes after the hurricane.",
           },
           {
             keyword: "hope",
             note: "Storytelling becomes reclamation.",
-            focus: "Frame narrative with Phoeby."
-          }
-        ]
-      }
-    ]
+            focus: "Frame narrative with Phoeby.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Chinua Achebe",
@@ -1962,21 +1977,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "colonialism",
             note: "Cultural imposition fractures community.",
-            focus: "Court messengers entering village assemblies."
+            focus: "Court messengers entering village assemblies.",
           },
           {
             keyword: "gender",
             note: "Masculinity ideals drive tragedy.",
-            focus: "Feast of the New Yam customs."
+            focus: "Feast of the New Yam customs.",
           },
           {
             keyword: "storytelling",
             note: "Proverbs document resistance.",
-            focus: "Narrator as oral historian."
-          }
-        ]
-      }
-    ]
+            focus: "Narrator as oral historian.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Alice Walker",
@@ -1991,103 +2006,100 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "trauma",
             note: "Letters capture abuse and resilience.",
-            focus: "Shifts from God to Nettie."
+            focus: "Shifts from God to Nettie.",
           },
           {
             keyword: "healing",
             note: "Friendship with Shug teaches self-love.",
-            focus: "Sewing room scenes."
+            focus: "Sewing room scenes.",
           },
           {
             keyword: "found-family",
             note: "Community redefines kinship.",
-            focus: "Reunion arcs."
-          }
-        ]
-      }
-    ]
+            focus: "Reunion arcs.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Madeline Miller",
     books: [
       {
         title: "The Song of Achilles",
-        synopsis:
-          "Patroclus narrates his bond with Achilles from childhood to Troy.",
+        synopsis: "Patroclus narrates his bond with Achilles from childhood to Troy.",
         publishedYear: 2011,
         genres: ["fantasy", "myth-retelling", "literary-fiction"],
         preps: [
           {
             keyword: "myth",
             note: "Trojan canon retold through tenderness.",
-            focus: "Training sequences with Chiron."
+            focus: "Training sequences with Chiron.",
           },
           {
             keyword: "war-ethics",
             note: "Glory versus compassion defines Achilles.",
-            focus: "Diplomatic pleas before battle."
+            focus: "Diplomatic pleas before battle.",
           },
           {
             keyword: "grief",
             note: "The ending lingers on memorial acts.",
-            focus: "Final plea to Thetis."
-          }
-        ]
+            focus: "Final plea to Thetis.",
+          },
+        ],
       },
       {
         title: "Circe",
-        synopsis:
-          "The witch of Aiaia tells her own story of exile, craft, and motherhood.",
+        synopsis: "The witch of Aiaia tells her own story of exile, craft, and motherhood.",
         publishedYear: 2018,
         genres: ["fantasy", "myth-retelling", "literary-fiction"],
         preps: [
           {
             keyword: "identity",
             note: "Circe rejects Olympian hierarchies.",
-            focus: "Conversations with Hermes and Odysseus."
+            focus: "Conversations with Hermes and Odysseus.",
           },
           {
             keyword: "myth",
             note: "Familiar tales shift through her narration.",
-            focus: "Potion-making scenes."
+            focus: "Potion-making scenes.",
           },
           {
             keyword: "resilience",
             note: "Solitude transforms into purpose.",
-            focus: "Scenes with Telegonus and Telemachus."
-          }
-        ]
-      }
-    ]
+            focus: "Scenes with Telegonus and Telemachus.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Pat Barker",
     books: [
       {
         title: "The Silence of the Girls",
-        synopsis:
-          "Briseis recounts the Trojan War from inside the Greek camp.",
+        synopsis: "Briseis recounts the Trojan War from inside the Greek camp.",
         publishedYear: 2018,
         genres: ["historical-fiction", "myth-retelling", "literary-fiction"],
         preps: [
           {
             keyword: "myth",
             note: "Familiar heroics become horror.",
-            focus: "Chants contrasting hero names."
+            focus: "Chants contrasting hero names.",
           },
           {
             keyword: "trauma",
             note: "Captivity shapes every action.",
-            focus: "Conversations with the other women."
+            focus: "Conversations with the other women.",
           },
           {
             keyword: "gender",
             note: "Voice reclamation is the act of rebellion.",
-            focus: "Narration shifts back to Patroclus then to Briseis."
-          }
-        ]
-      }
-    ]
+            focus: "Narration shifts back to Patroclus then to Briseis.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Neil Gaiman",
@@ -2102,19 +2114,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "myth",
             note: "Immigrant deities reinvent themselves.",
-            focus: "Roadside attraction interludes."
+            focus: "Roadside attraction interludes.",
           },
           {
             keyword: "migration",
             note: "Faith follows trade routes.",
-            focus: "Coming-to-America vignettes."
+            focus: "Coming-to-America vignettes.",
           },
           {
             keyword: "found-family",
             note: "Shadow chooses who to protect.",
-            focus: "Conversations with Sam Black Crow."
-          }
-        ]
+            focus: "Conversations with Sam Black Crow.",
+          },
+        ],
       },
       {
         title: "Neverwhere",
@@ -2126,21 +2138,21 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "identity",
             note: "Being invisible becomes literal.",
-            focus: "Moments with Door naming him 'a good man.'"
+            focus: "Moments with Door naming him 'a good man.'",
           },
           {
             keyword: "found-family",
             note: "Odd companions form a questing party.",
-            focus: "Banters with the Marquis de Carabas."
+            focus: "Banters with the Marquis de Carabas.",
           },
           {
             keyword: "myth",
             note: "Tube stations hide legends.",
-            focus: "Earl's Court sequence."
-          }
-        ]
-      }
-    ]
+            focus: "Earl's Court sequence.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Neil Gaiman & Terry Pratchett",
@@ -2155,79 +2167,77 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "hope",
             note: "Friendship bends destiny.",
-            focus: "Bookshop lunches."
+            focus: "Bookshop lunches.",
           },
           {
             keyword: "prophecy",
             note: "Agnes Nutter's book rewrites expectations.",
-            focus: "Footnotes around predictions."
+            focus: "Footnotes around predictions.",
           },
           {
             keyword: "found-family",
             note: "Them, the kids, choose their own path.",
-            focus: "Chats under the Tadfield tree."
-          }
-        ]
-      }
-    ]
+            focus: "Chats under the Tadfield tree.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "William Gibson",
     books: [
       {
         title: "Neuromancer",
-        synopsis:
-          "Case, a washed-up hacker, is hired for a final run inside cyberspace.",
+        synopsis: "Case, a washed-up hacker, is hired for a final run inside cyberspace.",
         publishedYear: 1984,
         genres: ["science-fiction", "cyberpunk"],
         preps: [
           {
             keyword: "technology",
             note: "Cyberspace decks redefine presence.",
-            focus: "Matrix immersion passages."
+            focus: "Matrix immersion passages.",
           },
           {
             keyword: "surveillance",
             note: "AI constructs track every avatar.",
-            focus: "Wintermute negotiations."
+            focus: "Wintermute negotiations.",
           },
           {
             keyword: "class",
             note: "Sprawl elites commodify talent.",
-            focus: "Contrast between Chiba and Freeside."
-          }
-        ]
-      }
-    ]
+            focus: "Contrast between Chiba and Freeside.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Neal Stephenson",
     books: [
       {
         title: "Snow Crash",
-        synopsis:
-          "Hiro Protagonist chases a virus that targets both brains and the Metaverse.",
+        synopsis: "Hiro Protagonist chases a virus that targets both brains and the Metaverse.",
         publishedYear: 1992,
         genres: ["science-fiction", "cyberpunk"],
         preps: [
           {
             keyword: "language",
             note: "Sumerian lore underpins the virus.",
-            focus: "L. Bob Rife broadcasts."
+            focus: "L. Bob Rife broadcasts.",
           },
           {
             keyword: "technology",
             note: "Metaverse economies foreshadow VR life.",
-            focus: "Pizza-delivery chase."
+            focus: "Pizza-delivery chase.",
           },
           {
             keyword: "authoritarianism",
             note: "Franchise states regulate freedom.",
-            focus: "Citizen agreements in burbclaves."
-          }
-        ]
-      }
-    ]
+            focus: "Citizen agreements in burbclaves.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Joe Haldeman",
@@ -2242,151 +2252,146 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "war-ethics",
             note: "Orders lag centuries behind reality.",
-            focus: "Battle briefings with time dilation stats."
+            focus: "Battle briefings with time dilation stats.",
           },
           {
             keyword: "time",
             note: "Each deployment leaps decades.",
-            focus: "Homecoming chapters."
+            focus: "Homecoming chapters.",
           },
           {
             keyword: "trauma",
             note: "Isolation compounds with every jump.",
-            focus: "Mandella's journals."
-          }
-        ]
-      }
-    ]
+            focus: "Mandella's journals.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Isaac Asimov",
     books: [
       {
         title: "Foundation",
-        synopsis:
-          "Hari Seldon's psychohistory seeds a plan to shorten the coming dark age.",
+        synopsis: "Hari Seldon's psychohistory seeds a plan to shorten the coming dark age.",
         publishedYear: 1951,
         genres: ["science-fiction", "political-thriller"],
         preps: [
           {
             keyword: "storytelling",
             note: "Encyclopedists curate myth as strategy.",
-            focus: "Seldon Crisis recordings."
+            focus: "Seldon Crisis recordings.",
           },
           {
             keyword: "political-intrigue",
             note: "Trade and religion become soft power.",
-            focus: "Terminus council debates."
+            focus: "Terminus council debates.",
           },
           {
             keyword: "hope",
             note: "Science becomes a beacon amid collapse.",
-            focus: "Foundation propaganda pieces."
-          }
-        ]
+            focus: "Foundation propaganda pieces.",
+          },
+        ],
       },
       {
         title: "Foundation and Empire",
-        synopsis:
-          "The Foundation confronts a warlord and the unpredictable Mule.",
+        synopsis: "The Foundation confronts a warlord and the unpredictable Mule.",
         publishedYear: 1952,
         genres: ["science-fiction", "political-thriller"],
         preps: [
           {
             keyword: "authoritarianism",
             note: "The Mule rewrites loyalty through emotion.",
-            focus: "Bayta and Toran conversations."
+            focus: "Bayta and Toran conversations.",
           },
           {
             keyword: "rebellion",
             note: "Resistance cells rely on intuition, not math.",
-            focus: "Meetings with Magnifico."
+            focus: "Meetings with Magnifico.",
           },
           {
             keyword: "hope",
             note: "Second Foundation whispers promise another layer.",
-            focus: "Final pages hinting at telepaths."
-          }
-        ]
+            focus: "Final pages hinting at telepaths.",
+          },
+        ],
       },
       {
         title: "Second Foundation",
-        synopsis:
-          "Searches for the hidden Second Foundation pit mentalics against ambition.",
+        synopsis: "Searches for the hidden Second Foundation pit mentalics against ambition.",
         publishedYear: 1953,
         genres: ["science-fiction", "political-thriller"],
         preps: [
           {
             keyword: "surveillance",
             note: "Mind readers escalate the arms race.",
-            focus: "Arcadia Darell scenes."
+            focus: "Arcadia Darell scenes.",
           },
           {
             keyword: "political-intrigue",
             note: "Planets gamble to host Seldon's heirs.",
-            focus: "Council hearings on Trantor."
+            focus: "Council hearings on Trantor.",
           },
           {
             keyword: "identity",
             note: "What counts as free will?",
-            focus: "Speakers' debates."
-          }
-        ]
-      }
-    ]
+            focus: "Speakers' debates.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Dan Simmons",
     books: [
       {
         title: "Hyperion",
-        synopsis:
-          "Seven pilgrims travel to the Time Tombs, each sharing tales of the Shrike.",
+        synopsis: "Seven pilgrims travel to the Time Tombs, each sharing tales of the Shrike.",
         publishedYear: 1989,
         genres: ["science-fiction", "philosophical-sf"],
         preps: [
           {
             keyword: "storytelling",
             note: "Canterbury structure frames mystery.",
-            focus: "Each pilgrim's confession."
+            focus: "Each pilgrim's confession.",
           },
           {
             keyword: "religion",
             note: "Shrike worship complicates motives.",
-            focus: "Bikura sect scenes."
+            focus: "Bikura sect scenes.",
           },
           {
             keyword: "war-ethics",
             note: "Hegemony vs. Ousters sets cosmic stakes.",
-            focus: "Force projection debates."
-          }
-        ]
+            focus: "Force projection debates.",
+          },
+        ],
       },
       {
         title: "The Fall of Hyperion",
-        synopsis:
-          "War erupts while AI factions debate humanity's fate.",
+        synopsis: "War erupts while AI factions debate humanity's fate.",
         publishedYear: 1990,
         genres: ["science-fiction", "philosophical-sf"],
         preps: [
           {
             keyword: "technology",
             note: "The TechnoCore hides dark agendas.",
-            focus: "John Keats cybrid dreamscapes."
+            focus: "John Keats cybrid dreamscapes.",
           },
           {
             keyword: "religion",
             note: "Catholic, AI, and poet visions collide.",
-            focus: "Father de Soya sequences."
+            focus: "Father de Soya sequences.",
           },
           {
             keyword: "hope",
             note: "Choices on Hyperion ripple to the Web.",
-            focus: "Reunions near the Time Tombs."
-          }
-        ]
-      }
-    ]
+            focus: "Reunions near the Time Tombs.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Carl Sagan",
@@ -2401,50 +2406,49 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "technology",
             note: "Engineering feats require global cooperation.",
-            focus: "Machine construction logs."
+            focus: "Machine construction logs.",
           },
           {
             keyword: "religion",
             note: "Faith leaders respond to proof of life.",
-            focus: "Ellie vs. Palmer debates."
+            focus: "Ellie vs. Palmer debates.",
           },
           {
             keyword: "hope",
             note: "Curiosity becomes diplomacy.",
-            focus: "Primer delivered post-journey."
-          }
-        ]
-      }
-    ]
+            focus: "Primer delivered post-journey.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Stanislaw Lem",
     books: [
       {
         title: "Solaris",
-        synopsis:
-          "Psychologist Kris Kelvin confronts a sentient ocean that manifests memories.",
+        synopsis: "Psychologist Kris Kelvin confronts a sentient ocean that manifests memories.",
         publishedYear: 1961,
         genres: ["science-fiction", "philosophical-sf"],
         preps: [
           {
             keyword: "memory",
             note: "Visitors expose unresolved guilt.",
-            focus: "Hari's appearances."
+            focus: "Hari's appearances.",
           },
           {
             keyword: "technology",
             note: "Scientific observation fails to decode Solaris.",
-            focus: "Library of futile explanations."
+            focus: "Library of futile explanations.",
           },
           {
             keyword: "trauma",
             note: "Grief becomes corporeal.",
-            focus: "Kelvin's internal debates."
-          }
-        ]
-      }
-    ]
+            focus: "Kelvin's internal debates.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "R.F. Kuang",
@@ -2459,19 +2463,19 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "war-ethics",
             note: "Each battle decision scars Rin.",
-            focus: "Golyn Niis aftermath."
+            focus: "Golyn Niis aftermath.",
           },
           {
             keyword: "class",
             note: "Sinegard tuition mirrors empire.",
-            focus: "Academy hazing rituals."
+            focus: "Academy hazing rituals.",
           },
           {
             keyword: "trauma",
             note: "Gods demand personal cost.",
-            focus: "Opium visions."
-          }
-        ]
+            focus: "Opium visions.",
+          },
+        ],
       },
       {
         title: "Babel",
@@ -2483,243 +2487,235 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "language",
             note: "Silver bars run on semantic gaps.",
-            focus: "Classroom exercises with etymologies."
+            focus: "Classroom exercises with etymologies.",
           },
           {
             keyword: "colonialism",
             note: "Empire steals language and labor.",
-            focus: "Hermes Society debates."
+            focus: "Hermes Society debates.",
           },
           {
             keyword: "rebellion",
             note: "Students choose sabotage over scholarship.",
-            focus: "Tower occupation scenes."
-          }
-        ]
-      }
-    ]
+            focus: "Tower occupation scenes.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Rebecca Roanhorse",
     books: [
       {
         title: "Black Sun",
-        synopsis:
-          "Prophecy, politics, and skyships collide in a pre-Columbian inspired epic.",
+        synopsis: "Prophecy, politics, and skyships collide in a pre-Columbian inspired epic.",
         publishedYear: 2020,
         genres: ["fantasy", "epic-fantasy"],
         preps: [
           {
             keyword: "myth",
             note: "Celestial omens structure each POV.",
-            focus: "Countdown to convergence."
+            focus: "Countdown to convergence.",
           },
           {
             keyword: "prophecy",
             note: "Naranpa and Serapio embody opposing destinies.",
-            focus: "Hawk vs. Crow rituals."
+            focus: "Hawk vs. Crow rituals.",
           },
           {
             keyword: "found-family",
             note: "Ship crews and clan houses define loyalty.",
-            focus: "Scenes aboard the Crow's ship."
-          }
-        ]
-      }
-    ]
+            focus: "Scenes aboard the Crow's ship.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Suzanne Collins",
     books: [
       {
         title: "The Hunger Games",
-        synopsis:
-          "Katniss volunteers to save her sister and becomes the spark of rebellion.",
+        synopsis: "Katniss volunteers to save her sister and becomes the spark of rebellion.",
         publishedYear: 2008,
         genres: ["science-fiction", "dystopian", "young-adult"],
         preps: [
           {
             keyword: "authoritarianism",
             note: "The Capitol televises punishment.",
-            focus: "Reaping ceremony."
+            focus: "Reaping ceremony.",
           },
           {
             keyword: "rebellion",
             note: "Mockingjay symbolism spreads quietly.",
-            focus: "Rue partnership."
+            focus: "Rue partnership.",
           },
           {
             keyword: "trauma",
             note: "Survival tactics become coping mechanisms.",
-            focus: "Peeta's camouflage scene."
-          }
-        ]
+            focus: "Peeta's camouflage scene.",
+          },
+        ],
       },
       {
         title: "Catching Fire",
-        synopsis:
-          "Victor tour unrest leads to another arena and open revolt.",
+        synopsis: "Victor tour unrest leads to another arena and open revolt.",
         publishedYear: 2009,
         genres: ["science-fiction", "dystopian", "young-adult"],
         preps: [
           {
             keyword: "authoritarianism",
             note: "Peacekeepers escalate violence.",
-            focus: "Whipping of Gale."
+            focus: "Whipping of Gale.",
           },
           {
             keyword: "found-family",
             note: "Allies form mid-arena.",
-            focus: "Clock arena alliances."
+            focus: "Clock arena alliances.",
           },
           {
             keyword: "rebellion",
             note: "Mockingjay role becomes official.",
-            focus: "Dress revealing wings."
-          }
-        ]
+            focus: "Dress revealing wings.",
+          },
+        ],
       },
       {
         title: "Mockingjay",
-        synopsis:
-          "District 13 wages total war while Katniss becomes the face of liberation.",
+        synopsis: "District 13 wages total war while Katniss becomes the face of liberation.",
         publishedYear: 2010,
         genres: ["science-fiction", "dystopian", "young-adult"],
         preps: [
           {
             keyword: "war-ethics",
             note: "Propaganda films are as deadly as bombs.",
-            focus: "Propo filming schedules."
+            focus: "Propo filming schedules.",
           },
           {
             keyword: "trauma",
             note: "PTSD shapes every decision.",
-            focus: "Katniss's medical chart notes."
+            focus: "Katniss's medical chart notes.",
           },
           {
             keyword: "hope",
             note: "The ending imagines future children.",
-            focus: "Epilogue field scene."
-          }
-        ]
-      }
-    ]
+            focus: "Epilogue field scene.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Jeff VanderMeer",
     books: [
       {
         title: "Annihilation",
-        synopsis:
-          "Four women enter Area X to document its impossible ecology.",
+        synopsis: "Four women enter Area X to document its impossible ecology.",
         publishedYear: 2014,
         genres: ["science-fiction", "horror", "cli-fi"],
         preps: [
           {
             keyword: "ecology",
             note: "Biosphere rewrites explorers.",
-            focus: "Tower journal."
+            focus: "Tower journal.",
           },
           {
             keyword: "memory",
             note: "Identifiers replace names.",
-            focus: "Biologist's flashbacks."
+            focus: "Biologist's flashbacks.",
           },
           {
             keyword: "identity",
             note: "Selfhood blurs with environment.",
-            focus: "Mirage scenes by the lighthouse."
-          }
-        ]
-      }
-    ]
+            focus: "Mirage scenes by the lighthouse.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Naomi Novik",
     books: [
       {
         title: "Spinning Silver",
-        synopsis:
-          "Three women bargain with fae, tsars, and winter itself to save their villages.",
+        synopsis: "Three women bargain with fae, tsars, and winter itself to save their villages.",
         publishedYear: 2018,
         genres: ["fantasy", "myth-retelling", "historical-fiction"],
         preps: [
           {
             keyword: "class",
             note: "Money-lending unveils gendered power.",
-            focus: "Ledgers Miryem keeps."
+            focus: "Ledgers Miryem keeps.",
           },
           {
             keyword: "myth",
             note: "Rumpelstiltskin motifs are upended.",
-            focus: "Staryk bargains."
+            focus: "Staryk bargains.",
           },
           {
             keyword: "found-family",
             note: "Alliances form across kingdoms.",
-            focus: "Wedding negotiations."
-          }
-        ]
-      }
-    ]
+            focus: "Wedding negotiations.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Mary Shelley",
     books: [
       {
         title: "Frankenstein",
-        synopsis:
-          "Victor Frankenstein animates life and faces the consequences of abandonment.",
+        synopsis: "Victor Frankenstein animates life and faces the consequences of abandonment.",
         publishedYear: 1818,
         genres: ["science-fiction", "horror", "literary-fiction"],
         preps: [
           {
             keyword: "technology",
             note: "Creation without care births tragedy.",
-            focus: "Lab descriptions."
+            focus: "Lab descriptions.",
           },
           {
             keyword: "identity",
             note: "The Creature seeks recognition.",
-            focus: "Monologues in the Alps."
+            focus: "Monologues in the Alps.",
           },
           {
             keyword: "grief",
             note: "Victor narrates regret to Walton.",
-            focus: "Frame letters."
-          }
-        ]
-      }
-    ]
+            focus: "Frame letters.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Gabriel García Márquez",
     books: [
       {
         title: "One Hundred Years of Solitude",
-        synopsis:
-          "The Buendía family saga unfolds in magical Macondo.",
+        synopsis: "The Buendía family saga unfolds in magical Macondo.",
         publishedYear: 1967,
         genres: ["literary-fiction", "magical-realism"],
         preps: [
           {
             keyword: "time",
             note: "Cycles repeat with minor shifts.",
-            focus: "Family tree references."
+            focus: "Family tree references.",
           },
           {
             keyword: "storytelling",
             note: "Narrator blurs myth and fact.",
-            focus: "Prophecies on parchments."
+            focus: "Prophecies on parchments.",
           },
           {
             keyword: "memory",
             note: "Plague of forgetfulness redefines community.",
-            focus: "Labeling household objects."
-          }
-        ]
-      }
-    ]
+            focus: "Labeling household objects.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Yaa Gyasi",
@@ -2734,51 +2730,50 @@ const SERIES: SeriesSeed[] = [
           {
             keyword: "memory",
             note: "Chapters act as oral histories.",
-            focus: "Naming conventions passed down."
+            focus: "Naming conventions passed down.",
           },
           {
             keyword: "migration",
             note: "Forced and voluntary movement shapes fate.",
-            focus: "Scenes on the Middle Passage."
+            focus: "Scenes on the Middle Passage.",
           },
           {
             keyword: "trauma",
             note: "Legacy of slavery is intergenerational.",
-            focus: "Coal mining and convict labor chapters."
-          }
-        ]
-      }
-    ]
+            focus: "Coal mining and convict labor chapters.",
+          },
+        ],
+      },
+    ],
   },
   {
     author: "Viet Thanh Nguyen",
     books: [
       {
         title: "The Sympathizer",
-        synopsis:
-          "A communist double agent narrates life after the fall of Saigon.",
+        synopsis: "A communist double agent narrates life after the fall of Saigon.",
         publishedYear: 2015,
         genres: ["literary-fiction", "historical-fiction"],
         preps: [
           {
             keyword: "identity",
             note: "Dual loyalties fracture the narrator.",
-            focus: "Movie set chapters."
+            focus: "Movie set chapters.",
           },
           {
             keyword: "war-ethics",
             note: "Revolutionary zeal collides with brutality.",
-            focus: "Interrogation confession."
+            focus: "Interrogation confession.",
           },
           {
             keyword: "colonialism",
             note: "French, American, and Vietnamese power overlaps.",
-            focus: "Reeducation camp dialogues."
-          }
-        ]
-      }
-    ]
-  }
+            focus: "Reeducation camp dialogues.",
+          },
+        ],
+      },
+    ],
+  },
 ] as const;
 
 // Canonical ISBN-13 codes for the curated seed titles (sourced from Open Library with manual fallbacks).
@@ -2791,47 +2786,47 @@ const BOOK_ISBN13: Record<string, string> = {
   "Ancillary Justice": "9780316246620",
   "Ancillary Mercy": "9780316246682",
   "Ancillary Sword": "9780316246651",
-  "Annihilation": "9781482956757",
-  "Babel": "9788419266286",
-  "Beloved": "9782264029454",
+  Annihilation: "9781482956757",
+  Babel: "9788419266286",
+  Beloved: "9782264029454",
   "Black Sun": "9781643588575",
   "Brave New World": "9780582275225",
   "Caliban's War": "9780316129060",
   "Catching Fire": "9780545586177",
   "Children of Dune": "9780593098240",
-  "Circe": "9786555352351",
-  "Contact": "9786073166447",
+  Circe: "9786555352351",
+  Contact: "9786073166447",
   "Death's End": "9780765377104",
-  "Dune": "9780441013593",
+  Dune: "9780441013593",
   "Dune Messiah": "9780593098233",
   "Fahrenheit 451": "9781508760863",
-  "Foundation": "9780553382570",
+  Foundation: "9780553382570",
   "Foundation and Empire": "9780553293371",
-  "Frankenstein": "9781403777966",
+  Frankenstein: "9781403777966",
   "Good Omens": "9780060853976",
   "Great Expectations": "9798355736071",
-  "Homegoing": "9789113082752",
-  "Hyperion": "9780553283686",
+  Homegoing: "9789113082752",
+  Hyperion: "9780553283686",
   "Invisible Man": "9780140180534",
   "Jane Eyre": "9781536915952",
   "Jonathan Strange & Mr Norrell": "9789050005753",
-  "Kindred": "9780671834838",
+  Kindred: "9780671834838",
   "Leviathan Wakes": "9780316129084",
   "Mistborn: The Final Empire": "9780765350381",
-  "Mockingjay": "9780439023542",
-  "Neverwhere": "9780380973637",
-  "Neuromancer": "9788842910688",
-  "Oathbringer": "9780765365293",
+  Mockingjay: "9780439023542",
+  Neverwhere: "9780380973637",
+  Neuromancer: "9788842910688",
+  Oathbringer: "9780765365293",
   "One Hundred Years of Solitude": "9780141032436",
   "Parable of the Sower": "9781538765494",
   "Parable of the Talents": "9780704346826",
-  "Piranesi": "9786586015317",
+  Piranesi: "9786586015317",
   "Pride and Prejudice": "9781980970200",
   "Rhythm of War": "9781250784261",
   "Sea of Tranquility": "9780593321447",
   "Second Foundation": "9780553293364",
   "Snow Crash": "9780553380958",
-  "Solaris": "9780156027601",
+  Solaris: "9780156027601",
   "Spinning Silver": "9781509899012",
   "Station Eleven": "9780804172448",
   "The City We Became": "9780316509848",
@@ -2864,23 +2859,24 @@ const BOOK_ISBN13: Record<string, string> = {
   "Their Eyes Were Watching God": "9780809590193",
   "Things Fall Apart": "9780736231848",
   "Wuthering Heights": "9780141439556",
-  "Words of Radiance": "9780765365286"
+  "Words of Radiance": "9780765365286",
 } as const;
 
 const BASE_BOOKS: SeedBook[] = SERIES.flatMap((series) =>
   series.books.map((book) => ({
     ...book,
     author: series.author,
-    isbn: book.isbn ?? BOOK_ISBN13[book.title]
+    isbn: book.isbn ?? BOOK_ISBN13[book.title],
   }))
 );
 
 const AUTHOR_BIOS: Record<string, string> = {
   "Arkady Martine": "Hugo-winning historian weaving Byzantine studies into space opera.",
   "N.K. Jemisin": "Three-time Hugo winner exploring power, geology, and liberation.",
-  "Ursula K. Le Guin": "Grandmaster of speculative fiction balancing anthropology with imagination.",
+  "Ursula K. Le Guin":
+    "Grandmaster of speculative fiction balancing anthropology with imagination.",
   "Frank Herbert": "Journalist-turned-novelist obsessed with ecology and power vacuums.",
-  "Octavia Butler": "MacArthur Fellow centering Black futures, biology, and agency."
+  "Octavia Butler": "MacArthur Fellow centering Black futures, biology, and agency.",
 };
 
 const SYSTEM_USER_EMAIL = "curator@bookprepper.com";
@@ -2896,7 +2892,7 @@ function slugify(value: string) {
 }
 
 async function main() {
-  console.log("\"Seeding BookPrepper catalog\"");
+  console.log('"Seeding BookPrepper catalog"');
 
   await prisma.$transaction(async (tx) => {
     await tx.$executeRawUnsafe("SET FOREIGN_KEY_CHECKS=0");
@@ -2920,13 +2916,13 @@ async function main() {
   const systemUser = await prisma.userProfile.upsert({
     where: { email: SYSTEM_USER_EMAIL },
     update: {
-      displayName: "BookPrepper Curator"
+      displayName: "BookPrepper Curator",
     },
     create: {
       email: SYSTEM_USER_EMAIL,
       displayName: "BookPrepper Curator",
-      cognitoSub: "system-curator"
-    }
+      cognitoSub: "system-curator",
+    },
   });
 
   const books = BASE_BOOKS;
@@ -2938,13 +2934,13 @@ async function main() {
       where: { slug },
       update: {
         name: authorName,
-        bio: AUTHOR_BIOS[authorName] ?? null
+        bio: AUTHOR_BIOS[authorName] ?? null,
       },
       create: {
         name: authorName,
         slug,
-        bio: AUTHOR_BIOS[authorName] ?? null
-      }
+        bio: AUTHOR_BIOS[authorName] ?? null,
+      },
     });
     authorRecords.set(authorName, author.id);
   }
@@ -2957,30 +2953,32 @@ async function main() {
       where: { slug: genreSlug },
       update: {
         name: definition.name,
-        description: definition.description
+        description: definition.description,
       },
       create: {
         slug: genreSlug,
         name: definition.name,
-        description: definition.description
-      }
+        description: definition.description,
+      },
     });
     genreRecords.set(genreSlug, genre.id);
   }
 
   const keywordRecords = new Map<KeywordSlug, string>();
-  for (const [slug, template] of Object.entries(KEYWORD_TEMPLATES) as Array<[KeywordSlug, KeywordTemplate]>) {
+  for (const [slug, template] of Object.entries(KEYWORD_TEMPLATES) as Array<
+    [KeywordSlug, KeywordTemplate]
+  >) {
     const keyword = await prisma.prepKeyword.upsert({
       where: { slug },
       update: {
         name: template.name,
-        description: template.description
+        description: template.description,
       },
       create: {
         slug,
         name: template.name,
-        description: template.description
-      }
+        description: template.description,
+      },
     });
     keywordRecords.set(slug, keyword.id);
   }
@@ -3003,7 +3001,7 @@ async function main() {
         publishedYear: book.publishedYear,
         coverImageUrl: book.coverImageUrl ?? null,
         isbn: book.isbn ?? null,
-        authorId
+        authorId,
       },
       create: {
         title: book.title,
@@ -3012,8 +3010,8 @@ async function main() {
         publishedYear: book.publishedYear,
         coverImageUrl: book.coverImageUrl ?? null,
         isbn: book.isbn ?? null,
-        authorId
-      }
+        authorId,
+      },
     });
 
     seededBookIds.push(bookRecord.id);
@@ -3027,8 +3025,8 @@ async function main() {
       await prisma.bookGenre.create({
         data: {
           bookId: bookRecord.id,
-          genreId
-        }
+          genreId,
+        },
       });
     }
 
@@ -3052,8 +3050,8 @@ async function main() {
           summary: summaryText,
           watchFor: watchForText,
           colorHint: prep.color ?? template.colorHint,
-          createdById: systemUser.id
-        }
+          createdById: systemUser.id,
+        },
       });
 
       await prisma.promptScore.upsert({
@@ -3063,7 +3061,7 @@ async function main() {
           disagreeCount: 0,
           totalCount: 0,
           score: 0,
-          dimensionTallies: {}
+          dimensionTallies: {},
         },
         create: {
           prepId: bookPrep.id,
@@ -3071,8 +3069,8 @@ async function main() {
           disagreeCount: 0,
           totalCount: 0,
           score: 0,
-          dimensionTallies: {}
-        }
+          dimensionTallies: {},
+        },
       });
 
       const keywordSlugs = new Set<KeywordSlug>([prep.keyword, ...(prep.extraKeywords ?? [])]);
@@ -3084,8 +3082,8 @@ async function main() {
         await prisma.prepKeywordOnPrep.create({
           data: {
             prepId: bookPrep.id,
-            keywordId
-          }
+            keywordId,
+          },
         });
       }
     }
@@ -3098,17 +3096,17 @@ async function main() {
       where: {
         userId_bookId: {
           userId: systemUser.id,
-          bookId
-        }
+          bookId,
+        },
       },
       update: {
-        status: "READING"
+        status: "READING",
       },
       create: {
         userId: systemUser.id,
         bookId,
-        status: "READING"
-      }
+        status: "READING",
+      },
     });
   }
 
@@ -3130,4 +3128,3 @@ function truncateText(value: string | null | undefined, max = 180) {
   if (!value) return value;
   return value.length > max ? `${value.slice(0, max - 1).trim()}…` : value;
 }
-

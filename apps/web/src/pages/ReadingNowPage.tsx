@@ -16,7 +16,7 @@ export default function ReadingNowPage() {
         throw new Error("Authentication required");
       }
       return api.listReadingNow(auth.token);
-    }
+    },
   });
 
   const finishMutation = useMutation({
@@ -28,7 +28,7 @@ export default function ReadingNowPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reading-now"] });
-    }
+    },
   });
 
   const entries = readingQuery.data?.entries ?? [];
@@ -55,7 +55,12 @@ export default function ReadingNowPage() {
           <h1>Reading Now</h1>
           <p>Jump back into books you are tracking and mark them finished when you are done.</p>
         </div>
-        <button type="button" className="link-button" onClick={() => readingQuery.refetch()} disabled={readingQuery.isFetching}>
+        <button
+          type="button"
+          className="link-button"
+          onClick={() => readingQuery.refetch()}
+          disabled={readingQuery.isFetching}
+        >
           {readingQuery.isFetching ? "Refreshing..." : "Refresh"}
         </button>
       </div>
@@ -67,7 +72,10 @@ export default function ReadingNowPage() {
 
       {!readingQuery.isLoading && !readingQuery.isError && isEmpty && (
         <div className="empty-state">
-          <p>No books in progress yet. Visit a book page and select &ldquo;Start reading&rdquo; to add one.</p>
+          <p>
+            No books in progress yet. Visit a book page and select &ldquo;Start reading&rdquo; to
+            add one.
+          </p>
         </div>
       )}
 
@@ -81,7 +89,9 @@ export default function ReadingNowPage() {
                 </p>
                 <h3>{entry.book.title}</h3>
                 <p className="reading-card__author">{entry.book.author.name}</p>
-                {entry.book.synopsis && <p className="reading-card__synopsis">{entry.book.synopsis}</p>}
+                {entry.book.synopsis && (
+                  <p className="reading-card__synopsis">{entry.book.synopsis}</p>
+                )}
                 {entry.book.keywords && entry.book.keywords.length > 0 && (
                   <div className="reading-card__keywords">
                     {entry.book.keywords.map((keyword) => (

@@ -6,7 +6,7 @@ import { env } from "config";
 const verifier = CognitoJwtVerifier.create({
   userPoolId: env.COGNITO_USER_POOL_ID,
   clientId: env.COGNITO_CLIENT_ID,
-  tokenUse: "id"
+  tokenUse: "id",
 });
 const adminEmail = env.ADMIN_EMAIL.trim().toLowerCase();
 
@@ -37,7 +37,7 @@ const authPlugin: FastifyPluginAsync = fp(async (fastify) => {
       request.authUser = {
         sub: payload.sub,
         email,
-        name
+        name,
       };
     } catch (error) {
       fastify.log.warn(`"JWT verification failed: ${(error as Error).message}"`);
@@ -59,4 +59,3 @@ const authPlugin: FastifyPluginAsync = fp(async (fastify) => {
 });
 
 export default authPlugin;
-

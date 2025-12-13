@@ -5,7 +5,7 @@ import {
   bookSlugParamsSchema,
   listBooksQuerySchema,
   metadataSuggestionBodySchema,
-  type ListBooksQuery
+  type ListBooksQuery,
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
 import { resolveCoverImageUrl } from "../utils/covers.js";
@@ -13,7 +13,7 @@ import {
   calculatePromptScore,
   createEmptyDimensionBreakdown,
   summaryFromScoreRecord,
-  toVotesPayload
+  toVotesPayload,
 } from "../utils/promptScores.js";
 import { tokenizeSearch } from "../utils/strings.js";
 
@@ -106,14 +106,14 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
     const stats = await loadCatalogStats();
     catalogStatsCache = {
       value: stats,
-      expiresAt: now + CATALOG_STATS_TTL_MS
+      expiresAt: now + CATALOG_STATS_TTL_MS,
     };
     return stats;
   });
 
   fastify.get("/genres", async () => {
     const genres = await prisma.genre.findMany({
-      orderBy: { name: "asc" }
+      orderBy: { name: "asc" },
     });
 
     return {
@@ -121,8 +121,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         id: genre.id,
         name: genre.name,
         slug: genre.slug,
-        description: genre.description
-      }))
+        description: genre.description,
+      })),
     };
   });
 
@@ -131,9 +131,9 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
       orderBy: { name: "asc" },
       include: {
         _count: {
-          select: { books: true }
-        }
-      }
+          select: { books: true },
+        },
+      },
     });
 
     return {
@@ -142,8 +142,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         name: author.name,
         slug: author.slug,
         bio: author.bio,
-        bookCount: author._count.books
-      }))
+        bookCount: author._count.books,
+      })),
     };
   });
 
@@ -155,18 +155,18 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
       author: true,
       genres: {
         include: {
-          genre: true
-        }
+          genre: true,
+        },
       },
       _count: {
-        select: { preps: true }
-      }
+        select: { preps: true },
+      },
     } as const;
 
     if (query.shuffle) {
       const ids = await prisma.book.findMany({
         where,
-        select: { id: true }
+        select: { id: true },
       });
 
       const total = ids.length;
@@ -180,17 +180,17 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
             total,
             page: query.page,
             pageSize: query.pageSize,
-            totalPages: Math.max(1, Math.ceil(total / query.pageSize))
+            totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
           },
-          results: []
+          results: [],
         };
       }
 
       const books = await prisma.book.findMany({
         where: {
-          id: { in: pageIds }
+          id: { in: pageIds },
         },
-        include
+        include,
       });
 
       const booksById = new Map(books.map((book) => [book.id, book]));
@@ -203,9 +203,9 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
           total,
           page: query.page,
           pageSize: query.pageSize,
-          totalPages: Math.max(1, Math.ceil(total / query.pageSize))
+          totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
         },
-        results: orderedBooks.map(mapBookListResult)
+        results: orderedBooks.map(mapBookListResult),
       };
     }
 
@@ -215,7 +215,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
       orderBy: { title: "asc" },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
-      include
+      include,
     });
 
     const [total, books] = await Promise.all([totalPromise, booksPromise]);
@@ -225,9 +225,9 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         total,
         page: query.page,
         pageSize: query.pageSize,
-        totalPages: Math.ceil(total / query.pageSize)
+        totalPages: Math.ceil(total / query.pageSize),
       },
-      results: books.map(mapBookListResult)
+      results: books.map(mapBookListResult),
     };
   });
 
@@ -243,8 +243,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
           include: {
             keywords: {
               include: {
-                keyword: true
-              }
+                keyword: true,
+              },
             },
             votes: true,
             score: true,
@@ -255,20 +255,20 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
                 user: {
                   select: {
                     id: true,
-                    displayName: true
-                  }
+                    displayName: true,
+                  },
                 },
                 votes: {
-                  select: { value: true }
-                }
-              }
-            }
+                  select: { value: true },
+                },
+              },
+            },
           },
           orderBy: {
-            heading: "asc"
-          }
-        }
-      }
+            heading: "asc",
+          },
+        },
+      },
     });
 
     if (!book) {
@@ -288,7 +288,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
         preps: {
           include: {
             keywords: {
-              include: { keyword: true }
+              include: { keyword: true },
             },
             votes: true,
             score: true,
@@ -299,18 +299,18 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
                 user: {
                   select: {
                     id: true,
-                    displayName: true
-                  }
+                    displayName: true,
+                  },
                 },
                 votes: {
-                  select: { value: true }
-                }
-              }
-            }
+                  select: { value: true },
+                },
+              },
+            },
           },
-          orderBy: { heading: "asc" }
-        }
-      }
+          orderBy: { heading: "asc" },
+        },
+      },
     });
 
     if (!book) {
@@ -319,7 +319,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
 
     return {
       slug: params.slug,
-      preps: book.preps.map(formatPrep)
+      preps: book.preps.map(formatPrep),
     };
   });
 
@@ -332,7 +332,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
 
       const book = await prisma.book.findUnique({
         where: { slug: params.slug },
-        select: { id: true }
+        select: { id: true },
       });
 
       if (!book) {
@@ -347,8 +347,8 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
           submittedById: user.id,
           suggestedSynopsis: body.synopsis ?? null,
           suggestedGenres: body.genres ?? [],
-          status: "PENDING"
-        }
+          status: "PENDING",
+        },
       });
 
       fastify.log.info(`"Received metadata suggestion ${suggestion.id} for book ${book.id}"`);
@@ -356,7 +356,7 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
       return {
         message: "Metadata suggestion submitted",
         suggestionId: suggestion.id,
-        status: suggestion.status
+        status: suggestion.status,
       };
     }
   );
@@ -373,7 +373,7 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
         { title: { contains: searchTerm } },
         { synopsis: { contains: searchTerm } },
         { author: { name: { contains: searchTerm } } },
-        { slug: { contains: searchTerm.toLowerCase() } }
+        { slug: { contains: searchTerm.toLowerCase() } },
       ];
     } else {
       where.AND = tokens.map((token) => ({
@@ -383,10 +383,10 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
           { slug: { contains: token } },
           {
             author: {
-              name: { contains: token }
-            }
-          }
-        ]
+              name: { contains: token },
+            },
+          },
+        ],
       }));
     }
   }
@@ -394,10 +394,7 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
   if (query.author) {
     const authorTerm = query.author.trim();
     where.author = {
-      OR: [
-        { slug: authorTerm },
-        { name: { contains: authorTerm } }
-      ]
+      OR: [{ slug: authorTerm }, { name: { contains: authorTerm } }],
     };
   }
 
@@ -411,9 +408,9 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
     where.genres = {
       some: {
         genre: {
-          slug: { in: genreSlugs }
-        }
-      }
+          slug: { in: genreSlugs },
+        },
+      },
     };
   }
 
@@ -429,11 +426,11 @@ function buildBookFilters(query: ListBooksQuery): Prisma.BookWhereInput {
         keywords: {
           some: {
             keyword: {
-              slug: { in: prepSlugs }
-            }
-          }
-        }
-      }
+              slug: { in: prepSlugs },
+            },
+          },
+        },
+      },
     };
   }
 
@@ -453,15 +450,15 @@ function mapBookDetail(book: BookDetailResult) {
     author: {
       id: book.author.id,
       name: book.author.name,
-      slug: book.author.slug
+      slug: book.author.slug,
     },
     genres: book.genres.map((entry) => ({
       id: entry.genre.id,
       name: entry.genre.name,
-      slug: entry.genre.slug
+      slug: entry.genre.slug,
     })),
     prepCount: formattedPreps.length,
-    preps: rankPreps(formattedPreps)
+    preps: rankPreps(formattedPreps),
   };
 }
 
@@ -475,14 +472,14 @@ function mapBookListResult(book: BookListResult) {
     isbn: book.isbn,
     author: {
       name: book.author.name,
-      slug: book.author.slug
+      slug: book.author.slug,
     },
     genres: book.genres.map((entry) => ({
       id: entry.genre.id,
       name: entry.genre.name,
-      slug: entry.genre.slug
+      slug: entry.genre.slug,
     })),
-    prepCount: book._count.preps
+    prepCount: book._count.preps,
   };
 }
 
@@ -494,7 +491,7 @@ function formatPrep(prep: PrepWithRelations) {
     disagree: legacyDisagree,
     total: legacyAgree + legacyDisagree,
     score: calculatePromptScore(legacyAgree, legacyDisagree),
-    dimensions: createEmptyDimensionBreakdown()
+    dimensions: createEmptyDimensionBreakdown(),
   };
   const summary = summaryFromScoreRecord(prep.score) ?? fallbackSummary;
 
@@ -506,7 +503,7 @@ function formatPrep(prep: PrepWithRelations) {
     colorHint: prep.colorHint,
     keywords: prep.keywords.map((entry) => ({
       slug: entry.keyword.slug,
-      name: entry.keyword.name
+      name: entry.keyword.name,
     })),
     votes: toVotesPayload(summary),
     quotes: prep.quotes.map((quote) => {
@@ -522,15 +519,15 @@ function formatPrep(prep: PrepWithRelations) {
         createdAt: quote.createdAt.toISOString(),
         user: {
           id: quote.user.id,
-          displayName: quote.user.displayName
+          displayName: quote.user.displayName,
         },
         votes: {
           agree: agreeCount,
           disagree: disagreeCount,
-          total: agreeCount + disagreeCount
-        }
+          total: agreeCount + disagreeCount,
+        },
       };
-    })
+    }),
   };
 }
 
@@ -561,8 +558,8 @@ async function loadCatalogStats(): Promise<CatalogStats> {
     prisma.bookPrep.count(),
     prisma.book.aggregate({
       _min: { publishedYear: true },
-      _max: { publishedYear: true }
-    })
+      _max: { publishedYear: true },
+    }),
   ]);
 
   return {
@@ -571,8 +568,8 @@ async function loadCatalogStats(): Promise<CatalogStats> {
     preps: prepCount,
     years: {
       earliest: yearBounds._min.publishedYear ?? null,
-      latest: yearBounds._max.publishedYear ?? null
-    }
+      latest: yearBounds._max.publishedYear ?? null,
+    },
   };
 }
 
@@ -584,4 +581,3 @@ function shuffleIds<T>(input: T[]): T[] {
   }
   return result;
 }
-

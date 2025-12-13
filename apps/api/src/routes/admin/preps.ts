@@ -3,16 +3,8 @@
  */
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "db";
-import {
-  adminPrepUpsertSchema,
-  bookSlugParamsSchema,
-  prepParamsSchema
-} from "../../schemas.js";
-import {
-  adminPrepInclude,
-  mapAdminPrep,
-  upsertKeywords
-} from "./helpers.js";
+import { adminPrepUpsertSchema, bookSlugParamsSchema, prepParamsSchema } from "../../schemas.js";
+import { adminPrepInclude, mapAdminPrep, upsertKeywords } from "./helpers.js";
 
 const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
   const guardHooks = { onRequest: [fastify.verifyJwt, fastify.requireAdmin] };
@@ -23,7 +15,7 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const book = await prisma.book.findUnique({
       where: { slug: params.slug },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!book) {
@@ -41,15 +33,15 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
         colorHint: body.colorHint ?? null,
         keywords: {
           create: keywords.map((keyword) => ({
-            keywordId: keyword.id
-          }))
-        }
+            keywordId: keyword.id,
+          })),
+        },
       },
-      ...adminPrepInclude
+      ...adminPrepInclude,
     });
 
     return {
-      prep: mapAdminPrep(prep)
+      prep: mapAdminPrep(prep),
     };
   });
 
@@ -59,7 +51,7 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const prep = await prisma.bookPrep.findFirst({
       where: { id: params.prepId, book: { slug: params.slug } },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!prep) {
@@ -78,15 +70,15 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
         keywords: {
           deleteMany: {},
           create: keywords.map((keyword) => ({
-            keywordId: keyword.id
-          }))
-        }
+            keywordId: keyword.id,
+          })),
+        },
       },
-      ...adminPrepInclude
+      ...adminPrepInclude,
     });
 
     return {
-      prep: mapAdminPrep(updatedPrep)
+      prep: mapAdminPrep(updatedPrep),
     };
   });
 
@@ -95,7 +87,7 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const prep = await prisma.bookPrep.findFirst({
       where: { id: params.prepId, book: { slug: params.slug } },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!prep) {
@@ -103,11 +95,11 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     await prisma.bookPrep.delete({
-      where: { id: prep.id }
+      where: { id: prep.id },
     });
 
     return {
-      message: "Prep removed."
+      message: "Prep removed.",
     };
   });
 };

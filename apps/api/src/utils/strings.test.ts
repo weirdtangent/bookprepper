@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  tokenizeSearch,
-  slugify,
-  truncateSynopsis,
-  extractStringArray
-} from "./strings.js";
+import { tokenizeSearch, slugify, truncateSynopsis, extractStringArray } from "./strings.js";
 
 describe("tokenizeSearch", () => {
   it("returns empty array for empty string", () => {
@@ -28,12 +23,7 @@ describe("tokenizeSearch", () => {
   });
 
   it("handles mixed alphanumeric and special chars", () => {
-    expect(tokenizeSearch("book-prep_test 123")).toEqual([
-      "book",
-      "prep",
-      "test",
-      "123"
-    ]);
+    expect(tokenizeSearch("book-prep_test 123")).toEqual(["book", "prep", "test", "123"]);
   });
 
   it("trims leading and trailing whitespace", () => {
@@ -154,35 +144,19 @@ describe("extractStringArray", () => {
   });
 
   it("extracts string values", () => {
-    expect(extractStringArray(["one", "two", "three"])).toEqual([
-      "one",
-      "two",
-      "three"
-    ]);
+    expect(extractStringArray(["one", "two", "three"])).toEqual(["one", "two", "three"]);
   });
 
   it("trims whitespace from strings", () => {
-    expect(extractStringArray(["  one  ", " two ", "three"])).toEqual([
-      "one",
-      "two",
-      "three"
-    ]);
+    expect(extractStringArray(["  one  ", " two ", "three"])).toEqual(["one", "two", "three"]);
   });
 
   it("filters out empty strings", () => {
-    expect(extractStringArray(["one", "", "two", "   ", "three"])).toEqual([
-      "one",
-      "two",
-      "three"
-    ]);
+    expect(extractStringArray(["one", "", "two", "   ", "three"])).toEqual(["one", "two", "three"]);
   });
 
   it("filters out non-string values", () => {
-    expect(extractStringArray(["one", 123, "two", null, "three"])).toEqual([
-      "one",
-      "two",
-      "three"
-    ]);
+    expect(extractStringArray(["one", 123, "two", null, "three"])).toEqual(["one", "two", "three"]);
   });
 
   it("handles mixed array with all edge cases", () => {

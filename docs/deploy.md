@@ -20,13 +20,13 @@ cp .env.example .env
 
 Key settings:
 
-| Variable | Description |
-| --- | --- |
-| `MYSQL_*` / `DATABASE_URL` | Connection details for the MySQL database |
-| `API_PORT` | Port for the Fastify server (default `4000`) |
-| `COGNITO_*` | Backend Cognito values used for token verification |
-| `VITE_API_BASE_URL` | Public URL of the API (e.g., `https://api.bookprepper.com`) |
-| `VITE_COGNITO_*` | Frontend Cognito values used by Amplify |
+| Variable                   | Description                                                 |
+| -------------------------- | ----------------------------------------------------------- |
+| `MYSQL_*` / `DATABASE_URL` | Connection details for the MySQL database                   |
+| `API_PORT`                 | Port for the Fastify server (default `4000`)                |
+| `COGNITO_*`                | Backend Cognito values used for token verification          |
+| `VITE_API_BASE_URL`        | Public URL of the API (e.g., `https://api.bookprepper.com`) |
+| `VITE_COGNITO_*`           | Frontend Cognito values used by Amplify                     |
 
 ## Install dependencies
 
@@ -139,4 +139,3 @@ After completing these steps, visiting the hosted UI or invoking `signInWithRedi
 - When schema changes occur: `pnpm --filter db prisma migrate deploy` followed by `pnpm --filter db prisma db seed`.
 - After code updates, rebuild and redeploy artifacts (`pnpm -r build`).
 - Monitor API logs via systemd (`journalctl -u bookprepper --follow`) or pm2.
-

@@ -10,7 +10,7 @@ export const PROMPT_FEEDBACK_DIMENSIONS: PromptFeedbackDimension[] = [
   "NOT_USEFUL",
   "CONFUSING",
   "COMMON",
-  "SPARSE"
+  "SPARSE",
 ];
 
 export const PROMPT_FEEDBACK_LABELS: Record<PromptFeedbackDimension, string> = {
@@ -23,7 +23,7 @@ export const PROMPT_FEEDBACK_LABELS: Record<PromptFeedbackDimension, string> = {
   NOT_USEFUL: "Not useful",
   CONFUSING: "Confusing",
   COMMON: "Shows up often",
-  SPARSE: "Sparse / hard to find"
+  SPARSE: "Sparse / hard to find",
 };
 
 export function getPromptFeedbackLabel(dimension: PromptFeedbackDimension) {

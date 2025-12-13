@@ -21,7 +21,9 @@ export default function HomePage() {
   const [search, setSearch] = useState("");
   const [authorSlug, setAuthorSlug] = useState(() => searchParams.get("author") ?? "");
   const [genreFilters, setGenreFilters] = useState<string[]>([]);
-  const [prepFilters, setPrepFilters] = useState<string[]>(() => parseListParam(searchParams.get("prep")));
+  const [prepFilters, setPrepFilters] = useState<string[]>(() =>
+    parseListParam(searchParams.get("prep"))
+  );
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 350);
   const typeaheadSearch = useDebounce(search, 200);
@@ -46,23 +48,26 @@ export default function HomePage() {
 
   const genresQuery = useQuery<{ genres: Genre[] }>({
     queryKey: ["genres"],
-    queryFn: () => api.listGenres()
+    queryFn: () => api.listGenres(),
   });
 
   const authorsQuery = useQuery<{ authors: Author[] }>({
     queryKey: ["authors"],
-    queryFn: () => api.listAuthors()
+    queryFn: () => api.listAuthors(),
   });
 
   const keywordsQuery = useQuery<{ keywords: Keyword[] }>({
     queryKey: ["prep-keywords"],
-    queryFn: () => api.listPrepKeywords()
+    queryFn: () => api.listPrepKeywords(),
   });
 
   const shuffleEnabled = auth.preferences.shuffleDefault ?? true;
 
   const booksQuery = useQuery<BookListResponse>({
-    queryKey: ["books", { debouncedSearch, authorSlug, genreFilters, prepFilters, page, shuffleEnabled }],
+    queryKey: [
+      "books",
+      { debouncedSearch, authorSlug, genreFilters, prepFilters, page, shuffleEnabled },
+    ],
     queryFn: ({ signal }) =>
       api.listBooks(
         {
@@ -72,11 +77,11 @@ export default function HomePage() {
           prep: prepFilters,
           page,
           pageSize: PAGE_SIZE,
-          shuffle: shuffleEnabled
+          shuffle: shuffleEnabled,
         },
         signal
       ),
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
   });
 
   const typeaheadQuery = useQuery<BookListResponse>({
@@ -86,11 +91,11 @@ export default function HomePage() {
         {
           search: typeaheadSearch.trim() || undefined,
           page: 1,
-          pageSize: 6
+          pageSize: 6,
         },
         signal
       ),
-    enabled: typeaheadSearch.trim().length >= 2
+    enabled: typeaheadSearch.trim().length >= 2,
   });
 
   const updateAuthorFilter = (value: string) => {
@@ -191,8 +196,8 @@ export default function HomePage() {
         <div>
           <h1>Prep your next reading adventure</h1>
           <p>
-            Browse our collection of books, filter by genre or prep keyword, and see what other readers watch
-            for before they start.
+            Browse our collection of books, filter by genre or prep keyword, and see what other
+            readers watch for before they start.
           </p>
         </div>
         {selectedFilterCount > 0 && (
@@ -240,7 +245,11 @@ export default function HomePage() {
 
         <div className="filter-group">
           <label htmlFor="author">Author</label>
-          <select id="author" value={authorSlug} onChange={(event) => updateAuthorFilter(event.target.value)}>
+          <select
+            id="author"
+            value={authorSlug}
+            onChange={(event) => updateAuthorFilter(event.target.value)}
+          >
             <option value="">All authors</option>
             {authors.map((author) => (
               <option key={author.id} value={author.slug}>
@@ -313,7 +322,11 @@ export default function HomePage() {
             </div>
             {shuffleEnabled ? (
               <div className="shuffle-controls">
-                <button type="button" onClick={() => booksQuery.refetch()} disabled={booksQuery.isFetching}>
+                <button
+                  type="button"
+                  onClick={() => booksQuery.refetch()}
+                  disabled={booksQuery.isFetching}
+                >
                   {booksQuery.isFetching ? "Shuffling..." : "Shuffle again"}
                 </button>
                 <span className="shuffle-hint">Showing random picks</span>
@@ -326,7 +339,10 @@ export default function HomePage() {
                 <span>
                   Page {booksQuery.data?.pagination.page} of {totalPages}
                 </span>
-                <button disabled={!canGoForward} onClick={() => canGoForward && setPage((p) => p + 1)}>
+                <button
+                  disabled={!canGoForward}
+                  onClick={() => canGoForward && setPage((p) => p + 1)}
+                >
                   Next
                 </button>
               </div>
@@ -336,7 +352,9 @@ export default function HomePage() {
 
         {!booksQuery.isLoading && !hasResults && (
           <div className="empty-state">
-            <p>No books match these filters yet. Try removing a filter or submit a new suggestion.</p>
+            <p>
+              No books match these filters yet. Try removing a filter or submit a new suggestion.
+            </p>
           </div>
         )}
       </section>
@@ -355,4 +373,3 @@ function areArraysEqual(a: string[], b: string[]) {
   }
   return true;
 }
-

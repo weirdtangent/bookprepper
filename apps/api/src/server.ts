@@ -16,22 +16,22 @@ import { randomUUID } from "crypto";
 async function buildServer() {
   const server = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL ?? "info"
+      level: process.env.LOG_LEVEL ?? "info",
     },
-    genReqId: () => randomUUID()
+    genReqId: () => randomUUID(),
   });
 
   await server.register(sensible);
   await server.register(helmet, {
-    crossOriginResourcePolicy: false
+    crossOriginResourcePolicy: false,
   });
   await server.register(cors, {
     origin: [env.WEB_BASE_URL],
-    credentials: true
+    credentials: true,
   });
   await server.register(rateLimit, {
     max: 300,
-    timeWindow: "1 minute"
+    timeWindow: "1 minute",
   });
   await server.register(authPlugin);
 
@@ -52,11 +52,10 @@ const server = await buildServer();
 try {
   await server.listen({
     port: env.API_PORT,
-    host: env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1"
+    host: env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1",
   });
   server.log.info(`"API server listening on port ${env.API_PORT}"`);
 } catch (error) {
   server.log.error(`"Failed to start API server: ${(error as Error).message}"`);
   process.exit(1);
 }
-

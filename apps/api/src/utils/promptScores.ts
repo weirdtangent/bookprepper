@@ -1,4 +1,8 @@
-import type { PromptFeedbackDimension, PrepVoteValue, PromptScore as PromptScoreRecord } from "@prisma/client";
+import type {
+  PromptFeedbackDimension,
+  PrepVoteValue,
+  PromptScore as PromptScoreRecord,
+} from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "db";
 
@@ -12,7 +16,7 @@ export const PROMPT_FEEDBACK_DIMENSIONS: PromptFeedbackDimension[] = [
   "NOT_USEFUL",
   "CONFUSING",
   "COMMON",
-  "SPARSE"
+  "SPARSE",
 ];
 
 export type DimensionVoteBreakdown = Record<
@@ -40,11 +44,14 @@ type AggregateRow = {
   };
 };
 
-export async function syncPromptScore(prepId: string, feedbackTimestamp = new Date()): Promise<PromptVoteSummary> {
+export async function syncPromptScore(
+  prepId: string,
+  feedbackTimestamp = new Date()
+): Promise<PromptVoteSummary> {
   const aggregates = await prisma.promptFeedback.groupBy({
     by: ["dimension", "value"],
     where: { prepId },
-    _count: { _all: true }
+    _count: { _all: true },
   });
 
   const summary = summarizeAggregates(aggregates);
@@ -57,7 +64,7 @@ export async function syncPromptScore(prepId: string, feedbackTimestamp = new Da
       totalCount: summary.total,
       score: summary.score,
       dimensionTallies: summary.dimensions as unknown as Prisma.InputJsonValue,
-      lastFeedbackAt: summary.total > 0 ? feedbackTimestamp : null
+      lastFeedbackAt: summary.total > 0 ? feedbackTimestamp : null,
     },
     create: {
       prepId,
@@ -66,8 +73,8 @@ export async function syncPromptScore(prepId: string, feedbackTimestamp = new Da
       totalCount: summary.total,
       score: summary.score,
       dimensionTallies: summary.dimensions as unknown as Prisma.InputJsonValue,
-      lastFeedbackAt: summary.total > 0 ? feedbackTimestamp : null
-    }
+      lastFeedbackAt: summary.total > 0 ? feedbackTimestamp : null,
+    },
   });
 
   return summary;
@@ -98,7 +105,7 @@ export function summarizeAggregates(rows: AggregateRow[]): PromptVoteSummary {
     disagree,
     total: agree + disagree,
     score: calculatePromptScore(agree, disagree),
-    dimensions
+    dimensions,
   };
 }
 
@@ -119,7 +126,9 @@ export function createEmptyDimensionBreakdown(): DimensionVoteBreakdown {
   }, {} as DimensionVoteBreakdown);
 }
 
-export function summaryFromScoreRecord(record?: PromptScoreRecord | null): PromptVoteSummary | null {
+export function summaryFromScoreRecord(
+  record?: PromptScoreRecord | null
+): PromptVoteSummary | null {
   if (!record) {
     return null;
   }
@@ -133,7 +142,9 @@ export function summaryFromScoreRecord(record?: PromptScoreRecord | null): Promp
         dimensions[dimension] = {
           agree,
           disagree,
-          total: Number((entry as Record<string, unknown>).total ?? agree + disagree) || agree + disagree
+          total:
+            Number((entry as Record<string, unknown>).total ?? agree + disagree) ||
+            agree + disagree,
         };
       }
     }
@@ -144,7 +155,7 @@ export function summaryFromScoreRecord(record?: PromptScoreRecord | null): Promp
     disagree: record.disagreeCount,
     total: record.totalCount,
     score: Number(record.score ?? 0),
-    dimensions
+    dimensions,
   };
 }
 
@@ -158,7 +169,7 @@ export function toVotesPayload(summary: PromptVoteSummary) {
       dimension,
       agree: summary.dimensions[dimension].agree,
       disagree: summary.dimensions[dimension].disagree,
-      total: summary.dimensions[dimension].total
-    }))
+      total: summary.dimensions[dimension].total,
+    })),
   };
 }

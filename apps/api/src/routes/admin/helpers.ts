@@ -8,7 +8,7 @@ import {
   calculatePromptScore,
   createEmptyDimensionBreakdown,
   summaryFromScoreRecord,
-  toVotesPayload
+  toVotesPayload,
 } from "../../utils/promptScores.js";
 import { tokenizeSearch, slugify } from "../../utils/strings.js";
 
@@ -18,41 +18,41 @@ export const adminBookDetailInclude = {
     author: true,
     genres: {
       include: {
-        genre: true
+        genre: true,
       },
       orderBy: {
         genre: {
-          name: "asc"
-        }
-      }
+          name: "asc",
+        },
+      },
     },
     preps: {
       include: {
         keywords: {
           include: {
-            keyword: true
-          }
+            keyword: true,
+          },
         },
         votes: true,
-        score: true
+        score: true,
       },
       orderBy: {
-        updatedAt: "desc"
-      }
-    }
-  }
+        updatedAt: "desc",
+      },
+    },
+  },
 } as const;
 
 export const adminPrepInclude = {
   include: {
     keywords: {
       include: {
-        keyword: true
-      }
+        keyword: true,
+      },
     },
     votes: true,
-    score: true
-  }
+    score: true,
+  },
 } as const;
 
 // Types
@@ -74,10 +74,10 @@ export function buildBookSearchWhere(search?: string) {
         { slug: { contains: fallback.toLowerCase() } },
         {
           author: {
-            name: { contains: fallback, mode: "insensitive" }
-          }
-        }
-      ]
+            name: { contains: fallback, mode: "insensitive" },
+          },
+        },
+      ],
     };
   }
 
@@ -88,11 +88,11 @@ export function buildBookSearchWhere(search?: string) {
         { slug: { contains: token } },
         {
           author: {
-            name: { contains: token, mode: "insensitive" }
-          }
-        }
-      ]
-    }))
+            name: { contains: token, mode: "insensitive" },
+          },
+        },
+      ],
+    })),
   };
 }
 
@@ -110,15 +110,15 @@ export function mapAdminBook(book: AdminBookDetail) {
     author: {
       id: book.author.id,
       name: book.author.name,
-      slug: book.author.slug
+      slug: book.author.slug,
     },
     genres: book.genres.map((entry) => ({
       id: entry.genre.id,
       name: entry.genre.name,
-      slug: entry.genre.slug
+      slug: entry.genre.slug,
     })),
     preps: book.preps.map(mapAdminPrep),
-    updatedAt: book.updatedAt
+    updatedAt: book.updatedAt,
   };
 }
 
@@ -130,7 +130,7 @@ export function mapAdminPrep(prep: AdminPrepDetail) {
     disagree: legacyDisagree,
     total: legacyAgree + legacyDisagree,
     score: calculatePromptScore(legacyAgree, legacyDisagree),
-    dimensions: createEmptyDimensionBreakdown()
+    dimensions: createEmptyDimensionBreakdown(),
   };
   const summary = summaryFromScoreRecord(prep.score) ?? fallbackSummary;
 
@@ -143,10 +143,10 @@ export function mapAdminPrep(prep: AdminPrepDetail) {
     keywords: prep.keywords.map((entry) => ({
       id: entry.keyword.id,
       slug: entry.keyword.slug,
-      name: entry.keyword.name
+      name: entry.keyword.name,
     })),
     votes: toVotesPayload(summary),
-    updatedAt: prep.updatedAt
+    updatedAt: prep.updatedAt,
   };
 }
 
@@ -179,8 +179,8 @@ export async function resolveAuthorId(authorId?: string, authorName?: string) {
   const author = await prisma.author.create({
     data: {
       name: normalizedName,
-      slug
-    }
+      slug,
+    },
   });
 
   return author.id;
@@ -194,7 +194,7 @@ export async function validateGenreIds(fastify: FastifyInstance, genreIds: strin
 
   const genres = await prisma.genre.findMany({
     where: { id: { in: uniqueIds } },
-    select: { id: true }
+    select: { id: true },
   });
 
   if (genres.length !== uniqueIds.length) {
@@ -206,7 +206,7 @@ export async function validateGenreIds(fastify: FastifyInstance, genreIds: strin
 
 export async function syncBookGenres(bookId: string, genreIds: string[]) {
   await prisma.bookGenre.deleteMany({
-    where: { bookId }
+    where: { bookId },
   });
 
   if (genreIds.length === 0) {
@@ -216,20 +216,14 @@ export async function syncBookGenres(bookId: string, genreIds: string[]) {
   await prisma.bookGenre.createMany({
     data: genreIds.map((genreId) => ({
       bookId,
-      genreId
+      genreId,
     })),
-    skipDuplicates: true
+    skipDuplicates: true,
   });
 }
 
 export async function upsertKeywords(keywordNames: string[]) {
-  const cleaned = Array.from(
-    new Set(
-      keywordNames
-        .map((name) => name.trim())
-        .filter(Boolean)
-    )
-  );
+  const cleaned = Array.from(new Set(keywordNames.map((name) => name.trim()).filter(Boolean)));
 
   if (cleaned.length === 0) {
     return [];
@@ -241,7 +235,7 @@ export async function upsertKeywords(keywordNames: string[]) {
       return prisma.prepKeyword.upsert({
         where: { slug },
         update: { name },
-        create: { name, slug }
+        create: { name, slug },
       });
     })
   );
@@ -273,13 +267,7 @@ async function slugExists(type: "book" | "author" | "genre", slug: string) {
 }
 
 export async function ensureGenresFromNames(names: string[]) {
-  const cleaned = Array.from(
-    new Set(
-      names
-        .map((name) => name.trim())
-        .filter(Boolean)
-    )
-  );
+  const cleaned = Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
 
   if (cleaned.length === 0) {
     return [];
@@ -295,8 +283,8 @@ export async function ensureGenresFromNames(names: string[]) {
       genre = await prisma.genre.create({
         data: {
           name,
-          slug
-        }
+          slug,
+        },
       });
     }
     genres.push(genre);

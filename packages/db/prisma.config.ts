@@ -15,11 +15,9 @@ if (existsSync(rootEnvPath)) {
 export default defineConfig({
   schema: "./prisma/schema.prisma",
   datasource: {
-    url: env("DATABASE_URL")
+    url: env("DATABASE_URL"),
   },
   migrations: {
-    seed: "tsx prisma/seed.ts"
-  }
+    seed: "tsx prisma/seed.ts",
+  },
 });
-
-

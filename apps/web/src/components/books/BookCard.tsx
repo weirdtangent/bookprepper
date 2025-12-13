@@ -56,4 +56,3 @@ export function BookCard({ book }: Props) {
     </article>
   );
 }
-
