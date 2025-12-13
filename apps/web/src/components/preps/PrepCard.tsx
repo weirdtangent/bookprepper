@@ -138,7 +138,7 @@ export function PrepCard({
                 ⚠️ Show quotes (may contain spoilers)
               </button>
             )}
-            {spoilerRevealed && (
+            {quoteCount > 0 && spoilerRevealed && (
               <button
                 type="button"
                 className="prep-quotes__toggle"
@@ -164,7 +164,8 @@ export function PrepCard({
             </ul>
           )}
 
-          {spoilerRevealed && !showQuoteForm && onAddQuote && (
+          {/* Show "Add a quote" button when: no quotes exist, OR spoiler is revealed */}
+          {(quoteCount === 0 || spoilerRevealed) && !showQuoteForm && onAddQuote && (
             <button
               type="button"
               className="prep-quotes__toggle"
@@ -175,7 +176,7 @@ export function PrepCard({
             </button>
           )}
 
-          {spoilerRevealed && showQuoteForm && (
+          {(quoteCount === 0 || spoilerRevealed) && showQuoteForm && (
             <form className="quote-form" onSubmit={handleQuoteSubmit}>
               <textarea
                 placeholder="Enter a quote from the book that relates to this prep..."
