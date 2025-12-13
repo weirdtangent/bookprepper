@@ -67,6 +67,7 @@ export function PrepCard({
     chapter: ""
   });
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [quoteVerified, setQuoteVerified] = useState(false);
 
   // Debounce quote text for search
   const debouncedQuoteText = useDebounce(quoteDraft.text, 500);
@@ -101,14 +102,69 @@ export function PrepCard({
 
   const handleSelectSuggestion = (snippet: string) => {
     // Clean up HTML entities and tags from the snippet
-    const cleanText = snippet
-      .replace(/<\/?b>/g, "")
+    const cleanSnippet = snippet
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
       .replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">");
-    setQuoteDraft({ ...quoteDraft, text: cleanText });
+
+    // Extract just the bold (matched) portions and nearby text
+    // The <b> tags mark what Google found matching
+    const boldMatches = snippet.match(/<b>([^<]+)<\/b>/g);
+    
+    if (boldMatches && boldMatches.length > 0) {
+      // Find where the first bold match starts in the clean text
+      const firstBold = boldMatches[0].replace(/<\/?b>/g, "");
+      const lastBold = boldMatches[boldMatches.length - 1].replace(/<\/?b>/g, "");
+      
+      // Remove all HTML tags for position finding
+      const textOnly = cleanSnippet.replace(/<\/?b>/g, "");
+      
+      // Find the positions
+      const startIdx = textOnly.toLowerCase().indexOf(firstBold.toLowerCase());
+      const lastIdx = textOnly.toLowerCase().lastIndexOf(lastBold.toLowerCase());
+      
+      if (startIdx !== -1 && lastIdx !== -1) {
+        // Extract from first match to end of last match, plus try to get complete sentence
+        let extractStart = startIdx;
+        let extractEnd = lastIdx + lastBold.length;
+        
+        // Try to extend to sentence boundaries (period, exclamation, question mark)
+        // Look backwards for sentence start (capital letter after punctuation or start)
+        for (let i = extractStart - 1; i >= Math.max(0, extractStart - 50); i--) {
+          if (textOnly[i] === '.' || textOnly[i] === '!' || textOnly[i] === '?') {
+            extractStart = i + 1;
+            break;
+          }
+        }
+        
+        // Look forwards for sentence end
+        for (let i = extractEnd; i < Math.min(textOnly.length, extractEnd + 100); i++) {
+          if (textOnly[i] === '.' || textOnly[i] === '!' || textOnly[i] === '?') {
+            extractEnd = i + 1;
+            break;
+          }
+        }
+        
+        // Extract and clean up
+        let extracted = textOnly.slice(extractStart, extractEnd).trim();
+        
+        // Remove leading ellipsis or trailing ellipsis
+        extracted = extracted.replace(/^\.{2,}\s*/, "").replace(/\s*\.{2,}$/, "");
+        
+        // If we got something reasonable, use it
+        if (extracted.length >= 10) {
+          setQuoteDraft({ ...quoteDraft, text: extracted });
+          setQuoteVerified(true);
+          setShowSuggestions(false);
+          return;
+        }
+      }
+    }
+    
+    // Fallback: keep user's text but mark as verified since we found a match
+    setQuoteVerified(true);
     setShowSuggestions(false);
   };
 
@@ -136,6 +192,7 @@ export function PrepCard({
     if (!onAddQuote || !quoteDraft.text.trim()) return;
     onAddQuote(quoteDraft);
     setQuoteDraft({ text: "", pageNumber: "", chapter: "" });
+    setQuoteVerified(false);
     setShowQuoteForm(false);
   };
 
@@ -236,6 +293,7 @@ export function PrepCard({
                   value={quoteDraft.text}
                   onChange={(e) => {
                     setQuoteDraft({ ...quoteDraft, text: e.target.value });
+                    setQuoteVerified(false); // Reset verified when text changes
                     if (!e.target.value.trim()) setShowSuggestions(false);
                   }}
                   onFocus={() => {
@@ -245,8 +303,12 @@ export function PrepCard({
                   maxLength={2000}
                   required
                   disabled={isAddingQuote}
+                  className={quoteVerified ? "quote-form__textarea--verified" : ""}
                 />
-                {quoteSearchQuery.isFetching && (
+                {quoteVerified && (
+                  <span className="quote-form__verified">✓ Verified in Google Books</span>
+                )}
+                {!quoteVerified && quoteSearchQuery.isFetching && (
                   <span className="quote-form__searching">Searching...</span>
                 )}
                 {showSuggestions && quoteSearchQuery.data?.results && quoteSearchQuery.data.results.length > 0 && (
@@ -308,6 +370,8 @@ export function PrepCard({
                   onClick={() => {
                     setShowQuoteForm(false);
                     setShowSuggestions(false);
+                    setQuoteVerified(false);
+                    setQuoteDraft({ text: "", pageNumber: "", chapter: "" });
                   }}
                   disabled={isAddingQuote}
                 >

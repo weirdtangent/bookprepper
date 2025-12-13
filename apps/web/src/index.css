@@ -1605,6 +1605,31 @@ body.theme-dark .quote-item__verified {
   border-radius: 4px;
 }
 
+.quote-form__verified {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+body.theme-dark .quote-form__verified {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.15);
+}
+
+.quote-form__textarea--verified {
+  border-color: #059669 !important;
+}
+
+body.theme-dark .quote-form__textarea--verified {
+  border-color: #34d399 !important;
+}
+
 .quote-suggestions {
   position: absolute;
   top: 100%;
