@@ -94,9 +94,7 @@ export default function MyBooksPage() {
           onClick={() => setActiveTab("reading")}
         >
           Reading
-          {readingEntries.length > 0 && (
-            <span className="tab__count">{readingEntries.length}</span>
-          )}
+          {readingEntries.length > 0 && <span className="tab__count">{readingEntries.length}</span>}
         </button>
         <button
           type="button"
@@ -123,9 +121,7 @@ export default function MyBooksPage() {
               add one.
             </p>
           ) : (
-            <p>
-              No finished books yet. Mark a book as finished when you complete it.
-            </p>
+            <p>No finished books yet. Mark a book as finished when you complete it.</p>
           )}
         </div>
       )}

@@ -1,15 +1,13 @@
 # [1.1.0](https://github.com/weirdtangent/bookprepper/compare/v1.0.0...v1.1.0) (2025-12-13)
 
-
 ### Bug Fixes
 
-* build packages in correct order before apps ([c93d13c](https://github.com/weirdtangent/bookprepper/commit/c93d13c52039684f40cd648072069e4009a0a35d))
-* explicitly exit covers cache script to prevent hanging ([1a4d55c](https://github.com/weirdtangent/bookprepper/commit/1a4d55c130581b61c550c27413f915a7a592c5ca))
-
+- build packages in correct order before apps ([c93d13c](https://github.com/weirdtangent/bookprepper/commit/c93d13c52039684f40cd648072069e4009a0a35d))
+- explicitly exit covers cache script to prevent hanging ([1a4d55c](https://github.com/weirdtangent/bookprepper/commit/1a4d55c130581b61c550c27413f915a7a592c5ca))
 
 ### Features
 
-* display app version in header bar ([fb5a7b9](https://github.com/weirdtangent/bookprepper/commit/fb5a7b9d1d048aad5fa37876a1dd16ca89399333))
+- display app version in header bar ([fb5a7b9](https://github.com/weirdtangent/bookprepper/commit/fb5a7b9d1d048aad5fa37876a1dd16ca89399333))
 
 # 1.0.0 (2025-12-13)
 
