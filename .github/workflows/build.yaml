@@ -85,6 +85,11 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm prisma:generate
+        env:
+          DATABASE_URL: mysql://ci:ci@localhost:3306/ci
+
+      - name: Build packages
+        run: pnpm --filter types build
 
       - name: Typecheck
         run: pnpm typecheck
@@ -120,6 +125,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma:generate
+        env:
+          DATABASE_URL: mysql://ci:ci@localhost:3306/ci
 
       - name: Run tests
         run: pnpm test

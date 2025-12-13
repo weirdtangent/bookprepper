@@ -44,6 +44,7 @@ import type {
   Prep,
   BookDetail,
   BookListResponse,
+  BookQueryParams,
   CatalogStats,
   UserPreferences,
   UserProfile,
