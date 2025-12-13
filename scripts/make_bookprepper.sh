@@ -16,10 +16,26 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
+# Clean TypeScript build cache to ensure fresh types after schema changes
+rm -f apps/api/tsconfig.tsbuildinfo
+rm -f apps/web/tsconfig.tsbuildinfo
+rm -f packages/db/tsconfig.tsbuildinfo
+rm -f packages/config/tsconfig.tsbuildinfo
+rm -rf apps/api/dist
+rm -rf apps/web/dist
+rm -rf packages/db/dist
+rm -rf packages/config/dist
+
 pnpm install
 pnpm --filter db prisma generate
 pnpm --filter db prisma migrate deploy
-pnpm build
+
+# Build packages in correct order: config -> db -> api, web
+pnpm --filter config build
+pnpm --filter db build
+pnpm covers:cache
+pnpm --filter api build
+pnpm --filter web build
 
 sudo systemctl restart bookprepper
 

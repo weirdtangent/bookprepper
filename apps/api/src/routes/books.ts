@@ -45,6 +45,21 @@ type BookDetailResult = Prisma.BookGetPayload<{
         keywords: { include: { keyword: true } };
         votes: true;
         score: true;
+        quotes: {
+          include: {
+            user: {
+              select: {
+                id: true;
+                displayName: true;
+              };
+            };
+            votes: {
+              select: {
+                value: true;
+              };
+            };
+          };
+        };
       };
     };
   };
