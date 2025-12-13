@@ -7,7 +7,7 @@ import authPlugin from "./plugins/auth.js";
 import booksRoutes from "./routes/books.js";
 import prepsRoutes from "./routes/preps.js";
 import suggestionsRoutes from "./routes/suggestions.js";
-import adminRoutes from "./routes/admin.js";
+import adminRoutes from "./routes/admin/index.js";
 import profileRoutes from "./routes/profile.js";
 import readingRoutes from "./routes/reading.js";
 import { env } from "config";

@@ -1,357 +1,74 @@
 import { config } from "./config";
 
+// Re-export all shared types for convenience
+export type {
+  Pagination,
+  Author,
+  Genre,
+  Keyword,
+  PromptFeedbackDimension,
+  PromptVoteDimensionBreakdown,
+  PromptVoteSummary,
+  QuoteVotes,
+  PrepQuote,
+  GoogleBooksSearchResult,
+  Prep,
+  BookSummary,
+  BookDetail,
+  BookListResponse,
+  CatalogStats,
+  UserPreferences,
+  UserProfile,
+  ReadingEntry,
+  AdminBookListItem,
+  AdminPrepDetail,
+  AdminBookDetail,
+  PromptInsightSummary,
+  PromptFeedbackInsights,
+  AdminCreateBookInput,
+  AdminUpdateBookInput,
+  AdminPrepInput,
+  SubmittedBySummary,
+  AdminMetadataSuggestion,
+  AdminPrepSuggestion,
+  AdminBookSuggestion,
+  BookQueryParams
+} from "types";
+
+import type {
+  Pagination,
+  Genre,
+  Keyword,
+  Author,
+  PromptFeedbackDimension,
+  Prep,
+  BookDetail,
+  BookListResponse,
+  CatalogStats,
+  UserPreferences,
+  UserProfile,
+  ReadingEntry,
+  AdminBookListItem,
+  AdminPrepDetail,
+  AdminBookDetail,
+  PromptFeedbackInsights,
+  AdminCreateBookInput,
+  AdminUpdateBookInput,
+  AdminPrepInput,
+  AdminMetadataSuggestion,
+  AdminPrepSuggestion,
+  AdminBookSuggestion,
+  PrepQuote,
+  QuoteVotes,
+  GoogleBooksSearchResult
+} from "types";
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   token?: string | null;
   signal?: AbortSignal;
   query?: Record<string, string | number | (string | number)[] | undefined>;
-};
-
-export type Pagination = {
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
-
-export type BookSummary = {
-  id: string;
-  slug: string;
-  title: string;
-  synopsis: string | null;
-  coverImageUrl: string | null;
-  isbn: string | null;
-  author: {
-    name: string;
-    slug: string;
-  };
-  genres: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
-  prepCount: number;
-  keywords?: Keyword[];
-};
-
-export type BookListResponse = {
-  pagination: Pagination;
-  results: BookSummary[];
-};
-
-export type PromptFeedbackDimension =
-  | "CORRECT"
-  | "INCORRECT"
-  | "FUN"
-  | "BORING"
-  | "USEFUL"
-  | "SURPRISING"
-  | "NOT_USEFUL"
-  | "CONFUSING"
-  | "COMMON"
-  | "SPARSE";
-
-export type PromptVoteDimensionBreakdown = {
-  dimension: PromptFeedbackDimension;
-  agree: number;
-  disagree: number;
-  total: number;
-};
-
-export type PromptVoteSummary = {
-  agree: number;
-  disagree: number;
-  total: number;
-  score: number;
-  dimensions: PromptVoteDimensionBreakdown[];
-};
-
-export type QuoteVotes = {
-  agree: number;
-  disagree: number;
-  total: number;
-};
-
-export type PrepQuote = {
-  id: string;
-  text: string;
-  pageNumber: string | null;
-  chapter: string | null;
-  verified: boolean;
-  verifiedSource: string | null;
-  createdAt: string;
-  user: {
-    id: string;
-    displayName: string;
-  };
-  votes: QuoteVotes;
-};
-
-export type GoogleBooksSearchResult = {
-  bookId: string;
-  title: string;
-  authors: string[];
-  publisher?: string;
-  publishedDate?: string;
-  previewLink?: string;
-  infoLink?: string;
-  textSnippet?: string;
-};
-
-export type Prep = {
-  id: string;
-  heading: string;
-  summary: string;
-  watchFor: string | null;
-  colorHint: string | null;
-  keywords: Array<{
-    slug: string;
-    name: string;
-  }>;
-  votes: PromptVoteSummary;
-  quotes: PrepQuote[];
-};
-
-export type BookDetail = {
-  id: string;
-  slug: string;
-  title: string;
-  synopsis: string | null;
-  coverImageUrl: string | null;
-  isbn: string | null;
-  author: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  genres: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
-  prepCount: number;
-  preps: Prep[];
-};
-
-export type Keyword = {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-};
-
-export type Genre = {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-};
-
-export type Author = {
-  id: string;
-  name: string;
-  slug: string;
-  bio?: string | null;
-  bookCount: number;
-};
-
-export type CatalogStats = {
-  books: number;
-  authors: number;
-  preps: number;
-  years: {
-    earliest: number | null;
-    latest: number | null;
-  };
-};
-
-export type UserProfile = {
-  id: string;
-  displayName: string;
-  email: string;
-  role: string;
-  preferences: UserPreferences;
-};
-
-export type UserPreferences = {
-  shuffleDefault?: boolean;
-};
-
-export type BookQueryParams = {
-  search?: string;
-  author?: string;
-  genres?: string[];
-  prep?: string[];
-  page?: number;
-  pageSize?: number;
-  shuffle?: boolean;
-};
-
-export type AdminBookListItem = {
-  id: string;
-  slug: string;
-  title: string;
-  author: {
-    id: string;
-    name: string;
-  };
-  synopsis: string | null;
-  isbn: string | null;
-  prepCount: number;
-  updatedAt: string;
-};
-
-export type AdminPrepDetail = {
-  id: string;
-  heading: string;
-  summary: string;
-  watchFor: string | null;
-  colorHint: string | null;
-  keywords: Array<{
-    id: string;
-    slug: string;
-    name: string;
-  }>;
-  votes: PromptVoteSummary;
-  updatedAt: string;
-};
-
-export type AdminBookDetail = {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle?: string | null;
-  synopsis: string | null;
-  coverImageUrl: string | null;
-  isbn: string | null;
-  publishedYear: number | null;
-  author: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  genres: Genre[];
-  preps: AdminPrepDetail[];
-  updatedAt: string;
-};
-
-export type PromptInsightSummary = {
-  prepId: string;
-  heading: string;
-  summary: string;
-  book: {
-    id: string;
-    title: string;
-    slug: string;
-  };
-  votes: PromptVoteSummary;
-};
-
-export type PromptFeedbackInsights = {
-  topPrompts: PromptInsightSummary[];
-  needsAttention: PromptInsightSummary[];
-  recentFeedback: Array<{
-    id: string;
-    dimension: PromptFeedbackDimension;
-    value: "AGREE" | "DISAGREE";
-    note: string | null;
-    createdAt: string;
-    prep: {
-      id: string;
-      heading: string;
-    };
-    book: {
-      id: string;
-      title: string;
-      slug: string;
-    };
-  }>;
-};
-
-export type ReadingEntry = {
-  id: string;
-  status: "READING" | "DONE";
-  startedAt: string;
-  updatedAt: string;
-  book: BookSummary;
-};
-
-export type AdminCreateBookInput = {
-  title: string;
-  subtitle?: string;
-  slug?: string;
-  synopsis?: string;
-  coverImageUrl?: string;
-  isbn?: string;
-  publishedYear?: number | null;
-  authorId?: string;
-  authorName?: string;
-  genreIds?: string[];
-};
-
-export type AdminUpdateBookInput = {
-  title?: string;
-  subtitle?: string | null;
-  synopsis?: string | null;
-  coverImageUrl?: string | null;
-  isbn?: string | null;
-  publishedYear?: number | null;
-  genreIds?: string[];
-};
-
-export type AdminPrepInput = {
-  heading: string;
-  summary: string;
-  watchFor?: string | null;
-  colorHint?: string | null;
-  keywords?: string[];
-};
-
-export type SubmittedBySummary = {
-  id: string;
-  displayName: string;
-} | null;
-
-export type AdminMetadataSuggestion = {
-  id: string;
-  book: {
-    id: string;
-    slug: string;
-    title: string;
-  };
-  submittedBy: SubmittedBySummary;
-  synopsis: string | null;
-  genres: string[];
-  status: string;
-  createdAt: string;
-};
-
-export type AdminPrepSuggestion = {
-  id: string;
-  book: {
-    id: string;
-    slug: string;
-    title: string;
-  };
-  submittedBy: SubmittedBySummary;
-  title: string;
-  description: string;
-  keywordHints: string[];
-  status: string;
-  createdAt: string;
-};
-
-export type AdminBookSuggestion = {
-  id: string;
-  title: string;
-  authorName: string;
-  notes: string | null;
-  genreIdeas: string[];
-  prepIdeas: string[];
-  submittedBy: SubmittedBySummary;
-  status: string;
-  createdAt: string;
 };
 
 async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {

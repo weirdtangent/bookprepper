@@ -15,6 +15,7 @@ import {
   summaryFromScoreRecord,
   toVotesPayload
 } from "../utils/promptScores.js";
+import { tokenizeSearch } from "../utils/strings.js";
 
 const MAX_VISIBLE_PREPS = 3;
 
@@ -573,15 +574,6 @@ async function loadCatalogStats(): Promise<CatalogStats> {
       latest: yearBounds._max.publishedYear ?? null
     }
   };
-}
-
-function tokenizeSearch(raw: string) {
-  return raw
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
 }
 
 function shuffleIds<T>(input: T[]): T[] {
