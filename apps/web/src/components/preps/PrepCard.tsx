@@ -1,11 +1,17 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import type { Prep, PromptFeedbackDimension } from "../../lib/api";
-import { getPromptFeedbackLabel, PROMPT_FEEDBACK_DIMENSIONS } from "../../lib/promptFeedback";
+import type { Prep, PrepQuote, PromptFeedbackDimension } from "../../lib/api";
+import { getPromptFeedbackLabel } from "../../lib/promptFeedback";
 
 export type PrepFeedbackDraft = {
   dimension: PromptFeedbackDimension;
   note: string;
+};
+
+export type QuoteDraft = {
+  text: string;
+  pageNumber: string;
+  chapter: string;
 };
 
 type Props = {
@@ -17,8 +23,14 @@ type Props = {
     dimension: PromptFeedbackDimension;
     note?: string;
   }) => void;
+  onQuoteVote?: (quoteId: string, value: "AGREE" | "DISAGREE") => void;
+  onAddQuote?: (quote: QuoteDraft) => void;
+  onDeleteQuote?: (quoteId: string) => void;
   votingDisabled: boolean;
   isVoting: boolean;
+  isQuoteVoting?: boolean;
+  isAddingQuote?: boolean;
+  currentUserId?: string;
   order?: number;
 };
 
@@ -31,10 +43,23 @@ export function PrepCard({
   feedbackDraft,
   onFeedbackDraftChange,
   onVote,
+  onQuoteVote,
+  onAddQuote,
+  onDeleteQuote,
   votingDisabled,
   isVoting,
+  isQuoteVoting,
+  isAddingQuote,
+  currentUserId,
   order
 }: Props) {
+  const [spoilerRevealed, setSpoilerRevealed] = useState(false);
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [quoteDraft, setQuoteDraft] = useState<QuoteDraft>({
+    text: "",
+    pageNumber: "",
+    chapter: ""
+  });
   const accentColor = prep.colorHint ?? "#d1d5db";
   const cardStyle: PrepCardStyle = {
     borderColor: accentColor,
@@ -53,6 +78,16 @@ export function PrepCard({
       note: feedbackDraft.note.trim() || undefined
     });
   };
+
+  const handleQuoteSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!onAddQuote || !quoteDraft.text.trim()) return;
+    onAddQuote(quoteDraft);
+    setQuoteDraft({ text: "", pageNumber: "", chapter: "" });
+    setShowQuoteForm(false);
+  };
+
+  const quoteCount = prep.quotes?.length ?? 0;
 
   return (
     <article className="prep-card" style={cardStyle}>
@@ -86,6 +121,103 @@ export function PrepCard({
               {keyword.name}
             </Link>
           ))}
+        </div>
+
+        {/* Quotes Section with Spoiler Protection */}
+        <div className="prep-quotes">
+          <div className="prep-quotes__header">
+            <span>
+              {quoteCount} quote{quoteCount === 1 ? "" : "s"} from readers
+            </span>
+            {quoteCount > 0 && !spoilerRevealed && (
+              <button
+                type="button"
+                className="prep-quotes__toggle spoiler-toggle"
+                onClick={() => setSpoilerRevealed(true)}
+              >
+                ⚠️ Show quotes (may contain spoilers)
+              </button>
+            )}
+            {spoilerRevealed && (
+              <button
+                type="button"
+                className="prep-quotes__toggle"
+                onClick={() => setSpoilerRevealed(false)}
+              >
+                Hide quotes
+              </button>
+            )}
+          </div>
+
+          {spoilerRevealed && quoteCount > 0 && (
+            <ul className="prep-quotes__list">
+              {prep.quotes.map((quote) => (
+                <QuoteItem
+                  key={quote.id}
+                  quote={quote}
+                  onVote={onQuoteVote}
+                  onDelete={onDeleteQuote}
+                  votingDisabled={votingDisabled || !!isQuoteVoting}
+                  canDelete={currentUserId === quote.user.id}
+                />
+              ))}
+            </ul>
+          )}
+
+          {spoilerRevealed && !showQuoteForm && onAddQuote && (
+            <button
+              type="button"
+              className="prep-quotes__toggle"
+              onClick={() => setShowQuoteForm(true)}
+              disabled={votingDisabled}
+            >
+              + Add a quote
+            </button>
+          )}
+
+          {spoilerRevealed && showQuoteForm && (
+            <form className="quote-form" onSubmit={handleQuoteSubmit}>
+              <textarea
+                placeholder="Enter a quote from the book that relates to this prep..."
+                value={quoteDraft.text}
+                onChange={(e) => setQuoteDraft({ ...quoteDraft, text: e.target.value })}
+                minLength={10}
+                maxLength={2000}
+                required
+                disabled={isAddingQuote}
+              />
+              <div className="quote-form__location">
+                <input
+                  type="text"
+                  placeholder="Page (optional)"
+                  value={quoteDraft.pageNumber}
+                  onChange={(e) => setQuoteDraft({ ...quoteDraft, pageNumber: e.target.value })}
+                  maxLength={20}
+                  disabled={isAddingQuote}
+                />
+                <input
+                  type="text"
+                  placeholder="Chapter (optional)"
+                  value={quoteDraft.chapter}
+                  onChange={(e) => setQuoteDraft({ ...quoteDraft, chapter: e.target.value })}
+                  maxLength={100}
+                  disabled={isAddingQuote}
+                />
+              </div>
+              <div className="quote-form__actions">
+                <button
+                  type="button"
+                  onClick={() => setShowQuoteForm(false)}
+                  disabled={isAddingQuote}
+                >
+                  Cancel
+                </button>
+                <button type="submit" disabled={isAddingQuote || !quoteDraft.text.trim()}>
+                  {isAddingQuote ? "Adding..." : "Add Quote"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
       <div className="prep-card__sidebar">
@@ -158,6 +290,77 @@ export function PrepCard({
         </div>
       </div>
     </article>
+  );
+}
+
+type QuoteItemProps = {
+  quote: PrepQuote;
+  onVote?: (quoteId: string, value: "AGREE" | "DISAGREE") => void;
+  onDelete?: (quoteId: string) => void;
+  votingDisabled: boolean;
+  canDelete: boolean;
+};
+
+function QuoteItem({ quote, onVote, onDelete, votingDisabled, canDelete }: QuoteItemProps) {
+  const location = [
+    quote.chapter && `Ch. ${quote.chapter}`,
+    quote.pageNumber && `p. ${quote.pageNumber}`
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <li className="quote-item">
+      <p className="quote-item__text">&ldquo;{quote.text}&rdquo;</p>
+      <div className="quote-item__meta">
+        <div className="quote-item__info">
+          <span className="quote-item__user">— {quote.user.displayName}</span>
+          {location && <span className="quote-item__location">{location}</span>}
+          {quote.verified && (
+            <span className="quote-item__verified" title={quote.verifiedSource ?? "Verified via Google Books"}>
+              ✓ Verified
+            </span>
+          )}
+        </div>
+        <div className="quote-item__actions">
+          <span className="quote-item__votes">
+            {quote.votes.agree} agree · {quote.votes.disagree} disagree
+          </span>
+          {onVote && (
+            <>
+              <button
+                type="button"
+                className="quote-item__vote-btn"
+                onClick={() => onVote(quote.id, "AGREE")}
+                disabled={votingDisabled}
+                title="This quote is relevant to the prep"
+              >
+                👍
+              </button>
+              <button
+                type="button"
+                className="quote-item__vote-btn"
+                onClick={() => onVote(quote.id, "DISAGREE")}
+                disabled={votingDisabled}
+                title="This quote is not relevant"
+              >
+                👎
+              </button>
+            </>
+          )}
+          {canDelete && onDelete && (
+            <button
+              type="button"
+              className="quote-item__delete"
+              onClick={() => onDelete(quote.id)}
+              title="Delete this quote"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+    </li>
   );
 }
 

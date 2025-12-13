@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type PromptFeedbackDimension } from "../lib/api";
 import type { Genre } from "../lib/api";
-import { PrepCard, type PrepFeedbackDraft } from "../components/preps/PrepCard";
+import { PrepCard, type PrepFeedbackDraft, type QuoteDraft } from "../components/preps/PrepCard";
 import { useAuth } from "../lib/auth";
 
 const DEFAULT_FEEDBACK_DIMENSION: PromptFeedbackDimension = "CORRECT";
@@ -73,6 +73,19 @@ export default function BookDetailPage() {
       return api.listReadingNow(auth.token);
     }
   });
+
+  const profileQuery = useQuery({
+    queryKey: ["profile"],
+    enabled: auth.isAuthenticated && Boolean(auth.token),
+    queryFn: async () => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.getProfile(auth.token);
+    }
+  });
+
+  const currentUserId = profileQuery.data?.profile.id;
 
   const voteMutation = useMutation({
     mutationFn: async ({
@@ -183,6 +196,90 @@ export default function BookDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["reading-now"] });
     }
   });
+
+  const quoteVoteMutation = useMutation({
+    mutationFn: async ({
+      prepId,
+      quoteId,
+      value
+    }: {
+      prepId: string;
+      quoteId: string;
+      value: "AGREE" | "DISAGREE";
+    }) => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.voteOnQuote({ slug, prepId, quoteId, value, token: auth.token });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["book", slug] });
+    }
+  });
+
+  const addQuoteMutation = useMutation({
+    mutationFn: async ({
+      prepId,
+      quote
+    }: {
+      prepId: string;
+      quote: QuoteDraft;
+    }) => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.createPrepQuote({
+        slug,
+        prepId,
+        text: quote.text,
+        pageNumber: quote.pageNumber || undefined,
+        chapter: quote.chapter || undefined,
+        token: auth.token
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["book", slug] });
+    }
+  });
+
+  const deleteQuoteMutation = useMutation({
+    mutationFn: async ({ prepId, quoteId }: { prepId: string; quoteId: string }) => {
+      if (!auth.token) {
+        throw new Error("Authentication required");
+      }
+      return api.deletePrepQuote({ slug, prepId, quoteId, token: auth.token });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["book", slug] });
+    }
+  });
+
+  const handleQuoteVote = (prepId: string, quoteId: string, value: "AGREE" | "DISAGREE") => {
+    if (auth.isLoading) return;
+    if (!auth.isAuthenticated) {
+      const allowed = auth.requireAuth();
+      if (!allowed) return;
+    }
+    quoteVoteMutation.mutate({ prepId, quoteId, value });
+  };
+
+  const handleAddQuote = (prepId: string, quote: QuoteDraft) => {
+    if (auth.isLoading) return;
+    if (!auth.isAuthenticated) {
+      const allowed = auth.requireAuth();
+      if (!allowed) return;
+    }
+    addQuoteMutation.mutate({ prepId, quote });
+  };
+
+  const handleDeleteQuote = (prepId: string, quoteId: string) => {
+    if (auth.isLoading) return;
+    if (!auth.isAuthenticated) {
+      const allowed = auth.requireAuth();
+      if (!allowed) return;
+    }
+    deleteQuoteMutation.mutate({ prepId, quoteId });
+  };
 
   const handleReadingToggle = (action: "start" | "finish") => {
     if (auth.isLoading) {
@@ -339,6 +436,37 @@ export default function BookDetailPage() {
               <code className="book-hero__detail-value">{book.isbn}</code>
             </div>
           )}
+          {book.isbn && (
+            <div className="book-hero__detail-row">
+              <span className="book-hero__detail-label">Buy this book</span>
+              <div className="book-hero__purchase-links">
+                <a
+                  href={`https://bookshop.org/p/books/-/${book.isbn}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="purchase-link purchase-link--bookshop"
+                >
+                  Bookshop.org
+                </a>
+                <a
+                  href={`https://www.barnesandnoble.com/w/?ean=${book.isbn}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="purchase-link purchase-link--bn"
+                >
+                  Barnes &amp; Noble
+                </a>
+                <a
+                  href={`https://www.amazon.com/dp/${book.isbn}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="purchase-link purchase-link--amazon"
+                >
+                  Amazon
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -372,6 +500,12 @@ export default function BookDetailPage() {
               votingDisabled={votingDisabled}
               isVoting={voteMutation.isPending && votingPrepId === prep.id}
               onVote={(payload) => handleVote(prep.id, payload)}
+              onQuoteVote={(quoteId, value) => handleQuoteVote(prep.id, quoteId, value)}
+              onAddQuote={(quote) => handleAddQuote(prep.id, quote)}
+              onDeleteQuote={(quoteId) => handleDeleteQuote(prep.id, quoteId)}
+              isQuoteVoting={quoteVoteMutation.isPending}
+              isAddingQuote={addQuoteMutation.isPending}
+              currentUserId={currentUserId}
             />
           ))}
         </div>

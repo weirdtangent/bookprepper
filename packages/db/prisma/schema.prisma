@@ -124,8 +124,40 @@ model BookPrep {
   votes        PrepVote[]
   feedback     PromptFeedback[]
   score        PromptScore?
+  quotes       PrepQuote[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+}
+
+model PrepQuote {
+  id              String       @id @default(cuid())
+  prepId          String
+  userId          String
+  text            String       @db.VarChar(2000)
+  pageNumber      String?      @db.VarChar(20)
+  chapter         String?      @db.VarChar(100)
+  verified        Boolean      @default(false)
+  verifiedSource  String?      @db.VarChar(500)
+  prep            BookPrep     @relation(fields: [prepId], references: [id], onDelete: Cascade)
+  user            UserProfile  @relation(fields: [userId], references: [id])
+  votes           QuoteVote[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([prepId])
+}
+
+model QuoteVote {
+  id        String        @id @default(cuid())
+  quoteId   String
+  userId    String
+  value     PrepVoteValue
+  quote     PrepQuote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  user      UserProfile   @relation(fields: [userId], references: [id])
+  createdAt DateTime      @default(now())
+
+  @@unique([quoteId, userId])
+  @@index([quoteId])
 }
 
 model PrepVote {
@@ -226,6 +258,8 @@ model UserProfile {
   metadataSuggestions BookMetadataSuggestion[]
   createdPreps    BookPrep[]      @relation("UserProfileToBookPrep")
   readingStatuses ReadingStatus[]
+  prepQuotes      PrepQuote[]
+  quoteVotes      QuoteVote[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }

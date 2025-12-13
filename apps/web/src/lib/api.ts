@@ -67,6 +67,38 @@ export type PromptVoteSummary = {
   dimensions: PromptVoteDimensionBreakdown[];
 };
 
+export type QuoteVotes = {
+  agree: number;
+  disagree: number;
+  total: number;
+};
+
+export type PrepQuote = {
+  id: string;
+  text: string;
+  pageNumber: string | null;
+  chapter: string | null;
+  verified: boolean;
+  verifiedSource: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    displayName: string;
+  };
+  votes: QuoteVotes;
+};
+
+export type GoogleBooksSearchResult = {
+  bookId: string;
+  title: string;
+  authors: string[];
+  publisher?: string;
+  publishedDate?: string;
+  previewLink?: string;
+  infoLink?: string;
+  textSnippet?: string;
+};
+
 export type Prep = {
   id: string;
   heading: string;
@@ -78,6 +110,7 @@ export type Prep = {
     name: string;
   }>;
   votes: PromptVoteSummary;
+  quotes: PrepQuote[];
 };
 
 export type BookDetail = {
@@ -617,6 +650,73 @@ export const api = {
       {
         method: "DELETE",
         token: params.token
+      }
+    ),
+  listPrepQuotes: (params: { slug: string; prepId: string }) =>
+    apiFetch<{ quotes: PrepQuote[] }>(
+      `/api/books/${params.slug}/preps/${params.prepId}/quotes`
+    ),
+  createPrepQuote: (params: {
+    slug: string;
+    prepId: string;
+    text: string;
+    pageNumber?: string;
+    chapter?: string;
+    token: string;
+  }) =>
+    apiFetch<{ quote: PrepQuote }>(
+      `/api/books/${params.slug}/preps/${params.prepId}/quotes`,
+      {
+        method: "POST",
+        body: {
+          text: params.text,
+          pageNumber: params.pageNumber,
+          chapter: params.chapter
+        },
+        token: params.token
+      }
+    ),
+  deletePrepQuote: (params: {
+    slug: string;
+    prepId: string;
+    quoteId: string;
+    token: string;
+  }) =>
+    apiFetch<{ message: string }>(
+      `/api/books/${params.slug}/preps/${params.prepId}/quotes/${params.quoteId}`,
+      {
+        method: "DELETE",
+        token: params.token
+      }
+    ),
+  voteOnQuote: (params: {
+    slug: string;
+    prepId: string;
+    quoteId: string;
+    value: "AGREE" | "DISAGREE";
+    token: string;
+  }) =>
+    apiFetch<{ quoteId: string; votes: QuoteVotes }>(
+      `/api/books/${params.slug}/preps/${params.prepId}/quotes/${params.quoteId}/vote`,
+      {
+        method: "POST",
+        body: { value: params.value },
+        token: params.token
+      }
+    ),
+  searchQuotes: (params: {
+    text: string;
+    bookTitle?: string;
+    authorName?: string;
+  }) =>
+    apiFetch<{ found: boolean; results: GoogleBooksSearchResult[] }>(
+      "/api/quotes/search",
+      {
+        query: {
+          text: params.text,
+          bookTitle: params.bookTitle,
+          authorName: params.authorName
+        }
       }
     )
 };

@@ -165,6 +165,28 @@ export const adminModerationNoteSchema = z.object({
   note: z.string().max(500).optional()
 });
 
+export const quoteParamsSchema = z.object({
+  slug: z.string().min(1),
+  prepId: z.string().cuid(),
+  quoteId: z.string().cuid()
+});
+
+export const quoteCreateBodySchema = z.object({
+  text: z.string().trim().min(10, "Quote must be at least 10 characters.").max(2000),
+  pageNumber: z.string().trim().max(20).optional(),
+  chapter: z.string().trim().max(100).optional()
+});
+
+export const quoteVoteBodySchema = z.object({
+  value: z.enum(["AGREE", "DISAGREE"])
+});
+
+export const quoteSearchQuerySchema = z.object({
+  text: z.string().trim().min(5).max(500),
+  bookTitle: z.string().trim().optional(),
+  authorName: z.string().trim().optional()
+});
+
 const userPreferencesSchema = z.object({
   shuffleDefault: z.boolean().optional()
 });
@@ -200,4 +222,8 @@ export type AdminPrepUpsertBody = z.infer<typeof adminPrepUpsertSchema>;
 export type SuggestionIdParams = z.infer<typeof suggestionIdParamsSchema>;
 export type ProfileUpdateBody = z.infer<typeof profileUpdateBodySchema>;
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
+export type QuoteParams = z.infer<typeof quoteParamsSchema>;
+export type QuoteCreateBody = z.infer<typeof quoteCreateBodySchema>;
+export type QuoteVoteBody = z.infer<typeof quoteVoteBodySchema>;
+export type QuoteSearchQuery = z.infer<typeof quoteSearchQuerySchema>;
 

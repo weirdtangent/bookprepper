@@ -55,6 +55,21 @@ type PrepWithRelations = Prisma.BookPrepGetPayload<{
     keywords: { include: { keyword: true } };
     votes: true;
     score: true;
+    quotes: {
+      include: {
+        user: {
+          select: {
+            id: true;
+            displayName: true;
+          };
+        };
+        votes: {
+          select: {
+            value: true;
+          };
+        };
+      };
+    };
   };
 }>;
 
@@ -216,7 +231,22 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
               }
             },
             votes: true,
-            score: true
+            score: true,
+            quotes: {
+              orderBy: { createdAt: "desc" },
+              take: 5,
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    displayName: true
+                  }
+                },
+                votes: {
+                  select: { value: true }
+                }
+              }
+            }
           },
           orderBy: {
             heading: "asc"
@@ -245,7 +275,22 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
               include: { keyword: true }
             },
             votes: true,
-            score: true
+            score: true,
+            quotes: {
+              orderBy: { createdAt: "desc" },
+              take: 5,
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    displayName: true
+                  }
+                },
+                votes: {
+                  select: { value: true }
+                }
+              }
+            }
           },
           orderBy: { heading: "asc" }
         }
@@ -447,7 +492,29 @@ function formatPrep(prep: PrepWithRelations) {
       slug: entry.keyword.slug,
       name: entry.keyword.name
     })),
-    votes: toVotesPayload(summary)
+    votes: toVotesPayload(summary),
+    quotes: prep.quotes.map((quote) => {
+      const agreeCount = quote.votes.filter((v) => v.value === "AGREE").length;
+      const disagreeCount = quote.votes.filter((v) => v.value === "DISAGREE").length;
+      return {
+        id: quote.id,
+        text: quote.text,
+        pageNumber: quote.pageNumber,
+        chapter: quote.chapter,
+        verified: quote.verified,
+        verifiedSource: quote.verifiedSource,
+        createdAt: quote.createdAt.toISOString(),
+        user: {
+          id: quote.user.id,
+          displayName: quote.user.displayName
+        },
+        votes: {
+          agree: agreeCount,
+          disagree: disagreeCount,
+          total: agreeCount + disagreeCount
+        }
+      };
+    })
   };
 }
 
