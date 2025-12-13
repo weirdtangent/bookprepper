@@ -4,7 +4,8 @@
   "version": "1.1.0",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
-    "build": "pnpm --filter config --filter db --filter types build && pnpm covers:cache && pnpm --filter api --filter web build",
+    "build:packages": "pnpm --filter config build && pnpm --filter db build && pnpm --filter types build",
+    "build": "pnpm build:packages && pnpm covers:cache && pnpm --filter api --filter web build",
     "dev:api": "pnpm --filter api dev",
     "dev:web": "pnpm --filter web dev",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
