@@ -9,3 +9,6 @@ tmp
 apps/web/public/assets/covers
 apps/api/.cover-cache/
 assets/
+
+# TypeScript build cache
+*.tsbuildinfo
