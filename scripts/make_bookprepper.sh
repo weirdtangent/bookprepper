@@ -21,18 +21,21 @@ rm -f apps/api/tsconfig.tsbuildinfo
 rm -f apps/web/tsconfig.tsbuildinfo
 rm -f packages/db/tsconfig.tsbuildinfo
 rm -f packages/config/tsconfig.tsbuildinfo
+rm -f packages/types/tsconfig.tsbuildinfo
 rm -rf apps/api/dist
 rm -rf apps/web/dist
 rm -rf packages/db/dist
 rm -rf packages/config/dist
+rm -rf packages/types/dist
 
 pnpm install
 pnpm --filter db prisma generate
 pnpm --filter db prisma migrate deploy
 
-# Build packages in correct order: config -> db -> api, web
+# Build packages in correct order: config -> db -> types -> apps
 pnpm --filter config build
 pnpm --filter db build
+pnpm --filter types build
 pnpm covers:cache
 pnpm --filter api build
 pnpm --filter web build
