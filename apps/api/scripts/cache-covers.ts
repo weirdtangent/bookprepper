@@ -168,12 +168,16 @@ async function fileExists(target: string) {
 }
 
 main()
-  .catch((error) => {
-    console.error(`"Cover cache run failed: ${(error as Error).message}"`);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
+  .then(async () => {
     if (prismaClient) {
       await prismaClient.$disconnect();
     }
+    process.exit(0);
+  })
+  .catch(async (error) => {
+    console.error(`"Cover cache run failed: ${(error as Error).message}"`);
+    if (prismaClient) {
+      await prismaClient.$disconnect();
+    }
+    process.exit(1);
   });
