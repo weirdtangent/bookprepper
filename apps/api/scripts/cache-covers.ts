@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { config as loadEnv } from "dotenv";
 import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -25,11 +26,13 @@ type BookRecord = {
   id: string;
   title: string;
   isbn: string | null;
+  coverImageUrl: string | null;
 };
 
 type CoverManifest = {
   generatedAt: string;
   files: Record<string, string>;
+  urlHashes?: Record<string, string>; // isbn -> hash of coverImageUrl
 };
 
 type FailedIsbnsCache = {
@@ -39,6 +42,12 @@ type FailedIsbnsCache = {
 
 let prismaClient: PrismaClient | null = null;
 let failedIsbns: FailedIsbnsCache = {};
+let previousManifest: CoverManifest | null = null;
+
+function hashUrl(url: string | null): string {
+  if (!url) return "default";
+  return createHash("sha256").update(url).digest("hex").slice(0, 16);
+}
 
 async function loadFailedIsbns(): Promise<FailedIsbnsCache> {
   try {
@@ -67,11 +76,21 @@ function markIsbnFailed(isbn: string): void {
   failedIsbns[isbn] = Date.now();
 }
 
+async function loadPreviousManifest(): Promise<CoverManifest | null> {
+  try {
+    const content = await readFile(apiManifestPath, "utf-8");
+    return JSON.parse(content) as CoverManifest;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
   await ensureDir(publicCoverDir);
   await ensureDir(path.dirname(apiManifestPath));
 
   failedIsbns = await loadFailedIsbns();
+  previousManifest = await loadPreviousManifest();
 
   const existingFiles = await scanExistingFiles();
   const manifestFiles = await hydrateCovers(existingFiles);
@@ -94,7 +113,7 @@ async function hydrateCovers(
 
   const books = await prismaClient.book.findMany({
     where: { isbn: { not: null } },
-    select: { id: true, title: true, isbn: true },
+    select: { id: true, title: true, isbn: true, coverImageUrl: true },
     orderBy: { title: "asc" },
   });
 
@@ -104,6 +123,7 @@ async function hydrateCovers(
   }
 
   let downloaded = 0;
+  let updated = 0;
   let skippedFailed = 0;
 
   for (const book of books) {
@@ -111,19 +131,31 @@ async function hydrateCovers(
     if (!normalized) {
       continue;
     }
-    if (knownIsbns.has(normalized)) {
+
+    const currentUrlHash = hashUrl(book.coverImageUrl);
+    const previousUrlHash = previousManifest?.urlHashes?.[normalized];
+    const urlChanged = previousUrlHash && previousUrlHash !== currentUrlHash;
+
+    // Skip if file exists and URL hasn't changed
+    if (knownIsbns.has(normalized) && !urlChanged) {
       continue;
     }
-    if (!shouldRetryIsbn(normalized)) {
+
+    if (!shouldRetryIsbn(normalized) && !urlChanged) {
       skippedFailed += 1;
       continue;
     }
 
     const destination = path.join(publicCoverDir, `${normalized}.jpg`);
-    const result = await downloadCover(normalized, destination);
+    const coverUrl = book.coverImageUrl || `https://covers.openlibrary.org/b/isbn/${normalized}-L.jpg?default=false`;
+    const result = await downloadCover(normalized, coverUrl, destination, urlChanged);
 
     if (result === "success") {
-      downloaded += 1;
+      if (urlChanged) {
+        updated += 1;
+      } else {
+        downloaded += 1;
+      }
       knownIsbns.add(normalized);
       existingFiles[normalized] = `${normalized}.jpg`;
       // Remove from failed cache if it was there
@@ -138,6 +170,9 @@ async function hydrateCovers(
   if (skippedFailed > 0) {
     console.log(`"Skipped ${skippedFailed} ISBNs that recently returned 404"`);
   }
+  if (updated > 0) {
+    console.log(`"Updated ${updated} covers with new URLs"`);
+  }
   console.log(`"Ensured ${books.length} ISBN entries with ${downloaded} new downloads"`);
 
   return scanFilesForBooks(books);
@@ -145,8 +180,12 @@ async function hydrateCovers(
 
 type DownloadResult = "success" | "not-found" | "error" | "exists";
 
-async function downloadCover(isbn: string, destination: string): Promise<DownloadResult> {
-  const url = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg?default=false`;
+async function downloadCover(
+  isbn: string,
+  url: string,
+  destination: string,
+  replacing: boolean = false
+): Promise<DownloadResult> {
   try {
     const response = await fetch(url);
     if (response.status === 404) {
@@ -159,7 +198,12 @@ async function downloadCover(isbn: string, destination: string): Promise<Downloa
     }
     const buffer = Buffer.from(await response.arrayBuffer());
     try {
-      await writeFile(destination, buffer, { flag: "wx" });
+      // If replacing, overwrite the existing file, otherwise use wx flag to prevent overwrites
+      const writeFlag = replacing ? "w" : "wx";
+      await writeFile(destination, buffer, { flag: writeFlag });
+      if (replacing) {
+        console.log(`"Replaced cover for ISBN ${isbn} with new URL"`);
+      }
       return "success";
     } catch (writeError) {
       if ((writeError as NodeJS.ErrnoException).code === "EEXIST") {
@@ -174,9 +218,25 @@ async function downloadCover(isbn: string, destination: string): Promise<Downloa
 }
 
 async function writeManifest(files: Record<string, string>) {
+  // Build URL hash map from current books
+  const urlHashes: Record<string, string> = {};
+  if (prismaClient) {
+    const books = await prismaClient.book.findMany({
+      where: { isbn: { not: null } },
+      select: { isbn: true, coverImageUrl: true },
+    });
+    for (const book of books) {
+      const normalized = normalizeIsbn(book.isbn);
+      if (normalized) {
+        urlHashes[normalized] = hashUrl(book.coverImageUrl);
+      }
+    }
+  }
+
   const manifest: CoverManifest = {
     generatedAt: new Date().toISOString(),
     files,
+    urlHashes,
   };
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
   await writeFile(publicManifestPath, serialized);
