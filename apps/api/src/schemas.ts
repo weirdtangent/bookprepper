@@ -152,8 +152,8 @@ export const adminBookUpdateSchema = z.object({
 export const adminPrepUpsertSchema = z.object({
   heading: z.string().min(3).max(160),
   summary: z.string().min(10).max(2000),
-  watchFor: z.string().max(2000).optional(),
-  colorHint: z.string().max(32).optional(),
+  watchFor: z.string().max(2000).optional().nullable(),
+  colorHint: z.string().max(32).optional().nullable(),
   keywords: z.array(z.string().min(2).max(60)).max(12).optional(),
 });
 

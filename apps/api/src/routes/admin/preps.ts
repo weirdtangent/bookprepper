@@ -4,7 +4,12 @@
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "db";
 import { adminPrepUpsertSchema, bookSlugParamsSchema, prepParamsSchema } from "../../schemas.js";
-import { adminPrepInclude, mapAdminPrep, upsertKeywords } from "./helpers.js";
+import {
+  adminPrepInclude,
+  mapAdminPrep,
+  selectUnusedPrepColor,
+  upsertKeywords,
+} from "./helpers.js";
 
 const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
   const guardHooks = { onRequest: [fastify.verifyJwt, fastify.requireAdmin] };
@@ -24,13 +29,16 @@ const adminPrepsRoutes: FastifyPluginAsync = async (fastify) => {
 
     const keywords = await upsertKeywords(body.keywords ?? []);
 
+    // Auto-select color if not provided
+    const colorHint = body.colorHint ?? (await selectUnusedPrepColor(book.id)) ?? null;
+
     const prep = await prisma.bookPrep.create({
       data: {
         bookId: book.id,
         heading: body.heading,
         summary: body.summary,
         watchFor: body.watchFor ?? null,
-        colorHint: body.colorHint ?? null,
+        colorHint,
         keywords: {
           create: keywords.map((keyword) => ({
             keywordId: keyword.id,

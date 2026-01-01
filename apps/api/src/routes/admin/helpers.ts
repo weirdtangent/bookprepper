@@ -292,3 +292,60 @@ export async function ensureGenresFromNames(names: string[]) {
 
   return genres;
 }
+
+// Default color palette for preps
+const DEFAULT_PREP_COLORS = [
+  "#c47f17", // Gold
+  "#9c27b0", // Purple
+  "#5d4037", // Brown
+  "#37474f", // Blue Grey
+  "#0c7cd5", // Blue
+  "#2e7d32", // Green
+  "#0277bd", // Light Blue
+  "#424242", // Grey
+  "#546e7a", // Slate
+  "#bf360c", // Deep Orange
+  "#880e4f", // Pink
+  "#6a1b9a", // Deep Purple
+  "#f57f17", // Amber
+  "#ff7043", // Coral
+  "#ad1457", // Rose
+  "#66bb6a", // Light Green
+  "#1e88e5", // Sky Blue
+  "#795548", // Wood
+  "#263238", // Dark Blue Grey
+  "#ec407a", // Hot Pink
+  "#00897b", // Teal
+  "#ffca28", // Yellow
+  "#3f51b5", // Indigo
+  "#a1887f", // Tan
+  "#b71c1c", // Red
+  "#ff8f00", // Orange
+  "#455a64", // Charcoal
+  "#ab47bc", // Orchid
+  "#d32f2f", // Crimson
+  "#f06292", // Rose Pink
+];
+
+/**
+ * Selects a color not already used by other preps on the same book.
+ * Returns null if all colors are in use.
+ */
+export async function selectUnusedPrepColor(bookId: string): Promise<string | null> {
+  const existingPreps = await prisma.bookPrep.findMany({
+    where: { bookId },
+    select: { colorHint: true },
+  });
+
+  const usedColors = new Set(
+    existingPreps.map((prep) => prep.colorHint).filter((color): color is string => color !== null)
+  );
+
+  const availableColors = DEFAULT_PREP_COLORS.filter((color) => !usedColors.has(color));
+
+  if (availableColors.length === 0) {
+    return null;
+  }
+
+  return availableColors[0];
+}

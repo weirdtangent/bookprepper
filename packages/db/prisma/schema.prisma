@@ -114,8 +114,8 @@ model BookPrep {
   id           String            @id @default(cuid())
   bookId       String
   heading      String
-  summary      String
-  watchFor     String?
+  summary      String            @db.VarChar(2000)
+  watchFor     String?           @db.VarChar(2000)
   colorHint    String?
   createdById  String?
   book         Book              @relation(fields: [bookId], references: [id])
