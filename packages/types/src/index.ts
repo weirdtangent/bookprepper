@@ -215,7 +215,8 @@ export type ReadingEntry = {
   id: string;
   status: ReadingStatus;
   startedAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  finishedAt?: string;
   book: BookSummary;
 };
 

@@ -134,7 +134,7 @@ export default function MyBooksPage() {
                 <p className="reading-card__eyebrow">
                   {activeTab === "reading"
                     ? `Started ${new Date(entry.startedAt).toLocaleDateString()}`
-                    : `Finished ${new Date(entry.updatedAt).toLocaleDateString()}`}
+                    : `Finished ${entry.finishedAt ? new Date(entry.finishedAt).toLocaleDateString() : "Unknown"}`}
                 </p>
                 <h3>{entry.book.title}</h3>
                 <p className="reading-card__author">{entry.book.author.name}</p>
