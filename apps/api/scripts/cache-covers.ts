@@ -147,7 +147,9 @@ async function hydrateCovers(
     }
 
     const destination = path.join(publicCoverDir, `${normalized}.jpg`);
-    const coverUrl = book.coverImageUrl || `https://covers.openlibrary.org/b/isbn/${normalized}-L.jpg?default=false`;
+    const coverUrl =
+      book.coverImageUrl ||
+      `https://covers.openlibrary.org/b/isbn/${normalized}-L.jpg?default=false`;
     const result = await downloadCover(normalized, coverUrl, destination, urlChanged);
 
     if (result === "success") {
