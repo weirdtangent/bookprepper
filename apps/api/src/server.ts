@@ -35,18 +35,28 @@ async function buildServer() {
     timeWindow: "1 minute",
     // Per-route limits can override this
     global: true,
-    // Use client IP from proxy headers (X-Forwarded-For takes precedence)
-    // or fall back to direct connection IP
+    // Extract client IP with security considerations for proxy deployments
     keyGenerator: (request: {
       ip: string;
       headers: Record<string, string | string[] | undefined>;
     }) => {
-      // X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2...)
-      // Extract only the first (client) IP to prevent bypass attacks
-      const forwardedFor = request.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
-      const realIp = request.headers["x-real-ip"]?.toString();
+      // When behind a reverse proxy (load balancer, CDN), we need to extract the real client IP
+      // X-Forwarded-For format: "client-ip, proxy1-ip, proxy2-ip"
+      // Security note: The leftmost IP can be spoofed by attackers. For production deployments
+      // behind trusted proxies, consider using the rightmost trusted IP or configuring the
+      // number of trusted proxy hops. For now, we trust X-Real-IP (set by single trusted proxy)
+      // over X-Forwarded-For, and only use X-Forwarded-For's first IP as a last resort before
+      // falling back to the direct connection IP.
 
-      return forwardedFor || realIp || request.ip || "unknown";
+      const realIp = request.headers["x-real-ip"]?.toString().trim();
+      if (realIp) return realIp; // Most secure: set by trusted proxy only
+
+      // Fallback to direct connection IP (no proxy scenario)
+      if (request.ip) return request.ip;
+
+      // Last resort: use first IP from X-Forwarded-For (may be spoofable in some deployments)
+      const forwardedFor = request.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
+      return forwardedFor || "unknown";
     },
   });
   await server.register(authPlugin);

@@ -13,7 +13,7 @@ The API uses `@fastify/rate-limit` (v10.3.0) with a tiered approach:
 
 ### Global Configuration
 
-**File**: [`apps/api/src/server.ts`](apps/api/src/server.ts#L32-L51)
+**File**: [`apps/api/src/server.ts`](apps/api/src/server.ts#L32-L61)
 
 ```typescript
 await server.register(rateLimit, {
@@ -21,17 +21,27 @@ await server.register(rateLimit, {
   timeWindow: "1 minute",
   global: true,
   keyGenerator: (request) => {
-    // X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2...)
-    // Extract only the first (client) IP to prevent bypass attacks
-    const forwardedFor = request.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
-    const realIp = request.headers["x-real-ip"]?.toString();
+    // Prioritize X-Real-IP (set by trusted proxy)
+    const realIp = request.headers["x-real-ip"]?.toString().trim();
+    if (realIp) return realIp;
 
-    return forwardedFor || realIp || request.ip || "unknown";
+    // Fallback to direct connection IP
+    if (request.ip) return request.ip;
+
+    // Last resort: X-Forwarded-For first IP
+    const forwardedFor = request.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
+    return forwardedFor || "unknown";
   },
 });
 ```
 
-Rate limiting is applied per client IP address. When behind a proxy, it correctly extracts the client IP from `X-Forwarded-For` (taking only the first IP to prevent bypass attacks) or `X-Real-IP` headers, with fallback to the direct connection IP.
+Rate limiting is applied per client IP address with a security-conscious fallback order:
+
+1. **X-Real-IP** (most secure): Set by a single trusted reverse proxy/load balancer
+2. **request.ip**: Direct connection IP when not behind a proxy
+3. **X-Forwarded-For first IP** (least secure): Last resort fallback, potentially spoofable
+
+**Security Note**: For production deployments behind multiple proxies, consider implementing trusted proxy hop configuration to extract the rightmost trusted IP from X-Forwarded-For instead of the leftmost.
 
 ### Rate Limit Tiers
 
