@@ -2,6 +2,7 @@
  * Admin suggestion moderation routes.
  */
 import type { FastifyPluginAsync } from "fastify";
+import rateLimit from "@fastify/rate-limit";
 import { prisma } from "db";
 import { adminModerationNoteSchema, suggestionIdParamsSchema } from "../../schemas.js";
 import { truncateSynopsis, extractStringArray } from "../../utils/strings.js";
@@ -16,7 +17,17 @@ import {
 } from "./helpers.js";
 
 const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
+  await fastify.register(rateLimit, {
+    max: 100,
+    timeWindow: "1 minute",
+    keyGenerator: (request) => request.ip,
+  });
+
   const guardHooks = { onRequest: [fastify.verifyJwt, fastify.requireAdmin] };
+  const adminModerationRateLimit = {
+    max: 20,
+    timeWindow: "1 minute",
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // Metadata Suggestions
@@ -227,150 +238,166 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
-  fastify.post("/admin/suggestions/preps/:id/reject", guardHooks, async (request) => {
-    const params = suggestionIdParamsSchema.parse(request.params);
-    const body = adminModerationNoteSchema.parse(request.body ?? {});
+  fastify.post(
+    "/admin/suggestions/preps/:id/reject",
+    { ...guardHooks, config: { rateLimit: adminModerationRateLimit } },
+    async (request) => {
+      const params = suggestionIdParamsSchema.parse(request.params);
+      const body = adminModerationNoteSchema.parse(request.body ?? {});
 
-    const suggestion = await prisma.prepSuggestion.findUnique({
-      where: { id: params.id },
-    });
+      const suggestion = await prisma.prepSuggestion.findUnique({
+        where: { id: params.id },
+      });
 
-    if (!suggestion) {
-      throw fastify.httpErrors.notFound("Suggestion not found.");
-    }
+      if (!suggestion) {
+        throw fastify.httpErrors.notFound("Suggestion not found.");
+      }
 
-    if (suggestion.status !== "PENDING") {
-      throw fastify.httpErrors.badRequest("Suggestion already processed.");
-    }
+      if (suggestion.status !== "PENDING") {
+        throw fastify.httpErrors.badRequest("Suggestion already processed.");
+      }
 
-    await prisma.prepSuggestion.update({
-      where: { id: suggestion.id },
-      data: {
+      await prisma.prepSuggestion.update({
+        where: { id: suggestion.id },
+        data: {
+          status: "REJECTED",
+          moderatorNote: body.note ?? null,
+          reviewedAt: new Date(),
+        },
+      });
+
+      return {
+        suggestionId: suggestion.id,
         status: "REJECTED",
-        moderatorNote: body.note ?? null,
-        reviewedAt: new Date(),
-      },
-    });
-
-    return {
-      suggestionId: suggestion.id,
-      status: "REJECTED",
-    };
-  });
+      };
+    }
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   // Book Suggestions
   // ─────────────────────────────────────────────────────────────────────────
 
-  fastify.get("/admin/suggestions/books", guardHooks, async () => {
-    const suggestions = await prisma.bookSuggestion.findMany({
-      where: { status: "PENDING" },
-      include: {
-        submittedBy: {
-          select: { id: true, displayName: true },
+  fastify.get(
+    "/admin/suggestions/books",
+    { ...guardHooks, config: { rateLimit: adminModerationRateLimit } },
+    async () => {
+      const suggestions = await prisma.bookSuggestion.findMany({
+        where: { status: "PENDING" },
+        include: {
+          submittedBy: {
+            select: { id: true, displayName: true },
+          },
         },
-      },
-      orderBy: { createdAt: "asc" },
-    });
+        orderBy: { createdAt: "asc" },
+      });
 
-    return {
-      suggestions: suggestions.map((suggestion) => ({
-        id: suggestion.id,
-        title: suggestion.title,
-        authorName: suggestion.authorName,
-        notes: suggestion.notes,
-        genreIdeas: extractStringArray(suggestion.genreIdeas),
-        prepIdeas: extractStringArray(suggestion.prepIdeas),
-        submittedBy: suggestion.submittedBy,
-        status: suggestion.status,
-        createdAt: suggestion.createdAt,
-      })),
-    };
-  });
-
-  fastify.post("/admin/suggestions/books/:id/approve", guardHooks, async (request) => {
-    const params = suggestionIdParamsSchema.parse(request.params);
-    adminModerationNoteSchema.parse(request.body ?? {});
-
-    const suggestion = await prisma.bookSuggestion.findUnique({
-      where: { id: params.id },
-    });
-
-    if (!suggestion) {
-      throw fastify.httpErrors.notFound("Suggestion not found.");
+      return {
+        suggestions: suggestions.map((suggestion) => ({
+          id: suggestion.id,
+          title: suggestion.title,
+          authorName: suggestion.authorName,
+          notes: suggestion.notes,
+          genreIdeas: extractStringArray(suggestion.genreIdeas),
+          prepIdeas: extractStringArray(suggestion.prepIdeas),
+          submittedBy: suggestion.submittedBy,
+          status: suggestion.status,
+          createdAt: suggestion.createdAt,
+        })),
+      };
     }
+  );
 
-    if (suggestion.status !== "PENDING") {
-      throw fastify.httpErrors.badRequest("Suggestion already processed.");
+  fastify.post(
+    "/admin/suggestions/books/:id/approve",
+    { ...guardHooks, config: { rateLimit: adminModerationRateLimit } },
+    async (request) => {
+      const params = suggestionIdParamsSchema.parse(request.params);
+      adminModerationNoteSchema.parse(request.body ?? {});
+
+      const suggestion = await prisma.bookSuggestion.findUnique({
+        where: { id: params.id },
+      });
+
+      if (!suggestion) {
+        throw fastify.httpErrors.notFound("Suggestion not found.");
+      }
+
+      if (suggestion.status !== "PENDING") {
+        throw fastify.httpErrors.badRequest("Suggestion already processed.");
+      }
+
+      const authorId = await resolveAuthorId(undefined, suggestion.authorName);
+      const slug = await ensureUniqueSlug("book", suggestion.title);
+
+      const newBook = await prisma.book.create({
+        data: {
+          title: suggestion.title,
+          slug,
+          synopsis: truncateSynopsis(suggestion.notes),
+          authorId,
+        },
+      });
+
+      const genreIdeas = extractStringArray(suggestion.genreIdeas);
+      if (genreIdeas.length > 0) {
+        const genreRecords = await ensureGenresFromNames(genreIdeas);
+        await syncBookGenres(
+          newBook.id,
+          genreRecords.map((genre) => genre.id)
+        );
+      }
+
+      await prisma.bookSuggestion.update({
+        where: { id: suggestion.id },
+        data: {
+          status: "APPROVED",
+          reviewedAt: new Date(),
+        },
+      });
+
+      return {
+        book: {
+          id: newBook.id,
+          slug: newBook.slug,
+          title: newBook.title,
+        },
+      };
     }
+  );
 
-    const authorId = await resolveAuthorId(undefined, suggestion.authorName);
-    const slug = await ensureUniqueSlug("book", suggestion.title);
+  fastify.post(
+    "/admin/suggestions/books/:id/reject",
+    { ...guardHooks, config: { rateLimit: adminModerationRateLimit } },
+    async (request) => {
+      const params = suggestionIdParamsSchema.parse(request.params);
+      adminModerationNoteSchema.parse(request.body ?? {});
 
-    const newBook = await prisma.book.create({
-      data: {
-        title: suggestion.title,
-        slug,
-        synopsis: truncateSynopsis(suggestion.notes),
-        authorId,
-      },
-    });
+      const suggestion = await prisma.bookSuggestion.findUnique({
+        where: { id: params.id },
+      });
 
-    const genreIdeas = extractStringArray(suggestion.genreIdeas);
-    if (genreIdeas.length > 0) {
-      const genreRecords = await ensureGenresFromNames(genreIdeas);
-      await syncBookGenres(
-        newBook.id,
-        genreRecords.map((genre) => genre.id)
-      );
-    }
+      if (!suggestion) {
+        throw fastify.httpErrors.notFound("Suggestion not found.");
+      }
 
-    await prisma.bookSuggestion.update({
-      where: { id: suggestion.id },
-      data: {
-        status: "APPROVED",
-        reviewedAt: new Date(),
-      },
-    });
+      if (suggestion.status !== "PENDING") {
+        throw fastify.httpErrors.badRequest("Suggestion already processed.");
+      }
 
-    return {
-      book: {
-        id: newBook.id,
-        slug: newBook.slug,
-        title: newBook.title,
-      },
-    };
-  });
+      await prisma.bookSuggestion.update({
+        where: { id: suggestion.id },
+        data: {
+          status: "REJECTED",
+          reviewedAt: new Date(),
+        },
+      });
 
-  fastify.post("/admin/suggestions/books/:id/reject", guardHooks, async (request) => {
-    const params = suggestionIdParamsSchema.parse(request.params);
-    adminModerationNoteSchema.parse(request.body ?? {});
-
-    const suggestion = await prisma.bookSuggestion.findUnique({
-      where: { id: params.id },
-    });
-
-    if (!suggestion) {
-      throw fastify.httpErrors.notFound("Suggestion not found.");
-    }
-
-    if (suggestion.status !== "PENDING") {
-      throw fastify.httpErrors.badRequest("Suggestion already processed.");
-    }
-
-    await prisma.bookSuggestion.update({
-      where: { id: suggestion.id },
-      data: {
+      return {
+        suggestionId: suggestion.id,
         status: "REJECTED",
-        reviewedAt: new Date(),
-      },
-    });
-
-    return {
-      suggestionId: suggestion.id,
-      status: "REJECTED",
-    };
-  });
+      };
+    }
+  );
 };
 
 export default adminSuggestionsRoutes;
