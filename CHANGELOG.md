@@ -1,19 +1,17 @@
 # [1.3.0](https://github.com/weirdtangent/bookprepper/compare/v1.2.0...v1.3.0) (2026-01-10)
 
-
 ### Bug Fixes
 
-* display correct date for finished books ([71f6fe9](https://github.com/weirdtangent/bookprepper/commit/71f6fe9286047cb45a10b183984554a2f06b99ba))
-* enable pnpm build scripts for Prisma client generation ([6c321fa](https://github.com/weirdtangent/bookprepper/commit/6c321faaffc9ce0d1597681a673e288af8a3ffb1))
-* pin Prisma to exact version 7.1.0 to prevent auto-upgrade ([41d5592](https://github.com/weirdtangent/bookprepper/commit/41d5592f91fb2bc17cd73fa7066dc6130e56ff98))
-* resolve prep validation errors and add auto-color selection ([8776c1e](https://github.com/weirdtangent/bookprepper/commit/8776c1e6ea68cc73972e942a626c527505627993))
-* rollback Prisma to 7.1.0 due to client generation issues ([1e15ccb](https://github.com/weirdtangent/bookprepper/commit/1e15ccb095c72c04b37a72747695176535c88fe7))
-
+- display correct date for finished books ([71f6fe9](https://github.com/weirdtangent/bookprepper/commit/71f6fe9286047cb45a10b183984554a2f06b99ba))
+- enable pnpm build scripts for Prisma client generation ([6c321fa](https://github.com/weirdtangent/bookprepper/commit/6c321faaffc9ce0d1597681a673e288af8a3ffb1))
+- pin Prisma to exact version 7.1.0 to prevent auto-upgrade ([41d5592](https://github.com/weirdtangent/bookprepper/commit/41d5592f91fb2bc17cd73fa7066dc6130e56ff98))
+- resolve prep validation errors and add auto-color selection ([8776c1e](https://github.com/weirdtangent/bookprepper/commit/8776c1e6ea68cc73972e942a626c527505627993))
+- rollback Prisma to 7.1.0 due to client generation issues ([1e15ccb](https://github.com/weirdtangent/bookprepper/commit/1e15ccb095c72c04b37a72747695176535c88fe7))
 
 ### Features
 
-* support custom cover URLs and automatic re-download on URL change ([5d50ff8](https://github.com/weirdtangent/bookprepper/commit/5d50ff890460730bb3af39f11833a801a3a0c173))
-* upgrade Prisma to ^7.2.0 with auto-update support ([23118e7](https://github.com/weirdtangent/bookprepper/commit/23118e70e9487e44c4bc77839a6329e27fa37fe0))
+- support custom cover URLs and automatic re-download on URL change ([5d50ff8](https://github.com/weirdtangent/bookprepper/commit/5d50ff890460730bb3af39f11833a801a3a0c173))
+- upgrade Prisma to ^7.2.0 with auto-update support ([23118e7](https://github.com/weirdtangent/bookprepper/commit/23118e70e9487e44c4bc77839a6329e27fa37fe0))
 
 # [1.2.0](https://github.com/weirdtangent/bookprepper/compare/v1.1.0...v1.2.0) (2025-12-13)
 
