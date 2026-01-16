@@ -35,17 +35,18 @@ async function buildServer() {
     timeWindow: "1 minute",
     // Per-route limits can override this
     global: true,
-    // Use IP address as key for unauthenticated requests
+    // Use client IP from proxy headers (X-Forwarded-For takes precedence)
+    // or fall back to direct connection IP
     keyGenerator: (request: {
       ip: string;
       headers: Record<string, string | string[] | undefined>;
     }) => {
-      return (
-        request.ip ||
-        request.headers["x-forwarded-for"]?.toString() ||
-        request.headers["x-real-ip"]?.toString() ||
-        "unknown"
-      );
+      // X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2...)
+      // Extract only the first (client) IP to prevent bypass attacks
+      const forwardedFor = request.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
+      const realIp = request.headers["x-real-ip"]?.toString();
+
+      return forwardedFor || realIp || request.ip || "unknown";
     },
   });
   await server.register(authPlugin);

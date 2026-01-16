@@ -13,7 +13,7 @@ The API uses `@fastify/rate-limit` (v10.3.0) with a tiered approach:
 
 ### Global Configuration
 
-**File**: [`apps/api/src/server.ts`](apps/api/src/server.ts#L32-L47)
+**File**: [`apps/api/src/server.ts`](apps/api/src/server.ts#L32-L51)
 
 ```typescript
 await server.register(rateLimit, {
@@ -21,17 +21,17 @@ await server.register(rateLimit, {
   timeWindow: "1 minute",
   global: true,
   keyGenerator: (request) => {
-    return (
-      request.ip ||
-      request.headers["x-forwarded-for"]?.toString() ||
-      request.headers["x-real-ip"]?.toString() ||
-      "unknown"
-    );
+    // X-Forwarded-For can contain multiple IPs (client, proxy1, proxy2...)
+    // Extract only the first (client) IP to prevent bypass attacks
+    const forwardedFor = request.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim();
+    const realIp = request.headers["x-real-ip"]?.toString();
+
+    return forwardedFor || realIp || request.ip || "unknown";
   },
 });
 ```
 
-Rate limiting is applied per IP address (including support for proxied requests via `X-Forwarded-For` and `X-Real-IP` headers).
+Rate limiting is applied per client IP address. When behind a proxy, it correctly extracts the client IP from `X-Forwarded-For` (taking only the first IP to prevent bypass attacks) or `X-Real-IP` headers, with fallback to the direct connection IP.
 
 ### Rate Limit Tiers
 
@@ -51,11 +51,11 @@ Rate limiting is applied per IP address (including support for proxied requests 
 
 These routes make calls to external services and are heavily rate-limited:
 
-1. **`POST /api/books/:slug/preps/:prepId/quotes`** ([preps.ts:337-452](apps/api/src/routes/preps.ts#L337-L452))
+1. **`POST /api/books/:slug/preps/:prepId/quotes`** ([preps.ts:356-452](apps/api/src/routes/preps.ts#L356-L452))
    - Creates quotes with Google Books API verification
    - Risk: Each request makes 1 external API call
 
-2. **`GET /api/quotes/search`** ([preps.ts:511-581](apps/api/src/routes/preps.ts#L511-L581))
+2. **`GET /api/quotes/search`** ([preps.ts:535-581](apps/api/src/routes/preps.ts#L535-L581))
    - Searches Google Books API for quotes
    - Risk: Direct external API dependency
 
@@ -65,7 +65,7 @@ These routes make calls to external services and are heavily rate-limited:
 
 #### Expensive Database Queries (20 req/min)
 
-1. **`GET /api/preps/feedback/insights`** ([preps.ts:213-301](apps/api/src/routes/preps.ts#L213-L301))
+1. **`GET /api/preps/feedback/insights`** ([preps.ts:223-301](apps/api/src/routes/preps.ts#L223-L301))
    - Runs 3 complex queries in parallel via `Promise.all`:
      - Top prompt scores with book relations
      - Lowest prompt scores with book relations
@@ -79,13 +79,13 @@ All write operations have stricter limits than reads to prevent abuse:
 1. **`POST /api/books/:slug/preps/:prepId/vote`** ([preps.ts:97-177](apps/api/src/routes/preps.ts#L97-L177))
    - Multiple upserts + score synchronization
 
-2. **`POST /api/books/:slug/preps/suggest`** ([preps.ts:179-216](apps/api/src/routes/preps.ts#L179-L216))
+2. **`POST /api/books/:slug/preps/suggest`** ([preps.ts:179-220](apps/api/src/routes/preps.ts#L179-L220))
    - Creates prep suggestions
 
-3. **`POST /api/books/:slug/preps/:prepId/quotes/:quoteId/vote`** ([preps.ts:455-525](apps/api/src/routes/preps.ts#L455-L525))
+3. **`POST /api/books/:slug/preps/:prepId/quotes/:quoteId/vote`** ([preps.ts:455-532](apps/api/src/routes/preps.ts#L455-L532))
    - Upserts quote votes + fetches all votes
 
-4. **`DELETE /api/books/:slug/preps/:prepId/quotes/:quoteId`** ([preps.ts:583-639](apps/api/src/routes/preps.ts#L583-L639))
+4. **`DELETE /api/books/:slug/preps/:prepId/quotes/:quoteId`** ([preps.ts:583-637](apps/api/src/routes/preps.ts#L583-L637))
    - Deletes quotes with permission checks
 
 ## Security Benefits
