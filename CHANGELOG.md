@@ -1,9 +1,8 @@
 ## [1.3.1](https://github.com/weirdtangent/bookprepper/compare/v1.3.0...v1.3.1) (2026-01-16)
 
-
 ### Bug Fixes
 
-* run Prettier on CHANGELOG.md to resolve CI failure ([7eeab1e](https://github.com/weirdtangent/bookprepper/commit/7eeab1e937c8f446c80ac091abd0454025a2f199))
+- run Prettier on CHANGELOG.md to resolve CI failure ([7eeab1e](https://github.com/weirdtangent/bookprepper/commit/7eeab1e937c8f446c80ac091abd0454025a2f199))
 
 # [1.3.0](https://github.com/weirdtangent/bookprepper/compare/v1.2.0...v1.3.0) (2026-01-10)
 
