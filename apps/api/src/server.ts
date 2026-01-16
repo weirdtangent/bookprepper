@@ -29,9 +29,24 @@ async function buildServer() {
     origin: [env.WEB_BASE_URL],
     credentials: true,
   });
+  // Global rate limiting - conservative default
   await server.register(rateLimit, {
-    max: 300,
+    max: 100,
     timeWindow: "1 minute",
+    // Per-route limits can override this
+    global: true,
+    // Use IP address as key for unauthenticated requests
+    keyGenerator: (request: {
+      ip: string;
+      headers: Record<string, string | string[] | undefined>;
+    }) => {
+      return (
+        request.ip ||
+        request.headers["x-forwarded-for"]?.toString() ||
+        request.headers["x-real-ip"]?.toString() ||
+        "unknown"
+      );
+    },
   });
   await server.register(authPlugin);
 

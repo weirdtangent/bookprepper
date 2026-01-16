@@ -18,6 +18,11 @@ import {
   syncPromptScore,
   toVotesPayload,
 } from "../utils/promptScores.js";
+import {
+  externalApiRateLimit,
+  expensiveQueryRateLimit,
+  writeOperationRateLimit,
+} from "../utils/rate-limit-configs.js";
 
 const GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes";
 
@@ -91,7 +96,12 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post(
     "/books/:slug/preps/:prepId/vote",
-    { onRequest: [fastify.verifyJwt] },
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: writeOperationRateLimit, // Write operation with database upserts
+      },
+    },
     async (request) => {
       const params = prepParamsSchema.parse(request.params);
       const body = prepFeedbackBodySchema.parse(request.body);
@@ -168,7 +178,12 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post(
     "/books/:slug/preps/suggest",
-    { onRequest: [fastify.verifyJwt] },
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: writeOperationRateLimit, // Write operation
+      },
+    },
     async (request) => {
       const params = bookSlugParamsSchema.parse(request.params);
       const body = prepSuggestionBodySchema.parse(request.body);
@@ -205,86 +220,95 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  fastify.get("/preps/feedback/insights", { onRequest: [fastify.verifyJwt] }, async (request) => {
-    const user = await ensureUserProfile(request);
-    if (user.role === "MEMBER") {
-      throw fastify.httpErrors.forbidden("Administrator access required");
-    }
-
-    const selectPrep = {
-      select: {
-        id: true,
-        heading: true,
-        summary: true,
-        book: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
+  fastify.get(
+    "/preps/feedback/insights",
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: expensiveQueryRateLimit, // Very expensive triple Promise.all query
       },
-    } as const;
+    },
+    async (request) => {
+      const user = await ensureUserProfile(request);
+      if (user.role === "MEMBER") {
+        throw fastify.httpErrors.forbidden("Administrator access required");
+      }
 
-    const [topScores, lowestScores, recentFeedback] = await Promise.all([
-      prisma.promptScore.findMany({
-        where: { totalCount: { gt: 0 } },
-        take: 6,
-        orderBy: [{ score: "desc" }, { totalCount: "desc" }, { prepId: "asc" }],
-        include: {
-          prep: selectPrep,
-        },
-      }),
-      prisma.promptScore.findMany({
-        where: { totalCount: { gt: 0 } },
-        take: 6,
-        orderBy: [{ score: "asc" }, { totalCount: "desc" }, { prepId: "asc" }],
-        include: {
-          prep: selectPrep,
-        },
-      }),
-      prisma.promptFeedback.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 10,
-        include: {
-          prep: {
+      const selectPrep = {
+        select: {
+          id: true,
+          heading: true,
+          summary: true,
+          book: {
             select: {
               id: true,
-              heading: true,
-              book: {
-                select: {
-                  id: true,
-                  title: true,
-                  slug: true,
+              title: true,
+              slug: true,
+            },
+          },
+        },
+      } as const;
+
+      const [topScores, lowestScores, recentFeedback] = await Promise.all([
+        prisma.promptScore.findMany({
+          where: { totalCount: { gt: 0 } },
+          take: 6,
+          orderBy: [{ score: "desc" }, { totalCount: "desc" }, { prepId: "asc" }],
+          include: {
+            prep: selectPrep,
+          },
+        }),
+        prisma.promptScore.findMany({
+          where: { totalCount: { gt: 0 } },
+          take: 6,
+          orderBy: [{ score: "asc" }, { totalCount: "desc" }, { prepId: "asc" }],
+          include: {
+            prep: selectPrep,
+          },
+        }),
+        prisma.promptFeedback.findMany({
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          include: {
+            prep: {
+              select: {
+                id: true,
+                heading: true,
+                book: {
+                  select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                  },
                 },
               },
             },
           },
-        },
-      }),
-    ]);
+        }),
+      ]);
 
-    return {
-      topPrompts: topScores.map(mapScoreEntry),
-      needsAttention: lowestScores.map(mapScoreEntry),
-      recentFeedback: recentFeedback.map((entry) => ({
-        id: entry.id,
-        dimension: entry.dimension,
-        value: entry.value,
-        note: entry.note,
-        createdAt: entry.createdAt.toISOString(),
-        prep: {
-          id: entry.prep.id,
-          heading: entry.prep.heading,
-        },
-        book: {
-          id: entry.prep.book.id,
-          title: entry.prep.book.title,
-          slug: entry.prep.book.slug,
-        },
-      })),
-    };
-  });
+      return {
+        topPrompts: topScores.map(mapScoreEntry),
+        needsAttention: lowestScores.map(mapScoreEntry),
+        recentFeedback: recentFeedback.map((entry) => ({
+          id: entry.id,
+          dimension: entry.dimension,
+          value: entry.value,
+          note: entry.note,
+          createdAt: entry.createdAt.toISOString(),
+          prep: {
+            id: entry.prep.id,
+            heading: entry.prep.heading,
+          },
+          book: {
+            id: entry.prep.book.id,
+            title: entry.prep.book.title,
+            slug: entry.prep.book.slug,
+          },
+        })),
+      };
+    }
+  );
 
   // Quote routes
   fastify.get("/books/:slug/preps/:prepId/quotes", async (request) => {
@@ -331,7 +355,12 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post(
     "/books/:slug/preps/:prepId/quotes",
-    { onRequest: [fastify.verifyJwt] },
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: externalApiRateLimit, // Strict limit due to Google Books API call
+      },
+    },
     async (request) => {
       const params = prepParamsSchema.parse(request.params);
       const body = quoteCreateBodySchema.parse(request.body);
@@ -425,7 +454,12 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
   // Vote on a quote
   fastify.post(
     "/books/:slug/preps/:prepId/quotes/:quoteId/vote",
-    { onRequest: [fastify.verifyJwt] },
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: writeOperationRateLimit, // Write operation
+      },
+    },
     async (request) => {
       const params = quoteParamsSchema.parse(request.params);
       const body = quoteVoteBodySchema.parse(request.body);
@@ -498,49 +532,62 @@ const prepsRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // Search for quote in Google Books
-  fastify.get("/quotes/search", async (request) => {
-    const query = quoteSearchQuerySchema.parse(request.query);
+  fastify.get(
+    "/quotes/search",
+    {
+      config: {
+        rateLimit: externalApiRateLimit, // Strict limit due to Google Books API call
+      },
+    },
+    async (request) => {
+      const query = quoteSearchQuerySchema.parse(request.query);
 
-    let searchQuery = `"${query.text}"`;
-    if (query.bookTitle) {
-      searchQuery += ` intitle:${query.bookTitle}`;
-    }
-    if (query.authorName) {
-      searchQuery += ` inauthor:${query.authorName}`;
-    }
-
-    const url = `${GOOGLE_BOOKS_API_URL}?q=${encodeURIComponent(searchQuery)}&maxResults=5`;
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Google Books API returned ${response.status}`);
+      let searchQuery = `"${query.text}"`;
+      if (query.bookTitle) {
+        searchQuery += ` intitle:${query.bookTitle}`;
+      }
+      if (query.authorName) {
+        searchQuery += ` inauthor:${query.authorName}`;
       }
 
-      const data = (await response.json()) as GoogleBooksResult;
+      const url = `${GOOGLE_BOOKS_API_URL}?q=${encodeURIComponent(searchQuery)}&maxResults=5`;
 
-      return {
-        found: data.totalItems > 0,
-        results: (data.items ?? []).map((item) => ({
-          bookId: item.id,
-          title: item.volumeInfo.title,
-          authors: item.volumeInfo.authors ?? [],
-          publisher: item.volumeInfo.publisher,
-          publishedDate: item.volumeInfo.publishedDate,
-          previewLink: item.volumeInfo.previewLink,
-          infoLink: item.volumeInfo.infoLink,
-          textSnippet: item.searchInfo?.textSnippet,
-        })),
-      };
-    } catch (error) {
-      fastify.log.error(`"Google Books search failed: ${String(error)}"`);
-      throw fastify.httpErrors.serviceUnavailable("Quote search temporarily unavailable");
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Google Books API returned ${response.status}`);
+        }
+
+        const data = (await response.json()) as GoogleBooksResult;
+
+        return {
+          found: data.totalItems > 0,
+          results: (data.items ?? []).map((item) => ({
+            bookId: item.id,
+            title: item.volumeInfo.title,
+            authors: item.volumeInfo.authors ?? [],
+            publisher: item.volumeInfo.publisher,
+            publishedDate: item.volumeInfo.publishedDate,
+            previewLink: item.volumeInfo.previewLink,
+            infoLink: item.volumeInfo.infoLink,
+            textSnippet: item.searchInfo?.textSnippet,
+          })),
+        };
+      } catch (error) {
+        fastify.log.error(`"Google Books search failed: ${String(error)}"`);
+        throw fastify.httpErrors.serviceUnavailable("Quote search temporarily unavailable");
+      }
     }
-  });
+  );
 
   fastify.delete(
     "/books/:slug/preps/:prepId/quotes/:quoteId",
-    { onRequest: [fastify.verifyJwt] },
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: writeOperationRateLimit, // Write operation (delete)
+      },
+    },
     async (request) => {
       const params = quoteParamsSchema.parse(request.params);
 
