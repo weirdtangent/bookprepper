@@ -105,9 +105,9 @@ export function PrepCard({
     const cleanSnippet = snippet
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
-      .replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">");
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&");
 
     // Extract just the bold (matched) portions and nearby text
     // The <b> tags mark what Google found matching
