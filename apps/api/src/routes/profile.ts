@@ -8,6 +8,7 @@ import {
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
 import { updateCognitoDisplayName } from "../lib/cognito.js";
+import { externalApiRateLimit } from "../utils/rate-limit-configs.js";
 
 const profileRoutes: FastifyPluginAsync = async (fastify) => {
   const guard = { onRequest: [fastify.verifyJwt] };
@@ -17,47 +18,56 @@ const profileRoutes: FastifyPluginAsync = async (fastify) => {
     return { profile: mapProfile(profile) };
   });
 
-  fastify.patch("/profile", guard, async (request) => {
-    const body = profileUpdateBodySchema.parse(request.body);
-    const authProfile = await ensureUserProfile(request);
+  fastify.patch(
+    "/profile",
+    {
+      onRequest: [fastify.verifyJwt],
+      config: {
+        rateLimit: externalApiRateLimit, // Strict limit due to Cognito API call
+      },
+    },
+    async (request) => {
+      const body = profileUpdateBodySchema.parse(request.body);
+      const authProfile = await ensureUserProfile(request);
 
-    const updates: Prisma.UserProfileUpdateInput = buildProfileUpdates(body, authProfile);
+      const updates: Prisma.UserProfileUpdateInput = buildProfileUpdates(body, authProfile);
 
-    if (Object.keys(updates).length === 0) {
+      if (Object.keys(updates).length === 0) {
+        return {
+          profile: mapProfile(authProfile),
+          cognitoSynced: false,
+        };
+      }
+
+      const updated = await prisma.userProfile.update({
+        where: { id: authProfile.id },
+        data: updates,
+      });
+
+      let cognitoSynced = false;
+      if (body.displayName) {
+        try {
+          await updateCognitoDisplayName({
+            cognitoSub: authProfile.cognitoSub,
+            displayName: body.displayName,
+          });
+          cognitoSynced = true;
+        } catch (error) {
+          fastify.log.error(
+            {
+              cognitoSub: authProfile.cognitoSub,
+            },
+            `"Failed to update Cognito nickname: ${(error as Error).message}"`
+          );
+        }
+      }
+
       return {
-        profile: mapProfile(authProfile),
-        cognitoSynced: false,
+        profile: mapProfile(updated),
+        cognitoSynced,
       };
     }
-
-    const updated = await prisma.userProfile.update({
-      where: { id: authProfile.id },
-      data: updates,
-    });
-
-    let cognitoSynced = false;
-    if (body.displayName) {
-      try {
-        await updateCognitoDisplayName({
-          cognitoSub: authProfile.cognitoSub,
-          displayName: body.displayName,
-        });
-        cognitoSynced = true;
-      } catch (error) {
-        fastify.log.error(
-          {
-            cognitoSub: authProfile.cognitoSub,
-          },
-          `"Failed to update Cognito nickname: ${(error as Error).message}"`
-        );
-      }
-    }
-
-    return {
-      profile: mapProfile(updated),
-      cognitoSynced,
-    };
-  });
+  );
 };
 
 export default profileRoutes;
