@@ -1,3 +1,17 @@
+# [1.4.0](https://github.com/weirdtangent/bookprepper/compare/v1.3.1...v1.4.0) (2026-01-16)
+
+
+### Bug Fixes
+
+* address Copilot security review comments on rate limiting ([1ee3bde](https://github.com/weirdtangent/bookprepper/commit/1ee3bde82ee0cb617add348227d6273e8f59cb51))
+* improve IP extraction security for rate limiting ([7a7a78f](https://github.com/weirdtangent/bookprepper/commit/7a7a78f5138d1b51a757cdbf53e8fa8a4d54f0b4))
+* run Prettier on CHANGELOG.md to resolve CI failure ([1023819](https://github.com/weirdtangent/bookprepper/commit/1023819d903efeb1e7f51bbfcb0d58fedcc74e5d))
+
+
+### Features
+
+* implement comprehensive rate limiting to prevent DoS attacks ([e279cbf](https://github.com/weirdtangent/bookprepper/commit/e279cbf8533beb632d15234a328ebeaad71517ab))
+
 ## [1.3.1](https://github.com/weirdtangent/bookprepper/compare/v1.3.0...v1.3.1) (2026-01-16)
 
 ### Bug Fixes
