@@ -9,6 +9,7 @@ tmp
 apps/web/public/assets/covers
 apps/api/.cover-cache/
 assets/
+.claude
 
 # TypeScript build cache
 *.tsbuildinfo
