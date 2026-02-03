@@ -15,7 +15,8 @@ if (existsSync(rootEnvPath)) {
 export default defineConfig({
   schema: "./prisma/schema.prisma",
   datasource: {
-    url: env("DATABASE_URL"),
+    // Use a dummy URL for client generation when DATABASE_URL is not set
+    url: process.env.DATABASE_URL || "mysql://localhost:3306/bookprepper",
   },
   migrations: {
     seed: "tsx prisma/seed.ts",
