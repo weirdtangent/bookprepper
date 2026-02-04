@@ -85,7 +85,10 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
-  fastify.post("/admin/books", guardHooks, async (request) => {
+  fastify.post("/admin/books", {
+    ...guardHooks,
+    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+  }, async (request) => {
     const body = adminBookCreateSchema.parse(request.body);
     const authorId = await resolveAuthorId(body.authorId, body.authorName);
     const slug = await ensureUniqueSlug("book", body.slug ?? body.title);

@@ -288,7 +288,10 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
-  fastify.post("/admin/suggestions/books/:id/approve", guardHooks, async (request) => {
+  fastify.post("/admin/suggestions/books/:id/approve", {
+    ...guardHooks,
+    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+  }, async (request) => {
     const params = suggestionIdParamsSchema.parse(request.params);
     adminModerationNoteSchema.parse(request.body ?? {});
 
