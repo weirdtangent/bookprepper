@@ -1,3 +1,11 @@
+## [1.4.2](https://github.com/weirdtangent/bookprepper/compare/v1.4.1...v1.4.2) (2026-02-04)
+
+
+### Bug Fixes
+
+* **security:** add explicit rate limiting to admin routes ([cbc59cf](https://github.com/weirdtangent/bookprepper/commit/cbc59cf161408b1b60905487445db8cb01b3f2bb))
+* **security:** add per-route rate-limit config for CodeQL detection ([b8a892d](https://github.com/weirdtangent/bookprepper/commit/b8a892daf8e769631434a15e72fa25dbd9ca785d))
+
 ## [1.4.1](https://github.com/weirdtangent/bookprepper/compare/v1.4.0...v1.4.1) (2026-02-03)
 
 ### Bug Fixes
