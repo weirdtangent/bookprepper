@@ -85,42 +85,46 @@ const adminBooksRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
-  fastify.post("/admin/books", {
-    ...guardHooks,
-    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
-  }, async (request) => {
-    const body = adminBookCreateSchema.parse(request.body);
-    const authorId = await resolveAuthorId(body.authorId, body.authorName);
-    const slug = await ensureUniqueSlug("book", body.slug ?? body.title);
-    const isbn = normalizeIsbn(body.isbn);
+  fastify.post(
+    "/admin/books",
+    {
+      ...guardHooks,
+      config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+    },
+    async (request) => {
+      const body = adminBookCreateSchema.parse(request.body);
+      const authorId = await resolveAuthorId(body.authorId, body.authorName);
+      const slug = await ensureUniqueSlug("book", body.slug ?? body.title);
+      const isbn = normalizeIsbn(body.isbn);
 
-    const createdBook = await prisma.book.create({
-      data: {
-        title: body.title,
-        subtitle: body.subtitle ?? null,
-        slug,
-        synopsis: truncateSynopsis(body.synopsis),
-        coverImageUrl: body.coverImageUrl ?? null,
-        publishedYear: body.publishedYear ?? null,
-        isbn,
-        authorId,
-      },
-    });
+      const createdBook = await prisma.book.create({
+        data: {
+          title: body.title,
+          subtitle: body.subtitle ?? null,
+          slug,
+          synopsis: truncateSynopsis(body.synopsis),
+          coverImageUrl: body.coverImageUrl ?? null,
+          publishedYear: body.publishedYear ?? null,
+          isbn,
+          authorId,
+        },
+      });
 
-    if (body.genreIds?.length) {
-      const genreIds = await validateGenreIds(fastify, body.genreIds);
-      await syncBookGenres(createdBook.id, genreIds);
+      if (body.genreIds?.length) {
+        const genreIds = await validateGenreIds(fastify, body.genreIds);
+        await syncBookGenres(createdBook.id, genreIds);
+      }
+
+      const fullBook = await prisma.book.findUnique({
+        where: { id: createdBook.id },
+        ...adminBookDetailInclude,
+      });
+
+      return {
+        book: mapAdminBook(fullBook!),
+      };
     }
-
-    const fullBook = await prisma.book.findUnique({
-      where: { id: createdBook.id },
-      ...adminBookDetailInclude,
-    });
-
-    return {
-      book: mapAdminBook(fullBook!),
-    };
-  });
+  );
 
   fastify.patch("/admin/books/:slug", guardHooks, async (request) => {
     const params = bookSlugParamsSchema.parse(request.params);

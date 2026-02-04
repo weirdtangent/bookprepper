@@ -288,62 +288,66 @@ const adminSuggestionsRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
-  fastify.post("/admin/suggestions/books/:id/approve", {
-    ...guardHooks,
-    config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
-  }, async (request) => {
-    const params = suggestionIdParamsSchema.parse(request.params);
-    adminModerationNoteSchema.parse(request.body ?? {});
+  fastify.post(
+    "/admin/suggestions/books/:id/approve",
+    {
+      ...guardHooks,
+      config: { rateLimit: { max: 30, timeWindow: "1 minute" } },
+    },
+    async (request) => {
+      const params = suggestionIdParamsSchema.parse(request.params);
+      adminModerationNoteSchema.parse(request.body ?? {});
 
-    const suggestion = await prisma.bookSuggestion.findUnique({
-      where: { id: params.id },
-    });
+      const suggestion = await prisma.bookSuggestion.findUnique({
+        where: { id: params.id },
+      });
 
-    if (!suggestion) {
-      throw fastify.httpErrors.notFound("Suggestion not found.");
+      if (!suggestion) {
+        throw fastify.httpErrors.notFound("Suggestion not found.");
+      }
+
+      if (suggestion.status !== "PENDING") {
+        throw fastify.httpErrors.badRequest("Suggestion already processed.");
+      }
+
+      const authorId = await resolveAuthorId(undefined, suggestion.authorName);
+      const slug = await ensureUniqueSlug("book", suggestion.title);
+
+      const newBook = await prisma.book.create({
+        data: {
+          title: suggestion.title,
+          slug,
+          synopsis: truncateSynopsis(suggestion.notes),
+          authorId,
+        },
+      });
+
+      const genreIdeas = extractStringArray(suggestion.genreIdeas);
+      if (genreIdeas.length > 0) {
+        const genreRecords = await ensureGenresFromNames(genreIdeas);
+        await syncBookGenres(
+          newBook.id,
+          genreRecords.map((genre) => genre.id)
+        );
+      }
+
+      await prisma.bookSuggestion.update({
+        where: { id: suggestion.id },
+        data: {
+          status: "APPROVED",
+          reviewedAt: new Date(),
+        },
+      });
+
+      return {
+        book: {
+          id: newBook.id,
+          slug: newBook.slug,
+          title: newBook.title,
+        },
+      };
     }
-
-    if (suggestion.status !== "PENDING") {
-      throw fastify.httpErrors.badRequest("Suggestion already processed.");
-    }
-
-    const authorId = await resolveAuthorId(undefined, suggestion.authorName);
-    const slug = await ensureUniqueSlug("book", suggestion.title);
-
-    const newBook = await prisma.book.create({
-      data: {
-        title: suggestion.title,
-        slug,
-        synopsis: truncateSynopsis(suggestion.notes),
-        authorId,
-      },
-    });
-
-    const genreIdeas = extractStringArray(suggestion.genreIdeas);
-    if (genreIdeas.length > 0) {
-      const genreRecords = await ensureGenresFromNames(genreIdeas);
-      await syncBookGenres(
-        newBook.id,
-        genreRecords.map((genre) => genre.id)
-      );
-    }
-
-    await prisma.bookSuggestion.update({
-      where: { id: suggestion.id },
-      data: {
-        status: "APPROVED",
-        reviewedAt: new Date(),
-      },
-    });
-
-    return {
-      book: {
-        id: newBook.id,
-        slug: newBook.slug,
-        title: newBook.title,
-      },
-    };
-  });
+  );
 
   fastify.post("/admin/suggestions/books/:id/reject", guardHooks, async (request) => {
     const params = suggestionIdParamsSchema.parse(request.params);

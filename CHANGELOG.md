@@ -1,9 +1,8 @@
 ## [1.4.1](https://github.com/weirdtangent/bookprepper/compare/v1.4.0...v1.4.1) (2026-02-03)
 
-
 ### Bug Fixes
 
-* **security:** resolve 6 dependabot vulnerabilities via pnpm overrides ([a895d26](https://github.com/weirdtangent/bookprepper/commit/a895d261d5d32fbf8f9442ef1d8688c3b9be501d))
+- **security:** resolve 6 dependabot vulnerabilities via pnpm overrides ([a895d26](https://github.com/weirdtangent/bookprepper/commit/a895d261d5d32fbf8f9442ef1d8688c3b9be501d))
 
 # [1.4.0](https://github.com/weirdtangent/bookprepper/compare/v1.3.1...v1.4.0) (2026-01-16)
 
