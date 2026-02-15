@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/weirdtangent/bookprepper/compare/v1.4.2...v1.5.0) (2026-02-15)
+
+
+### Features
+
+* add claude-code-review workflow for PR reviews ([5556a51](https://github.com/weirdtangent/bookprepper/commit/5556a51b8720a9b511d33cf85fc05d03e952760f))
+
 ## [1.4.2](https://github.com/weirdtangent/bookprepper/compare/v1.4.1...v1.4.2) (2026-02-04)
 
 ### Bug Fixes
