@@ -43,10 +43,11 @@
       "prisma"
     ],
     "overrides": {
-      "hono": "^4.11.7",
+      "hono": "^4.11.10",
       "lodash": "^4.17.23",
       "lodash-es": "^4.17.23",
-      "fast-xml-parser": "^5.3.4"
+      "fast-xml-parser": "^5.3.6",
+      "bn.js": "^5.2.3"
     }
   }
 }
