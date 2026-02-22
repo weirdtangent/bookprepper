@@ -1,0 +1,19 @@
+[Unit]
+Description=BookPrepper API server
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=bookprepper
+Group=bookprepper
+WorkingDirectory=/opt/bookprepper
+ExecStart=/usr/bin/node apps/api/dist/server.js
+EnvironmentFile=/opt/bookprepper/.env
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bookprepper
+
+[Install]
+WantedBy=multi-user.target
