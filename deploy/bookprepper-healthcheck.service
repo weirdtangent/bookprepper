@@ -1,0 +1,6 @@
+[Unit]
+Description=BookPrepper health check
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bookprepper/deploy/bookprepper-healthcheck.sh

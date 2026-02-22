@@ -11,6 +11,7 @@ import adminRoutes from "./routes/admin/index.js";
 import profileRoutes from "./routes/profile.js";
 import readingRoutes from "./routes/reading.js";
 import { env } from "config";
+import { prisma } from "db";
 import { randomUUID } from "crypto";
 
 async function buildServer() {
@@ -61,7 +62,14 @@ async function buildServer() {
   });
   await server.register(authPlugin);
 
-  server.get("/healthz", async () => ({ status: "ok" }));
+  server.get("/healthz", async (_request, reply) => {
+    try {
+      await prisma.$queryRawUnsafe("SELECT 1");
+      return { status: "ok" };
+    } catch {
+      return reply.status(503).send({ status: "error", message: "database unavailable" });
+    }
+  });
 
   await server.register(booksRoutes, { prefix: "/api" });
   await server.register(prepsRoutes, { prefix: "/api" });
