@@ -61,3 +61,7 @@ Running `pnpm covers:cache` fetches each ISBN’s cover art once, stores it unde
 ### Library shuffle mode
 
 The `/api/books` endpoint now accepts a `shuffle=true` query parameter, returning a randomly ordered slice of the catalog on each request. The web client enables shuffle mode by default and saves each signed-in user’s preference in their profile (anonymous visitors fall back to local storage), so they can keep browsing randomized picks across visits.
+
+## Contributors
+
+- [@weirdtangent](https://github.com/weirdtangent)
