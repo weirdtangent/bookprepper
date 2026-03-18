@@ -22,7 +22,7 @@
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/sensible": "^6.0.4",
     "@prisma/client": "^7.5.0",
-    "aws-jwt-verify": "^4.0.1",
+    "aws-jwt-verify": "^5.1.1",
     "config": "workspace:*",
     "db": "workspace:*",
     "dotenv": "^16.6.1",
