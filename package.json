@@ -23,17 +23,17 @@
     "covers:cache": "pnpm --filter api covers:cache"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@types/node": "^22.19.7",
-    "@typescript-eslint/eslint-plugin": "^8.53.0",
-    "@typescript-eslint/parser": "^8.53.0",
-    "eslint": "^9.39.2",
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^22.19.15",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^9.1.2",
     "globals": "^15.15.0",
-    "prettier": "^3.8.0",
+    "prettier": "^3.8.1",
     "semantic-release": "^24.2.9",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0",
+    "typescript-eslint": "^8.57.1",
     "vitest": "^3.2.4"
   },
   "pnpm": {
@@ -43,11 +43,13 @@
       "prisma"
     ],
     "overrides": {
-      "hono": "^4.11.10",
       "lodash": "^4.17.23",
       "lodash-es": "^4.17.23",
       "fast-xml-parser": "^5.3.6",
-      "bn.js": "^5.2.3"
+      "bn.js": "^5.2.3",
+      "minimatch": "^9.0.5",
+      "flatted": "^3.3.4",
+      "rollup": "^4.40.0"
     }
   }
 }
