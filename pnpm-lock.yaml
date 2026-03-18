@@ -78,8 +78,8 @@ importers:
         specifier: ^7.5.0
         version: 7.5.0(prisma@7.5.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       aws-jwt-verify:
-        specifier: ^4.0.1
-        version: 4.0.1
+        specifier: ^5.1.1
+        version: 5.1.1
       config:
         specifier: workspace:*
         version: link:../../packages/config
@@ -1622,9 +1622,9 @@ packages:
   aws-amplify@6.16.3:
     resolution: {integrity: sha512-yWuvctncVzSI5K40k2LiZTTKu6p1O7YpbmFfbM9luAFssUj2P2DmgJgs2IQ0ArpJTi++QrAT5L4F60qxTpGTIA==}
 
-  aws-jwt-verify@4.0.1:
-    resolution: {integrity: sha512-kzvi71eD3w/mCpYRUY7cz6DX4bfYihGdI2yV3FYQ2JuZZenqAqDPz0gWj0ew6vlAtdEVBNb7p+Dm2TAIxpVYMA==}
-    engines: {node: '>=14.0.0'}
+  aws-jwt-verify@5.1.1:
+    resolution: {integrity: sha512-j6whGdGJmQ27agk4ijY8RPv6itb8JLb7SCJ86fEnneTcSBrpxuwL8kLq6y5WVH95aIknyAloEqAsaOLS1J8ITQ==}
+    engines: {node: '>=18.0.0'}
 
   aws-ssl-profiles@1.1.2:
     resolution: {integrity: sha512-NZKeq9AfyQvEeNlN0zSYAaWrmBffJh3IELMZfRpJVWgrpEbtEpnjvzqBPf+mxoI287JohRDoa+/nsfqqiZmF6g==}
@@ -5689,7 +5689,7 @@ snapshots:
       - '@aws-amplify/react-native'
       - aws-crt
 
-  aws-jwt-verify@4.0.1: {}
+  aws-jwt-verify@5.1.1: {}
 
   aws-ssl-profiles@1.1.2: {}
 
