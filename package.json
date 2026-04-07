@@ -45,7 +45,9 @@
     "overrides": {
       "lodash": "^4.17.23",
       "lodash-es": "^4.17.23",
-      "fast-xml-parser": "^5.3.6",
+      "fast-xml-parser": "^5.5.7",
+      "defu": "^6.1.5",
+      "handlebars": "^4.7.9",
       "bn.js": "^5.2.3",
       "minimatch": "^9.0.5",
       "flatted": "^3.3.4",
