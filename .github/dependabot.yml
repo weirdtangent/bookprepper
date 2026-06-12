@@ -1,7 +1,13 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/apps/api"
+      - "/apps/web"
+      - "/packages/config"
+      - "/packages/db"
+      - "/packages/types"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
