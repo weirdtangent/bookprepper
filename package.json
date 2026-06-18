@@ -43,6 +43,7 @@
       "prisma"
     ],
     "overrides": {
+      "esbuild": "^0.28.1",
       "lodash": "^4.17.23",
       "lodash-es": "^4.17.23",
       "fast-xml-parser": "^5.5.7",
