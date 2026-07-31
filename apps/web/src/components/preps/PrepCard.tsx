@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Prep, type PrepQuote, type PromptFeedbackDimension } from "../../lib/api";
 import { getPromptFeedbackLabel } from "../../lib/promptFeedback";

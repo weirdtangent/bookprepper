@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router";
 import { useAuth } from "../../lib/auth";
 import { api } from "../../lib/api";
 import type { CatalogStats } from "../../lib/api";
