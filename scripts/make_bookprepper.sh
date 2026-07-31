@@ -38,6 +38,14 @@ pnpm --filter db build
 pnpm --filter types build
 pnpm covers:cache
 pnpm --filter api build
+
+# Write the current release version (from the latest git tag) into VERSION so the
+# SPA header shows the real semantic-release version. vite.config.ts reads ../../VERSION
+# first, falling back to package.json (a static 1.5.0) when the file is absent.
+# semantic-release is tag-only here (no @semantic-release/git), so package.json never
+# reflects the release — this bridges that gap at build time. VERSION is gitignored.
+git describe --tags --always 2>/dev/null | sed 's/^v//' > VERSION
+
 pnpm --filter web build
 
 sudo systemctl restart bookprepper
