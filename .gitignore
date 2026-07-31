@@ -15,3 +15,6 @@ assets/
 
 # TypeScript build cache
 *.tsbuildinfo
+
+# Generated at deploy time by scripts/make_bookprepper.sh (release tag for the SPA header)
+VERSION
