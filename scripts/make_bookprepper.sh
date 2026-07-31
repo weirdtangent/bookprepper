@@ -39,12 +39,19 @@ pnpm --filter types build
 pnpm covers:cache
 pnpm --filter api build
 
-# Write the current release version (from the latest git tag) into VERSION so the
-# SPA header shows the real semantic-release version. vite.config.ts reads ../../VERSION
+# Write the current release version (nearest git tag) into VERSION so the SPA
+# header shows the real semantic-release version. vite.config.ts reads ../../VERSION
 # first, falling back to package.json (a static 1.5.0) when the file is absent.
 # semantic-release is tag-only here (no @semantic-release/git), so package.json never
 # reflects the release — this bridges that gap at build time. VERSION is gitignored.
-git describe --tags --always 2>/dev/null | sed 's/^v//' > VERSION
+# Guarded so a git hiccup (no tags / shallow clone) can't abort the deploy under
+# `set -e`; on failure we drop VERSION and let vite fall back. --abbrev=0 yields a
+# clean tag (v1.6.4) rather than a v1.6.4-3-g<sha> describe string.
+if release_version="$(git describe --tags --abbrev=0 2>/dev/null)"; then
+  printf '%s\n' "${release_version#v}" > VERSION
+else
+  rm -f VERSION
+fi
 
 pnpm --filter web build
 
