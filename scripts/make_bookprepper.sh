@@ -28,7 +28,15 @@ rm -rf packages/db/dist
 rm -rf packages/config/dist
 rm -rf packages/types/dist
 
-pnpm install
+# Clean, reproducible install that matches CI (fresh checkout + --frozen-lockfile).
+# A plain incremental `pnpm install` over the persistent node_modules can strand an
+# orphaned transitive version after a dependabot bump — e.g. an old @types/react
+# lingering next to the bumped one. Two React type identities then make JSX props
+# resolve to `any`, breaking `tsc -b` with TS7031 on render-prop callbacks
+# (className={({ isActive }) => ...}) even though CI is green. Wiping node_modules
+# and using --frozen-lockfile keeps deploys byte-for-byte identical to CI.
+rm -rf node_modules apps/*/node_modules packages/*/node_modules
+pnpm install --frozen-lockfile
 pnpm --filter db prisma generate
 pnpm --filter db prisma migrate deploy
 
