@@ -80,6 +80,12 @@ if [[ -n "${reload_units:-}" ]]; then
   sudo systemctl daemon-reload
 fi
 sudo systemctl enable --now bookprepper-healthcheck.timer
+if [[ -n "${reload_units:-}" ]]; then
+  # `enable --now` starts a stopped timer but will not restart a running one, so
+  # an edited schedule (OnUnitActiveSec, say) would otherwise keep the old cadence
+  # until the next reboot.
+  sudo systemctl restart bookprepper-healthcheck.timer
+fi
 
 # Pass 1: mirror everything except cover JPEGs (manifest JSON still replaced)
 sudo rsync -a --delete \
