@@ -65,6 +65,22 @@ pnpm --filter web build
 
 sudo systemctl restart bookprepper
 
+# Install the health-check watchdog if it isn't already running. These units used
+# to be install-by-hand, which meant they were simply absent on graystorm — so
+# when the API lost its database on 2026-08-13 nothing noticed for 88 minutes.
+# Idempotent: `install` only rewrites on change, and the daemon-reload/enable pair
+# is a no-op once the timer is active.
+for unit in bookprepper-healthcheck.service bookprepper-healthcheck.timer; do
+  if ! cmp -s "${REPO_DIR}/deploy/${unit}" "/etc/systemd/system/${unit}"; then
+    sudo install -m 0644 "${REPO_DIR}/deploy/${unit}" "/etc/systemd/system/${unit}"
+    reload_units=1
+  fi
+done
+if [[ -n "${reload_units:-}" ]]; then
+  sudo systemctl daemon-reload
+fi
+sudo systemctl enable --now bookprepper-healthcheck.timer
+
 # Pass 1: mirror everything except cover JPEGs (manifest JSON still replaced)
 sudo rsync -a --delete \
   --exclude='assets/covers/*.jpg' \
