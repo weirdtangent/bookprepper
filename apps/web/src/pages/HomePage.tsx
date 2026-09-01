@@ -8,6 +8,12 @@ import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../lib/auth";
 
 const PAGE_SIZE = 12;
+// A chip's visible text is its name plus a bare number, which reads as
+// "Science Fiction 43" out of context, and `title` supplies the description as
+// the accessible name instead of the label. Name the chip explicitly so assistive
+// tech gets the label and the count rather than the flavour text.
+const chipLabel = (name: string, bookCount: number) =>
+  `${name}, ${bookCount} book${bookCount === 1 ? "" : "s"}`;
 const labelFromSlug = (slug: string) =>
   slug
     .split("-")
@@ -322,6 +328,8 @@ export default function HomePage() {
                   type="button"
                   className={`chip ${isSelected ? "chip--selected" : ""}`}
                   title={genre.description ?? undefined}
+                  aria-label={chipLabel(genre.name, genre.bookCount)}
+                  aria-pressed={isSelected}
                   onClick={() => toggleFilter(genre.slug, setGenreFilters)}
                 >
                   {genre.name}
@@ -349,6 +357,8 @@ export default function HomePage() {
                   type="button"
                   className={`chip ${isSelected ? "chip--selected" : ""}`}
                   title={keyword.description ?? undefined}
+                  aria-label={chipLabel(keyword.name, keyword.bookCount)}
+                  aria-pressed={isSelected}
                   onClick={() => togglePrepFilter(keyword.slug)}
                 >
                   {keyword.name}
@@ -362,6 +372,8 @@ export default function HomePage() {
                 type="button"
                 className="chip chip--selected"
                 title="Not part of the curated keyword list. Select to remove it from your filters."
+                aria-label={`${labelFromSlug(slug)}, remove filter`}
+                aria-pressed={true}
                 onClick={() => togglePrepFilter(slug)}
               >
                 {labelFromSlug(slug)}
