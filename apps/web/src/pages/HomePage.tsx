@@ -185,9 +185,11 @@ export default function HomePage() {
       clauses.push(`matching \u201c${debouncedSearch.trim()}\u201d`);
     }
 
-    const authorName = authors.find((author) => author.slug === authorSlug)?.name;
-    if (authorName) {
-      clauses.push(`by ${authorName}`);
+    // Keyed off the slug, not the lookup: the authors query may not have resolved
+    // yet, and a summary that silently omits an applied filter is worse than one
+    // naming it from the slug.
+    if (authorSlug) {
+      clauses.push(`by ${nameFor(authors, authorSlug)}`);
     }
 
     if (genreFilters.length > 0) {
