@@ -495,6 +495,32 @@ a {
   cursor: pointer;
 }
 
+.chip__count {
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.chip--selected .chip__count {
+  color: inherit;
+  opacity: 0.75;
+}
+
+.chip-grid__toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.chip-grid__toggle:hover {
+  text-decoration: underline;
+}
+
 .chip--selected {
   background: var(--color-chip-selected-bg);
   color: var(--color-chip-selected-text);

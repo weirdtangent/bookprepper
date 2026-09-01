@@ -6,6 +6,7 @@ export type {
   Author,
   Genre,
   Keyword,
+  KeywordFacet,
   PromptFeedbackDimension,
   PromptVoteDimensionBreakdown,
   PromptVoteSummary,
@@ -38,7 +39,7 @@ export type {
 import type {
   Pagination,
   Genre,
-  Keyword,
+  KeywordFacet,
   Author,
   PromptFeedbackDimension,
   Prep,
@@ -135,7 +136,7 @@ export const api = {
     apiFetch<BookDetail>(`/api/books/${slug}`, { signal }),
   listGenres: () => apiFetch<{ genres: Genre[] }>("/api/genres"),
   listAuthors: () => apiFetch<{ authors: Author[] }>("/api/authors"),
-  listPrepKeywords: () => apiFetch<{ keywords: Keyword[] }>("/api/preps/keywords"),
+  listPrepKeywords: () => apiFetch<{ keywords: KeywordFacet[] }>("/api/preps/keywords"),
   voteOnPrep: (params: {
     slug: string;
     prepId: string;

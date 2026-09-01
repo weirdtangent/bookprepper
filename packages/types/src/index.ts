@@ -40,6 +40,11 @@ export type Keyword = {
   description?: string | null;
 };
 
+/** A keyword as offered in the library filter, carrying how many books it reaches. */
+export type KeywordFacet = Keyword & {
+  bookCount: number;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Prompt Feedback
 // ─────────────────────────────────────────────────────────────────────────────
