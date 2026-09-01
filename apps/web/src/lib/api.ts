@@ -5,6 +5,7 @@ export type {
   Pagination,
   Author,
   Genre,
+  GenreFacet,
   Keyword,
   KeywordFacet,
   AdminKeyword,
@@ -40,7 +41,7 @@ export type {
 
 import type {
   Pagination,
-  Genre,
+  GenreFacet,
   KeywordFacet,
   AdminKeyword,
   Author,
@@ -137,7 +138,7 @@ export const api = {
     }),
   getBook: (slug: string, signal?: AbortSignal) =>
     apiFetch<BookDetail>(`/api/books/${slug}`, { signal }),
-  listGenres: () => apiFetch<{ genres: Genre[] }>("/api/genres"),
+  listGenres: () => apiFetch<{ genres: GenreFacet[] }>("/api/genres"),
   listAuthors: () => apiFetch<{ authors: Author[] }>("/api/authors"),
   listPrepKeywords: () => apiFetch<{ keywords: KeywordFacet[] }>("/api/preps/keywords"),
   voteOnPrep: (params: {

@@ -16,6 +16,7 @@ import {
   toVotesPayload,
 } from "../utils/promptScores.js";
 import { tokenizeSearch } from "../utils/strings.js";
+import { rankFacets } from "../utils/facets.js";
 
 const MAX_VISIBLE_PREPS = 3;
 
@@ -113,16 +114,23 @@ const booksRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get("/genres", async () => {
     const genres = await prisma.genre.findMany({
-      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { books: true },
+        },
+      },
     });
 
     return {
-      genres: genres.map((genre) => ({
-        id: genre.id,
-        name: genre.name,
-        slug: genre.slug,
-        description: genre.description,
-      })),
+      genres: rankFacets(
+        genres.map((genre) => ({
+          id: genre.id,
+          name: genre.name,
+          slug: genre.slug,
+          description: genre.description,
+          bookCount: genre._count.books,
+        }))
+      ),
     };
   });
 

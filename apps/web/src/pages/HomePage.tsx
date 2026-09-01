@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router";
 import { api } from "../lib/api";
-import type { Author, BookListResponse, Genre, KeywordFacet } from "../lib/api";
+import type { Author, BookListResponse, GenreFacet, KeywordFacet } from "../lib/api";
 import { BookCard } from "../components/books/BookCard";
 import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../lib/auth";
@@ -52,7 +52,7 @@ export default function HomePage() {
     setPrepFilters((current) => (areArraysEqual(current, parsed) ? current : parsed));
   }, [prepParam]);
 
-  const genresQuery = useQuery<{ genres: Genre[] }>({
+  const genresQuery = useQuery<{ genres: GenreFacet[] }>({
     queryKey: ["genres"],
     queryFn: () => api.listGenres(),
   });
@@ -290,9 +290,11 @@ export default function HomePage() {
                   key={genre.id}
                   type="button"
                   className={`chip ${isSelected ? "chip--selected" : ""}`}
+                  title={genre.description ?? undefined}
                   onClick={() => toggleFilter(genre.slug, setGenreFilters)}
                 >
                   {genre.name}
+                  <span className="chip__count">{genre.bookCount}</span>
                 </button>
               );
             })}
