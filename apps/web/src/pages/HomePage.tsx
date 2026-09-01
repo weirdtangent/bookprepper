@@ -152,8 +152,6 @@ export default function HomePage() {
 
   const totalPages = booksQuery.data?.pagination.totalPages ?? 1;
 
-  const selectedFilterCount = genreFilters.length + prepFilters.length + (authorSlug ? 1 : 0);
-
   const canGoBack = page > 1;
   const canGoForward = page < totalPages;
 
@@ -172,6 +170,41 @@ export default function HomePage() {
   }, [keywords, prepFilters]);
   const genres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
   const authors = useMemo(() => authorsQuery.data?.authors ?? [], [authorsQuery.data]);
+
+  // Selecting a second genre widens the results while adding a keyword narrows
+  // them, because filters OR within a group and AND across groups. Nothing on the
+  // page says so, so state the active query in words instead of leaving the
+  // reader to infer the rule from the result count moving the wrong way.
+  const filterClauses = useMemo(() => {
+    const nameFor = <T extends { name: string; slug: string }>(list: T[], slug: string) =>
+      list.find((entry) => entry.slug === slug)?.name ?? labelFromSlug(slug);
+
+    const clauses: string[] = [];
+
+    if (debouncedSearch.trim()) {
+      clauses.push(`matching \u201c${debouncedSearch.trim()}\u201d`);
+    }
+
+    // Keyed off the slug, not the lookup: the authors query may not have resolved
+    // yet, and a summary that silently omits an applied filter is worse than one
+    // naming it from the slug.
+    if (authorSlug) {
+      clauses.push(`by ${nameFor(authors, authorSlug)}`);
+    }
+
+    if (genreFilters.length > 0) {
+      clauses.push(`in ${genreFilters.map((slug) => nameFor(genres, slug)).join(" or ")}`);
+    }
+
+    if (prepFilters.length > 0) {
+      const names = prepFilters.map((slug) => nameFor(keywords, slug));
+      clauses.push(`with ${names.length === 1 ? "a prep" : "preps"} about ${names.join(" or ")}`);
+    }
+
+    return clauses;
+  }, [debouncedSearch, authors, authorSlug, genreFilters, genres, prepFilters, keywords]);
+
+  const resultTotal = booksQuery.data?.pagination.total ?? 0;
   const typeaheadResults = typeaheadQuery.data?.results ?? [];
   const showTypeahead = isSearchFocused && search.trim().length >= 2 && typeaheadResults.length > 0;
 
@@ -214,15 +247,10 @@ export default function HomePage() {
         <div>
           <h1>Prep your next reading adventure</h1>
           <p>
-            Browse our collection of books, filter by genre or prep keyword, and see what other
+            Browse our collection of books, narrow by genre and prep keyword, and see what other
             readers watch for before they start.
           </p>
         </div>
-        {selectedFilterCount > 0 && (
-          <button className="link-button" onClick={resetFilters}>
-            Clear {selectedFilterCount} filter{selectedFilterCount === 1 ? "" : "s"}
-          </button>
-        )}
       </div>
 
       <section className="filters-panel">
@@ -280,7 +308,10 @@ export default function HomePage() {
         <div className="filter-group">
           <div className="filter-group__header">
             <span>Genres</span>
-            <small>{genreFilters.length} selected</small>
+            <small>
+              {genreFilters.length > 0 && "match any · "}
+              {genreFilters.length} selected
+            </small>
           </div>
           <div className="chip-grid">
             {genres.map((genre) => {
@@ -304,7 +335,10 @@ export default function HomePage() {
         <div className="filter-group">
           <div className="filter-group__header">
             <span>Prep keywords</span>
-            <small>{prepFilters.length} selected</small>
+            <small>
+              {prepFilters.length > 0 && "match any · "}
+              {prepFilters.length} selected
+            </small>
           </div>
           <div className="chip-grid">
             {keywords.map((keyword) => {
@@ -341,6 +375,16 @@ export default function HomePage() {
       </section>
 
       <section className="results-panel">
+        {filterClauses.length > 0 && (
+          <div className="filter-summary">
+            <p>
+              Showing {resultTotal} book{resultTotal === 1 ? "" : "s"} {filterClauses.join(", ")}.
+            </p>
+            <button type="button" className="link-button" onClick={resetFilters}>
+              Clear filters
+            </button>
+          </div>
+        )}
         {booksQuery.isLoading && (
           <p>{shuffleEnabled ? "Gathering random reading suggestions..." : "Loading books..."}</p>
         )}
