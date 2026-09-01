@@ -2,12 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router";
 import { api } from "../lib/api";
-import type { Author, BookListResponse, Genre, Keyword } from "../lib/api";
+import type { Author, BookListResponse, Genre, KeywordFacet } from "../lib/api";
 import { BookCard } from "../components/books/BookCard";
 import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../lib/auth";
 
 const PAGE_SIZE = 12;
+// Below this, a keyword chip narrows the library to one or two books, which is a
+// link to a book rather than a filter. Rare keywords stay reachable via the
+// "Show all" toggle and via prep-card links, which arrive as ?prep=<slug>.
+const KEYWORD_FACET_MIN_BOOKS = 3;
 const parseListParam = (value: string | null) =>
   value
     ?.split(",")
@@ -24,6 +28,7 @@ export default function HomePage() {
   const [prepFilters, setPrepFilters] = useState<string[]>(() =>
     parseListParam(searchParams.get("prep"))
   );
+  const [showAllKeywords, setShowAllKeywords] = useState(false);
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 350);
   const typeaheadSearch = useDebounce(search, 200);
@@ -56,7 +61,7 @@ export default function HomePage() {
     queryFn: () => api.listAuthors(),
   });
 
-  const keywordsQuery = useQuery<{ keywords: Keyword[] }>({
+  const keywordsQuery = useQuery<{ keywords: KeywordFacet[] }>({
     queryKey: ["prep-keywords"],
     queryFn: () => api.listPrepKeywords(),
   });
@@ -152,6 +157,21 @@ export default function HomePage() {
   const canGoForward = page < totalPages;
 
   const keywords = useMemo(() => keywordsQuery.data?.keywords ?? [], [keywordsQuery.data]);
+
+  // Always render a selected keyword even if it is below the threshold, otherwise
+  // a ?prep=<slug> link from a prep card leaves the user unable to deselect it.
+  const visibleKeywords = useMemo(
+    () =>
+      showAllKeywords
+        ? keywords
+        : keywords.filter(
+            (keyword) =>
+              keyword.bookCount >= KEYWORD_FACET_MIN_BOOKS || prepFilters.includes(keyword.slug)
+          ),
+    [keywords, showAllKeywords, prepFilters]
+  );
+
+  const hiddenKeywordCount = keywords.length - visibleKeywords.length;
   const genres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
   const authors = useMemo(() => authorsQuery.data?.authors ?? [], [authorsQuery.data]);
   const typeaheadResults = typeaheadQuery.data?.results ?? [];
@@ -287,7 +307,7 @@ export default function HomePage() {
             <small>{prepFilters.length} selected</small>
           </div>
           <div className="chip-grid">
-            {keywords.map((keyword) => {
+            {visibleKeywords.map((keyword) => {
               const isSelected = prepFilters.includes(keyword.slug);
               return (
                 <button
@@ -298,10 +318,22 @@ export default function HomePage() {
                   onClick={() => togglePrepFilter(keyword.slug)}
                 >
                   {keyword.name}
+                  <span className="chip__count">{keyword.bookCount}</span>
                 </button>
               );
             })}
           </div>
+          {(hiddenKeywordCount > 0 || showAllKeywords) && (
+            <button
+              type="button"
+              className="chip-grid__toggle"
+              onClick={() => setShowAllKeywords((current) => !current)}
+            >
+              {showAllKeywords
+                ? "Show fewer keywords"
+                : `Show ${hiddenKeywordCount} rarer keyword${hiddenKeywordCount === 1 ? "" : "s"}`}
+            </button>
+          )}
         </div>
       </section>
 

@@ -12,6 +12,7 @@ import {
   quoteSearchQuerySchema,
 } from "../schemas.js";
 import { ensureUserProfile } from "../utils/profile.js";
+import { toKeywordFacets } from "../utils/keywordFacets.js";
 import {
   createEmptyDimensionBreakdown,
   summaryFromScoreRecord,
@@ -81,17 +82,16 @@ function formatQuoteWithVotes(quote: {
 const prepsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/preps/keywords", async () => {
     const keywords = await prisma.prepKeyword.findMany({
-      orderBy: { name: "asc" },
+      include: {
+        preps: {
+          select: {
+            prep: { select: { bookId: true } },
+          },
+        },
+      },
     });
 
-    return {
-      keywords: keywords.map((keyword) => ({
-        id: keyword.id,
-        name: keyword.name,
-        slug: keyword.slug,
-        description: keyword.description,
-      })),
-    };
+    return { keywords: toKeywordFacets(keywords) };
   });
 
   fastify.post(
