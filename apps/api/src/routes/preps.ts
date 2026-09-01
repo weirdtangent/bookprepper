@@ -82,6 +82,7 @@ function formatQuoteWithVotes(quote: {
 const prepsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/preps/keywords", async () => {
     const keywords = await prisma.prepKeyword.findMany({
+      where: { status: "CANONICAL" },
       include: {
         preps: {
           select: {

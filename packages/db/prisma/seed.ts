@@ -2968,16 +2968,21 @@ async function main() {
   for (const [slug, template] of Object.entries(KEYWORD_TEMPLATES) as Array<
     [KeywordSlug, KeywordTemplate]
   >) {
+    // These templates are the designed vocabulary, so they seed as CANONICAL.
+    // Anything else in the table arrived as free text from prep authoring and
+    // stays PENDING until a curator promotes it.
     const keyword = await prisma.prepKeyword.upsert({
       where: { slug },
       update: {
         name: template.name,
         description: template.description,
+        status: "CANONICAL",
       },
       create: {
         slug,
         name: template.name,
         description: template.description,
+        status: "CANONICAL",
       },
     });
     keywordRecords.set(slug, keyword.id);

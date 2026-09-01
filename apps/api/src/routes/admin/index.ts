@@ -5,6 +5,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import adminBooksRoutes from "./books.js";
+import adminKeywordsRoutes from "./keywords.js";
 import adminPrepsRoutes from "./preps.js";
 import adminSuggestionsRoutes from "./suggestions.js";
 
@@ -22,6 +23,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   await fastify.register(adminBooksRoutes);
+  await fastify.register(adminKeywordsRoutes);
   await fastify.register(adminPrepsRoutes);
   await fastify.register(adminSuggestionsRoutes);
 };

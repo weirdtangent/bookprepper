@@ -7,6 +7,8 @@ export type {
   Genre,
   Keyword,
   KeywordFacet,
+  AdminKeyword,
+  PrepKeywordStatus,
   PromptFeedbackDimension,
   PromptVoteDimensionBreakdown,
   PromptVoteSummary,
@@ -40,6 +42,7 @@ import type {
   Pagination,
   Genre,
   KeywordFacet,
+  AdminKeyword,
   Author,
   PromptFeedbackDimension,
   Prep,
@@ -251,6 +254,29 @@ export const api = {
     }),
   adminDeletePrep: (params: { slug: string; prepId: string; token: string }) =>
     apiFetch<{ message: string }>(`/api/admin/books/${params.slug}/preps/${params.prepId}`, {
+      method: "DELETE",
+      token: params.token,
+    }),
+  adminListKeywords: (token: string) =>
+    apiFetch<{ keywords: AdminKeyword[] }>("/api/admin/keywords", { token }),
+  adminUpdateKeyword: (params: {
+    id: string;
+    token: string;
+    body: { name?: string; description?: string | null; status?: "CANONICAL" | "PENDING" };
+  }) =>
+    apiFetch<{ keyword: AdminKeyword }>(`/api/admin/keywords/${params.id}`, {
+      method: "PATCH",
+      body: params.body,
+      token: params.token,
+    }),
+  adminAliasKeyword: (params: { id: string; aliasOfId: string; token: string }) =>
+    apiFetch<{ keyword: AdminKeyword }>(`/api/admin/keywords/${params.id}/alias`, {
+      method: "POST",
+      body: { aliasOfId: params.aliasOfId },
+      token: params.token,
+    }),
+  adminDeleteKeyword: (params: { id: string; token: string }) =>
+    apiFetch<void>(`/api/admin/keywords/${params.id}`, {
       method: "DELETE",
       token: params.token,
     }),

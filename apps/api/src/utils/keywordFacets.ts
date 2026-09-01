@@ -19,9 +19,11 @@ type KeywordWithPreps = {
  *
  * A keyword's usefulness as a filter is how many distinct books it reaches, not
  * how many preps carry it — several preps on one book make a keyword look popular
- * while it still narrows the library to a single title. Keywords reaching zero
- * books can only ever filter to an empty page, so they are dropped rather than
- * offered as dead-end chips.
+ * while it still narrows the library to a single title.
+ *
+ * Which keywords belong in the filter is decided by curation (status CANONICAL);
+ * this drops the zero-book ones on top of that, because a curated keyword whose
+ * last prep was deleted would otherwise still be offered as a dead-end chip.
  */
 export function toKeywordFacets(keywords: KeywordWithPreps[]): KeywordFacet[] {
   return keywords

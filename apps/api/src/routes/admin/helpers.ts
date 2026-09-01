@@ -11,6 +11,7 @@ import {
   toVotesPayload,
 } from "../../utils/promptScores.js";
 import { tokenizeSearch, slugify } from "../../utils/strings.js";
+import { resolveKeyword, dedupeKeywords } from "../../utils/keywordResolution.js";
 
 // Prisma include configurations
 export const adminBookDetailInclude = {
@@ -222,6 +223,14 @@ export async function syncBookGenres(bookId: string, genreIds: string[]) {
   });
 }
 
+/**
+ * Resolves free-text keyword names to the keywords a prep should actually link to.
+ *
+ * Names that do not exist yet are created as PENDING: they are recorded and
+ * attached to the prep, but stay out of the library filter until a curator
+ * promotes them. This is what stops the filter's vocabulary from growing every
+ * time someone authors a prep.
+ */
 export async function upsertKeywords(keywordNames: string[]) {
   const cleaned = Array.from(new Set(keywordNames.map((name) => name.trim()).filter(Boolean)));
 
@@ -229,16 +238,24 @@ export async function upsertKeywords(keywordNames: string[]) {
     return [];
   }
 
-  return Promise.all(
-    cleaned.map((name) => {
+  const resolved = await Promise.all(
+    cleaned.map(async (name) => {
       const slug = slugify(name);
-      return prisma.prepKeyword.upsert({
+
+      // Deliberately no `update` — the curated spelling of an existing keyword
+      // outranks whatever casing this particular prep was authored with.
+      const keyword = await prisma.prepKeyword.upsert({
         where: { slug },
-        update: { name },
-        create: { name, slug },
+        update: {},
+        create: { name, slug, status: "PENDING" },
+        include: { aliasOf: { select: { id: true, name: true, slug: true } } },
       });
+
+      return resolveKeyword(keyword);
     })
   );
+
+  return dedupeKeywords(resolved);
 }
 
 export async function ensureUniqueSlug(type: "book" | "author" | "genre", rawValue: string) {
@@ -348,4 +365,75 @@ export async function selectUnusedPrepColor(bookId: string): Promise<string | nu
   }
 
   return availableColors[0];
+}
+
+/**
+ * Points a keyword's preps at another keyword and marks it an alias of that target.
+ *
+ * Marking the status alone would not merge anything: the preps would stay linked
+ * to the alias, so the target's book count would not grow and the library filter
+ * would keep under-reporting it. The links have to move.
+ */
+export async function aliasKeywordInto(
+  fastify: FastifyInstance,
+  sourceId: string,
+  targetId: string
+) {
+  if (sourceId === targetId) {
+    throw fastify.httpErrors.badRequest("A keyword cannot be an alias of itself.");
+  }
+
+  const [source, target] = await Promise.all([
+    prisma.prepKeyword.findUnique({ where: { id: sourceId } }),
+    prisma.prepKeyword.findUnique({ where: { id: targetId } }),
+  ]);
+
+  if (!source) {
+    throw fastify.httpErrors.notFound("Keyword not found.");
+  }
+
+  if (!target) {
+    throw fastify.httpErrors.notFound("Target keyword not found.");
+  }
+
+  // Aliases are resolved in a single hop when preps are authored, so pointing one
+  // at another alias would silently drop the keyword instead of redirecting it.
+  if (target.status === "ALIAS") {
+    throw fastify.httpErrors.badRequest(
+      "Cannot alias onto another alias. Choose the canonical keyword instead."
+    );
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const [sourceLinks, targetLinks] = await Promise.all([
+      tx.prepKeywordOnPrep.findMany({ where: { keywordId: sourceId }, select: { prepId: true } }),
+      tx.prepKeywordOnPrep.findMany({ where: { keywordId: targetId }, select: { prepId: true } }),
+    ]);
+
+    // A prep tagged with both keywords already has the target link; creating it
+    // again would violate the composite primary key.
+    const alreadyLinked = new Set(targetLinks.map((link) => link.prepId));
+    const toMove = sourceLinks.filter((link) => !alreadyLinked.has(link.prepId));
+
+    if (toMove.length > 0) {
+      await tx.prepKeywordOnPrep.createMany({
+        data: toMove.map((link) => ({ prepId: link.prepId, keywordId: targetId })),
+        skipDuplicates: true,
+      });
+    }
+
+    await tx.prepKeywordOnPrep.deleteMany({ where: { keywordId: sourceId } });
+
+    // Anything already aliased to the source would become a two-hop chain, which
+    // resolution does not follow. Re-point them at the target.
+    await tx.prepKeyword.updateMany({
+      where: { aliasOfId: sourceId },
+      data: { aliasOfId: targetId },
+    });
+
+    return tx.prepKeyword.update({
+      where: { id: sourceId },
+      data: { status: "ALIAS", aliasOfId: targetId },
+    });
+  });
 }

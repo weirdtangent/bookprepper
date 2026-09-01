@@ -8,10 +8,6 @@ import { useDebounce } from "../hooks/useDebounce";
 import { useAuth } from "../lib/auth";
 
 const PAGE_SIZE = 12;
-// Below this, a keyword chip narrows the library to one or two books, which is a
-// link to a book rather than a filter. Rare keywords stay reachable via the
-// "Show all" toggle and via prep-card links, which arrive as ?prep=<slug>.
-const KEYWORD_FACET_MIN_BOOKS = 3;
 const labelFromSlug = (slug: string) =>
   slug
     .split("-")
@@ -34,7 +30,6 @@ export default function HomePage() {
   const [prepFilters, setPrepFilters] = useState<string[]>(() =>
     parseListParam(searchParams.get("prep"))
   );
-  const [showAllKeywords, setShowAllKeywords] = useState(false);
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 350);
   const typeaheadSearch = useDebounce(search, 200);
@@ -164,25 +159,13 @@ export default function HomePage() {
 
   const keywords = useMemo(() => keywordsQuery.data?.keywords ?? [], [keywordsQuery.data]);
 
-  // Always render a selected keyword even if it is below the threshold, otherwise
-  // a ?prep=<slug> link from a prep card leaves the user unable to deselect it.
-  const visibleKeywords = useMemo(
-    () =>
-      showAllKeywords
-        ? keywords
-        : keywords.filter(
-            (keyword) =>
-              keyword.bookCount >= KEYWORD_FACET_MIN_BOOKS || prepFilters.includes(keyword.slug)
-          ),
-    [keywords, showAllKeywords, prepFilters]
-  );
-
-  const hiddenKeywordCount = keywords.length - visibleKeywords.length;
-
-  // A ?prep=<slug> URL can also name a keyword the endpoint does not return at
-  // all — one that reaches no books, or that was removed after the link was
-  // shared. Those slugs still filter server-side, so render them as chips or the
-  // only way out is "Reset filters".
+  // The endpoint returns exactly the curated vocabulary, so there is nothing left
+  // to gate on here — a keyword reaching few books is shown when a curator has
+  // decided it belongs.
+  //
+  // A ?prep=<slug> URL can still name a keyword outside that list: prep cards link
+  // every keyword they carry, including ones awaiting review. Those slugs filter
+  // server-side, so render them as chips or the only way out is "Reset filters".
   const unknownPrepFilters = useMemo(() => {
     const known = new Set(keywords.map((keyword) => keyword.slug));
     return prepFilters.filter((slug) => !known.has(slug));
@@ -322,7 +305,7 @@ export default function HomePage() {
             <small>{prepFilters.length} selected</small>
           </div>
           <div className="chip-grid">
-            {visibleKeywords.map((keyword) => {
+            {keywords.map((keyword) => {
               const isSelected = prepFilters.includes(keyword.slug);
               return (
                 <button
@@ -342,25 +325,16 @@ export default function HomePage() {
                 key={slug}
                 type="button"
                 className="chip chip--selected"
-                title="This keyword is no longer available. Select to remove it from your filters."
+                title="Not part of the curated keyword list. Select to remove it from your filters."
                 onClick={() => togglePrepFilter(slug)}
               >
                 {labelFromSlug(slug)}
-                <span className="chip__count">0</span>
+                <span className="chip__remove" aria-hidden="true">
+                  &times;
+                </span>
               </button>
             ))}
           </div>
-          {(hiddenKeywordCount > 0 || showAllKeywords) && (
-            <button
-              type="button"
-              className="chip-grid__toggle"
-              onClick={() => setShowAllKeywords((current) => !current)}
-            >
-              {showAllKeywords
-                ? "Show fewer keywords"
-                : `Show ${hiddenKeywordCount} rarer keyword${hiddenKeywordCount === 1 ? "" : "s"}`}
-            </button>
-          )}
         </div>
       </section>
 
