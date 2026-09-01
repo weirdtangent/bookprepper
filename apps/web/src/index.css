@@ -1872,3 +1872,17 @@ body.theme-dark .quote-form__textarea--verified {
   align-items: center;
   gap: 0.4rem;
 }
+
+.filter-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-summary p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
