@@ -157,6 +157,26 @@ export const adminPrepUpsertSchema = z.object({
   keywords: z.array(z.string().min(2).max(60)).max(12).optional(),
 });
 
+export const keywordIdParamsSchema = z.object({
+  id: z.string().cuid(),
+});
+
+export const adminKeywordUpdateSchema = z
+  .object({
+    name: z.string().min(2).max(60).optional(),
+    description: z.string().max(280).nullable().optional(),
+    status: z.enum(["CANONICAL", "PENDING"]).optional(),
+  })
+  .refine((body) => Object.keys(body).length > 0, {
+    message: "Provide at least one field to update.",
+  });
+
+// Aliasing is its own endpoint rather than a status value, because it has to move
+// prep links as well as set a field.
+export const adminKeywordAliasSchema = z.object({
+  aliasOfId: z.string().cuid(),
+});
+
 export const suggestionIdParamsSchema = z.object({
   id: z.string().cuid(),
 });
@@ -220,6 +240,9 @@ export type AdminBookCreateBody = z.infer<typeof adminBookCreateSchema>;
 export type AdminBookUpdateBody = z.infer<typeof adminBookUpdateSchema>;
 export type AdminPrepUpsertBody = z.infer<typeof adminPrepUpsertSchema>;
 export type SuggestionIdParams = z.infer<typeof suggestionIdParamsSchema>;
+export type KeywordIdParams = z.infer<typeof keywordIdParamsSchema>;
+export type AdminKeywordUpdateBody = z.infer<typeof adminKeywordUpdateSchema>;
+export type AdminKeywordAliasBody = z.infer<typeof adminKeywordAliasSchema>;
 export type ProfileUpdateBody = z.infer<typeof profileUpdateBodySchema>;
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
 export type QuoteParams = z.infer<typeof quoteParamsSchema>;

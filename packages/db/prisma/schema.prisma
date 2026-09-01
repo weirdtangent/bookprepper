@@ -29,6 +29,15 @@ enum ReadingState {
   DONE
 }
 
+/// Governs whether a keyword is offered in the library filter.
+/// CANONICAL is the curated vocabulary; PENDING is free text awaiting review;
+/// ALIAS redirects to the canonical keyword named by aliasOfId.
+enum PrepKeywordStatus {
+  CANONICAL
+  PENDING
+  ALIAS
+}
+
 enum SuggestionStatus {
   PENDING
   APPROVED
@@ -92,13 +101,20 @@ model BookGenre {
 }
 
 model PrepKeyword {
-  id          String            @id @default(cuid())
+  id          String             @id @default(cuid())
   name        String
   slug        String             @unique
   description String?
+  status      PrepKeywordStatus  @default(PENDING)
+  aliasOfId   String?
+  aliasOf     PrepKeyword?       @relation("PrepKeywordAlias", fields: [aliasOfId], references: [id])
+  aliases     PrepKeyword[]      @relation("PrepKeywordAlias")
   preps       PrepKeywordOnPrep[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
+
+  @@index([status])
+  @@index([aliasOfId])
 }
 
 model PrepKeywordOnPrep {

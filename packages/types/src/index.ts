@@ -45,6 +45,21 @@ export type KeywordFacet = Keyword & {
   bookCount: number;
 };
 
+/**
+ * CANONICAL keywords are the curated vocabulary the library filter offers.
+ * PENDING is free text awaiting review. ALIAS redirects onto a canonical keyword.
+ */
+export type PrepKeywordStatus = "CANONICAL" | "PENDING" | "ALIAS";
+
+/** A keyword as seen in the admin vocabulary screen, with its usage and alias target. */
+export type AdminKeyword = Keyword & {
+  status: PrepKeywordStatus;
+  aliasOf: { id: string; name: string; slug: string } | null;
+  aliasCount: number;
+  prepCount: number;
+  bookCount: number;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Prompt Feedback
 // ─────────────────────────────────────────────────────────────────────────────

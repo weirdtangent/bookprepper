@@ -10,6 +10,7 @@ import {
   type AdminUpdateBookInput,
 } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { KeywordVocabulary } from "../components/admin/KeywordVocabulary";
 import { useDebounce } from "../hooks/useDebounce";
 
 type PrepDraft = {
@@ -1120,6 +1121,14 @@ export default function AdminPage() {
             ))}
           </SuggestionColumn>
         </div>
+      </div>
+
+      <div className="admin-panel">
+        <div className="admin-panel__header">
+          <h2>Prep keyword vocabulary</h2>
+          <small>Only canonical keywords appear in the library filter</small>
+        </div>
+        {auth.token && <KeywordVocabulary token={auth.token} />}
       </div>
     </section>
   );
