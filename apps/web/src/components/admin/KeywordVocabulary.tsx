@@ -125,7 +125,8 @@ export function KeywordVocabulary({ token }: Props) {
               <span className="keyword-row__name">{keyword.name}</span>
               <span className="keyword-row__usage">
                 {keyword.bookCount} book{keyword.bookCount === 1 ? "" : "s"}
-                {keyword.aliasCount > 0 && ` · ${keyword.aliasCount} alias`}
+                {keyword.aliasCount > 0 &&
+                  ` · ${keyword.aliasCount} alias${keyword.aliasCount === 1 ? "" : "es"}`}
               </span>
               <button
                 type="button"

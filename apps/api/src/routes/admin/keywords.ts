@@ -6,6 +6,7 @@
  * keyword, or deleted.
  */
 import type { FastifyPluginAsync } from "fastify";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "db";
 import {
   adminKeywordAliasSchema,
@@ -22,9 +23,7 @@ const keywordWithUsage = {
   },
 } as const;
 
-type KeywordWithUsage = Awaited<
-  ReturnType<typeof prisma.prepKeyword.findFirstOrThrow<typeof keywordWithUsage>>
->;
+type KeywordWithUsage = Prisma.PrepKeywordGetPayload<typeof keywordWithUsage>;
 
 function mapAdminKeyword(keyword: KeywordWithUsage) {
   return {
