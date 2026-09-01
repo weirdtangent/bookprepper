@@ -12,6 +12,12 @@ const PAGE_SIZE = 12;
 // link to a book rather than a filter. Rare keywords stay reachable via the
 // "Show all" toggle and via prep-card links, which arrive as ?prep=<slug>.
 const KEYWORD_FACET_MIN_BOOKS = 3;
+const labelFromSlug = (slug: string) =>
+  slug
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 const parseListParam = (value: string | null) =>
   value
     ?.split(",")
@@ -172,6 +178,15 @@ export default function HomePage() {
   );
 
   const hiddenKeywordCount = keywords.length - visibleKeywords.length;
+
+  // A ?prep=<slug> URL can also name a keyword the endpoint does not return at
+  // all — one that reaches no books, or that was removed after the link was
+  // shared. Those slugs still filter server-side, so render them as chips or the
+  // only way out is "Reset filters".
+  const unknownPrepFilters = useMemo(() => {
+    const known = new Set(keywords.map((keyword) => keyword.slug));
+    return prepFilters.filter((slug) => !known.has(slug));
+  }, [keywords, prepFilters]);
   const genres = useMemo(() => genresQuery.data?.genres ?? [], [genresQuery.data]);
   const authors = useMemo(() => authorsQuery.data?.authors ?? [], [authorsQuery.data]);
   const typeaheadResults = typeaheadQuery.data?.results ?? [];
@@ -322,6 +337,18 @@ export default function HomePage() {
                 </button>
               );
             })}
+            {unknownPrepFilters.map((slug) => (
+              <button
+                key={slug}
+                type="button"
+                className="chip chip--selected"
+                title="This keyword is no longer available. Select to remove it from your filters."
+                onClick={() => togglePrepFilter(slug)}
+              >
+                {labelFromSlug(slug)}
+                <span className="chip__count">0</span>
+              </button>
+            ))}
           </div>
           {(hiddenKeywordCount > 0 || showAllKeywords) && (
             <button
