@@ -1,3 +1,5 @@
+import { rankFacets } from "./facets.js";
+
 type KeywordFacet = {
   id: string;
   name: string;
@@ -26,14 +28,13 @@ type KeywordWithPreps = {
  * last prep was deleted would otherwise still be offered as a dead-end chip.
  */
 export function toKeywordFacets(keywords: KeywordWithPreps[]): KeywordFacet[] {
-  return keywords
-    .map((keyword) => ({
+  return rankFacets(
+    keywords.map((keyword) => ({
       id: keyword.id,
       name: keyword.name,
       slug: keyword.slug,
       description: keyword.description,
       bookCount: new Set(keyword.preps.map((entry) => entry.prep.bookId)).size,
     }))
-    .filter((keyword) => keyword.bookCount > 0)
-    .sort((a, b) => b.bookCount - a.bookCount || a.name.localeCompare(b.name));
+  );
 }

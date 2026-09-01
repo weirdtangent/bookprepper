@@ -33,6 +33,11 @@ export type Genre = {
   description?: string | null;
 };
 
+/** A genre as offered in the library filter, carrying how many books it reaches. */
+export type GenreFacet = Genre & {
+  bookCount: number;
+};
+
 export type Keyword = {
   id: string;
   name: string;
