@@ -64,7 +64,7 @@
       "fast-uri@^4": "^4.1.2",
       "postcss": "^8.5.23",
       "valibot": "^1.4.2",
-      "js-yaml": "^4.3.1",
+      "js-yaml": "^4.3.2",
       "deepmerge-ts": "^8.0.0",
       "mariadb": "^3.5.3",
       "mysql2": "^3.22.0"
