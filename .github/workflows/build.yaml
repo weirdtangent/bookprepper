@@ -135,7 +135,18 @@ jobs:
         run: pnpm --filter config --filter db --filter types build
 
       - name: Run tests
-        run: pnpm test
+        run: pnpm test:coverage
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: |
+            apps/api/coverage
+            apps/web/coverage
+          retention-days: 14
+          if-no-files-found: warn
 
   release:
     name: Semantic Release
