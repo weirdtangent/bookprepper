@@ -23,14 +23,14 @@
     "seed": "pnpm run seed"
   },
   "dependencies": {
-    "@prisma/adapter-mariadb": "^7.9.1",
-    "@prisma/client": "^7.9.1",
+    "@prisma/adapter-mariadb": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
-    "@types/node": "^26.3.0",
-    "prisma": "^7.9.1",
-    "tsx": "^4.23.12",
+    "@types/node": "^26.5.0",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3"
   }
 }
