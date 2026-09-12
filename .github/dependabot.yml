@@ -4,6 +4,14 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Dependabot applies a default 3-day cooldown to npm/pnpm version updates.
+    # With ~800 packages in this tree something is always published inside that
+    # window, so the weekly job kept going red with ERR_PNPM_NO_MATCHING_VERSION
+    # ("published by <cutoff>") and on 2026-09-04 lost that week's grouped PR
+    # entirely. Security updates are exempt from cooldown either way, so
+    # disabling it does not affect CVE-driven bumps.
+    cooldown:
+      default-days: 0
     open-pull-requests-limit: 10
     ignore:
       # typescript-eslint has no TypeScript 7 compatible release yet: its peer
